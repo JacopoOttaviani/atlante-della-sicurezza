@@ -19,6 +19,7 @@ Strumento civico sui reati denunciati nei 108 comuni capoluogo italiani, 2006–
 - `scripts/build_rimpatri.py`: costruisce `data/rimpatri.json` e `data/mondo.topo.json` dall'API Eurostat (`migr_eirtn`, `migr_eiord`) e da GISCO; i nomi italiani dei paesi vengono da `scripts/paesi_it.json`, copia della codelist ISTAT `CL_ISO`. Controlla che la somma per paese torni con il totale, a meno degli arrotondamenti a 5.
 - `scripts/build_quartieri_milano.py`: costruisce `data/quartieri/015146.*` e `data/quartieri/index.json` dal portale open data del Comune di Milano (confini dei NIL, dati dei quartieri 2011-2024, municipi, edifici degradati, pendolari del censimento 2011) e da `data/vc.json`. Scrive il TopoJSON da sé, senza dipendenze. Va lanciato dopo `build_data.py`.
 - `scripts/make_artifact.py`: crea la versione della pagina senza `<head>`, per la pubblicazione come artifact.
+- `scripts/make_icons.py`: disegna le icone del sito dal marchio del meridiano: `favicon.ico`, `img/favicon.svg`, l'icona per la schermata iniziale e quelle elencate in `site.webmanifest`.
 
 ## Aggiornare i dati
 
