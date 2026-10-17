@@ -29,7 +29,7 @@ def free_port():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--theme", default="light", choices=["light", "dark"])
+    ap.add_argument("--theme", default="dark", choices=["light", "dark"])
     ap.add_argument("--out", default=str(ROOT / "img" / "og-image.jpg"))
     ap.add_argument("--max-kb", type=int, default=250)
     ap.add_argument("--keep-png", help="salva anche il PNG a scala 2 qui")
