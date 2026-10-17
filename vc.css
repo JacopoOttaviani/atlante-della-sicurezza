@@ -771,12 +771,30 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   .national { min-height: 0; }
   .national .chart { flex: 0 0 auto; height: clamp(240px, 40vw, 360px); min-height: 0; }
 }
+/* Telefono: una barra sola. Sotto i 560px la testata incollata è l'unica barra: il simbolo, le sezioni in un menu
+   a tendina, il reato e la lente; il JS ci sposta il menu dei reati e la ricerca, e la barra dei comandi sparisce.
+   La lente apre la ricerca su tutta la barra (.searching). Più larghi, questi strumenti non si vedono. */
+.bar-tools { display: none; }
 @media (max-width: 560px) {
-  :root { --step-3: 1.85rem; --step-2: 1.3rem; --section: 44px; --bar-h: 48px; --controls-h: 53px; }
+  :root { --step-3: 1.85rem; --step-2: 1.3rem; --section: 44px; --bar-h: 48px; --controls-h: 0px; }
   .hero { padding-block: 28px 24px; }
-  .controls .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 6px 8px; padding-block: 8px; }
-  .controls select, .controls input[type="search"] { width: 100%; min-height: 34px; }
-  .controls .combo { width: 100%; }
+  .masthead .menu, .masthead .bar-cta, .controls { display: none; }
+  .controls + section.block { border-top: 1px solid var(--rule); }
+  .bar-tools { display: flex; flex: 1 1 auto; min-width: 0; align-items: center; gap: 6px; }
+  /* 16px: sotto questa misura Safari su iPhone ingrandisce la pagina quando si tocca il campo */
+  .bar-tools select, .bar-tools input[type="search"] { font-size: 16px; min-height: 36px; }
+  #section-select { flex: 0 1 auto; max-width: 132px; font-weight: 500; }
+  .bar-tools > .control { flex: 1 1 0; min-width: 0; }
+  .bar-tools > .control select { width: 100%; }
+  .bar-tools > .control-search { display: none; margin-left: 0; }
+  .bar-find { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); cursor: pointer; }
+  .bar-find svg { width: 18px; height: 18px; }
+  .bar-find .i-close { display: none; }
+  .masthead.searching #section-select, .masthead.searching .bar-tools > .control:not(.control-search) { display: none; }
+  .masthead.searching .bar-tools > .control-search { display: flex; }
+  .masthead.searching .control-search .combo, .masthead.searching .control-search input { width: 100%; }
+  .masthead.searching .bar-find .i-find { display: none; }
+  .masthead.searching .bar-find .i-close { display: block; }
   .finder { padding-block: 24px 26px; }
   .cityd .top { padding: 12px 14px 10px; }
   .cityd .body { padding: 14px 14px 20px; }

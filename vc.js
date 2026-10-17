@@ -2202,6 +2202,49 @@
       const home = $(".wordmark a");
       if (home) home.addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
     }
+    // Telefono: una barra sola. Sotto i 560px la testata incollata accoglie anche il menu dei reati e la ricerca
+    // (gli stessi elementi, spostati con i loro ascoltatori: niente doppioni) e le sezioni diventano un menu a
+    // tendina che segue la sezione in vista. La lente apre la ricerca su tutta la barra. La barra dei comandi,
+    // rimasta vuota, sparisce (vc.css).
+    const tools = $(".bar-tools"), secSel = $("#section-select"), findBtn = $("#bar-find");
+    if (tools && secSel && findBtn) {
+      const mast = $(".masthead"), typeCtl = $("#type-select").closest(".control"), findCtl = $(".control-search"), ctlWrap = $(".controls .wrap");
+      const input = $("#city-search"), phone = matchMedia("(max-width: 560px)");
+      const searching = (on) => {
+        mast.classList.toggle("searching", on);
+        findBtn.setAttribute("aria-expanded", on);
+        findBtn.setAttribute("aria-label", on ? "Chiudi la ricerca" : "Cerca un comune");
+        if (on) input.focus();
+      };
+      const place = () => {
+        const to = phone.matches ? tools : ctlWrap, before = phone.matches ? findBtn : null;
+        if (typeCtl.parentNode !== to) { to.insertBefore(typeCtl, before); to.insertBefore(findCtl, before); }
+        if (!phone.matches) searching(false);
+      };
+      phone.addEventListener("change", place);
+      place();
+      findBtn.addEventListener("click", () => searching(!mast.classList.contains("searching")));
+      // Esc: il primo chiude l'elenco (lo fa la ricerca, con preventDefault), il secondo la ricerca
+      input.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !ev.defaultPrevented && mast.classList.contains("searching")) { searching(false); findBtn.focus(); } });
+      // scelto un comune si apre la scheda: la ricerca si richiude
+      new MutationObserver(() => { if (dlg.open) searching(false); }).observe(dlg, { attributes: true, attributeFilter: ["open"] });
+      // toccando altrove, a campo vuoto, la barra torna com'era
+      tools.addEventListener("focusout", (ev) => {
+        if (!mast.classList.contains("searching") || tools.contains(ev.relatedTarget) || input.value) return;
+        setTimeout(() => { if (!tools.contains(document.activeElement) && !input.value) searching(false); }, 200);
+      });
+      const links = [...document.querySelectorAll('.masthead .menu a[href^="#"]')];
+      secSel.innerHTML = `<option value="" hidden>Sezioni</option>` + links.map((a) => `<option value="${esc(a.hash.slice(1))}">${esc(a.textContent)}</option>`).join("");
+      // segue la voce che il menu in testata segna come in vista (il suo ascoltatore di scroll gira prima di questo)
+      const sync = () => { const a = $(".masthead .menu a[aria-current]"), v = a ? a.hash.slice(1) : ""; if (secSel.value !== v) secSel.value = v; };
+      secSel.addEventListener("change", () => {
+        const t = document.getElementById(secSel.value);
+        if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        secSel.blur();
+      });
+      addEventListener("scroll", sync, { passive: true });
+      sync();
+    }
     new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     const extraSources = [
