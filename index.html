@@ -5,17 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlante della sicurezza</title>
 <meta name="description" content="Atlante della sicurezza: quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT 2006–2024 sui 108 comuni capoluogo, con classifiche, mappa e impennate.">
+<link rel="icon" type="image/png" sizes="192x192" href="img/favicon.png">
+
+<!-- Anteprima del link quando viene condiviso (WhatsApp, Slack, Telegram, LinkedIn, Facebook, X).
+     L'immagine la produce scripts/make_og.py da scripts/og-card.html; quando cambia, alzare ?v=
+     così le app scaricano di nuovo la scheda invece di mostrare quella in cache. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atlante della sicurezza">
+<meta property="og:title" content="Atlante della sicurezza: reati denunciati città per città, 2006–2024">
+<meta property="og:description" content="Quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT sui 108 capoluoghi e la scheda di ogni comune, con classifiche, mappa e impennate.">
+<meta property="og:url" content="https://atlantedellasicurezza.it/">
+<meta property="og:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=1">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atlante della sicurezza. In Italia si denunciano meno reati di quindici anni fa, ma non ovunque e non tutti. Mappa dei 108 capoluoghi con una guglia per città: l’altezza è il tasso di denunce, rosso in aumento, blu in calo.">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atlante della sicurezza: reati denunciati città per città, 2006–2024">
+<meta name="twitter:description" content="Quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT sui 108 capoluoghi e la scheda di ogni comune, con classifiche, mappa e impennate.">
+<meta name="twitter:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=1">
+<meta name="twitter:image:alt" content="Atlante della sicurezza. In Italia si denunciano meno reati di quindici anni fa, ma non ovunque e non tutti. Mappa dei 108 capoluoghi con una guglia per città: l’altezza è il tasso di denunce, rosso in aumento, blu in calo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=26">
+<link rel="stylesheet" href="vc.css?v=33">
 </head>
 <body>
 <!-- vc:content -->
 <header class="masthead">
   <div class="wrap">
-    <h1 class="wordmark"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
-    <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+    <h1 class="wordmark"><a href="#" aria-label="Atlante della sicurezza: torna all'inizio"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></a></h1>
+    <nav class="menu" aria-label="Sezioni della pagina">
+      <ul>
+        <li><a href="#in-breve">In breve</a></li>
+        <li><a href="#mappa">Mappa</a></li>
+        <li><a href="#mix">Reati</a></li>
+        <li><a href="#impennate">Impennate</a></li>
+        <li><a href="#citta">Città</a></li>
+        <li><a href="#carceri">Carceri</a></li>
+        <li><a href="#rimpatri">Rimpatri</a></li>
+        <li><a href="#percezione">Percezione</a></li>
+        <li><a href="#metodo">Metodo</a></li>
+      </ul>
+    </nav>
+    <div class="cta bar-cta">
+      <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+        <span>Offrimi un caffè</span>
+      </a>
+      <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+    </div>
   </div>
 </header>
 
@@ -28,7 +71,7 @@
           <ol class="eyechart" id="eyechart" aria-label="I numeri principali">
             <li><span class="fig">…</span><span class="cap">Caricamento dei dati ISTAT</span></li>
           </ol>
-          <p class="hero-note">Uno strumento per leggere i dati ufficiali sui reati da vicino: città per città, reato per reato, anno per anno. Le impennate sono segnate in oro.</p>
+          <p class="hero-note">Uno strumento per leggere i dati ufficiali sui reati da vicino: città per città, reato per reato, anno per anno. Le impennate, cioè gli aumenti improvvisi, sono segnate in oro.</p>
         </div>
         <div class="national" id="national">
           <div class="kicker">Italia, 2006–2024</div>
@@ -59,21 +102,30 @@
     </div>
   </section>
 
-  <div class="controls-sentinel" aria-hidden="true"></div>
-  <nav class="controls" aria-label="Scegli reato e confronto">
+  <section class="block brief" id="in-breve" aria-labelledby="brief-title">
     <div class="wrap">
-      <a class="bar-brand" href="#" aria-label="Atlante della sicurezza: torna all'inizio"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="wordmark" aria-hidden="true"><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></span></a>
+      <header>
+        <div class="kicker">In breve</div>
+        <h2 id="brief-title">Le domande che tutti si fanno</h2>
+        <p class="dek">Le risposte in poche righe, con gli stessi dati ufficiali dei grafici qui sotto. Ogni risposta porta alla sezione che la spiega.</p>
+      </header>
+      <div class="qa" id="brief"></div>
+      <div class="mix-key brief-key">
+        <span class="lead">Nei grafici</span>
+        <span><i class="k-up"></i>rosso: in aumento</span>
+        <span><i class="k-down"></i>blu: in calo</span>
+        <span><i class="k-flat"></i>grigio: differenza troppo piccola per dire che qualcosa sia cambiato</span>
+        <span><i class="k-gold"></i>oro: impennata, un aumento improvviso</span>
+      </div>
+    </div>
+  </section>
+
+  <nav class="controls" aria-label="Scegli il reato o cerca un comune">
+    <div class="wrap">
       <label class="control"><span class="label opt">Reato</span>
         <select id="type-select"></select>
       </label>
-      <div class="control" role="group" aria-labelledby="base-label"><span class="label" id="base-label">2024 rispetto al</span>
-        <div class="seg" id="base-seg">
-          <button type="button" data-base="2023" aria-pressed="false">2023</button>
-          <button type="button" data-base="2019" aria-pressed="true">2019 (pre-Covid)</button>
-          <button type="button" data-base="2014">2014</button>
-        </div>
-      </div>
-      <div class="control"><label class="label opt" for="city-search">Comune</label>
+      <div class="control control-search">
         <div class="combo" id="city-combo">
           <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
           <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
@@ -88,6 +140,13 @@
         <div class="kicker">Classifica e mappa</div>
         <h2 id="map-title">Dove si denuncia di più, e dove di meno</h2>
         <p class="dek" id="map-dek"></p>
+        <div class="control base-pick" role="group" aria-labelledby="base-label"><span class="label" id="base-label">Confronta il 2024 con il</span>
+          <div class="seg" id="base-seg">
+            <button type="button" data-base="2023" aria-pressed="false">2023</button>
+            <button type="button" data-base="2019" aria-pressed="true">2019, prima del Covid</button>
+            <button type="button" data-base="2014">2014</button>
+          </div>
+        </div>
       </header>
       <div class="two">
         <div class="mapbox">
@@ -133,7 +192,7 @@
       <header>
         <div class="kicker">Impennate e cali</div>
         <h2 id="spike-title">Dove qualcosa è cambiato all’improvviso</h2>
-        <p class="dek">Un’impennata è un anno in cui le denunce per un reato superano di almeno il 25% la media dei tre anni precedenti, con un margine che il caso da solo non spiega e almeno 20 episodi. Gli anni del Covid restano fuori dal confronto. In proporzione, l’ordine segue l’aumento minimo plausibile: una città piccola con pochi casi non scavalca un cambiamento solido. Per casi in più, vengono prima le città dove l’aumento riguarda più persone.</p>
+        <p class="dek">Un’impennata è un anno in cui le denunce per un reato salgono di colpo: almeno un quarto sopra la media dei tre anni prima, con almeno 20 episodi e un salto che il caso da solo non spiega. «In proporzione» mette prima gli aumenti più solidi, «Per casi in più» quelli che riguardano più persone. <a href="#metodo">Come le riconosciamo</a>.</p>
       </header>
       <div class="chips" role="group" aria-label="Anno delle impennate">
         <span class="small">Anno</span>
@@ -329,7 +388,7 @@
         <h3>Se il tuo comune non è un capoluogo</h3>
         <p>L’ISTAT pubblica i delitti denunciati comune per comune solo per i capoluoghi. Per tutti gli altri comuni la scheda mostra i tassi ufficiali della provincia in cui si trovano: un territorio che comprende il comune cercato ma anche il capoluogo, dove di solito si denuncia di più. L’elenco dei comuni è quello ufficiale dell’ISTAT. In Sardegna l’ISTAT conta i reati secondo le quattro province storiche (Sassari, Nuoro, Cagliari, Oristano): ogni comune sardo è attribuito alla provincia in cui si trovava tra il 1995 e il 2005, secondo i codici dell’elenco ufficiale ISTAT dei comuni.</p>
         <h3>Quartiere per quartiere: un prototipo</h3>
-        <p>La scheda di Milano ha una sezione sui suoi 88 quartieri (i Nuclei di identità locale del Piano di governo del territorio), con confini, residenti, stranieri, età, pendolari ed edifici degradati pubblicati dal Comune. I reati per quartiere, invece, non esistono in nessuna fonte ufficiale: ISTAT e Ministero dell’Interno si fermano al comune. Lo strato «Reati · simulazione» ripartisce i delitti denunciati a Milano tra i quartieri in proporzione a residenti e pendolari, con una variazione casuale: è segnato come simulazione ovunque compaia e serve solo a mostrare come apparirà la sezione quando una fonte vera (Prefettura, Questura o Comune) pubblicherà i dati.</p>
+        <p>La scheda di Milano ha una sezione sui suoi 88 quartieri (i Nuclei di identità locale del Piano di governo del territorio), con confini, residenti, densità, stranieri, età, pendolari ed edifici degradati pubblicati dal Comune. I reati per quartiere, invece, non esistono in nessuna fonte ufficiale: ISTAT e Ministero dell’Interno si fermano al comune. La sezione è pronta ad accoglierli il giorno in cui Prefettura, Questura o Comune li pubblicheranno.</p>
         <h3>Come si riconosce un’impennata</h3>
         <p>Per ogni città, reato e anno confrontiamo il tasso con quello dei tre anni precedenti, saltando il 2020 e il 2021. Segniamo un’impennata quando l’aumento è di almeno il 25%, gli episodi sono almeno 20 e la differenza è almeno tre volte più grande dell’oscillazione che ci si aspetterebbe per caso con quel numero di episodi (test sul rapporto tra tassi, z ≥ 3). I cali netti seguono la stessa regola al contrario. Nelle mappe e nelle variazioni, una differenza che non supera la soglia statistica (z sotto 2) è mostrata in grigio.</p>
         <p>Due conseguenze da tenere a mente. Una crescita costante, come quella delle truffe informatiche, produce un’impennata quasi ogni anno: il conteggio delle impennate di un anno include quindi anche tendenze lunghe. E con la soglia dei 20 episodi, i reati rari come omicidi o usura possono risultare in impennata solo nelle città più grandi.</p>
@@ -383,6 +442,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=26"></script>
+<script src="vc.js?v=33"></script>
 </body>
 </html>

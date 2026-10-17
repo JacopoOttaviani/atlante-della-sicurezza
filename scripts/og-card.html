@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Atlante della sicurezza: anteprima per i social</title>
+<!-- La scheda che WhatsApp, Slack, Telegram, LinkedIn e gli altri mostrano quando qualcuno
+     condivide il link: 1200×630, la carta delle guglie a destra e il titolo della pagina a sinistra.
+     Si apre dal server locale (serve data/) e la fotografa scripts/make_og.py con Chrome headless.
+     ?theme=dark usa la terna calda della fascia delle impennate. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=block">
+<style>
+:root {
+  --bg: #f3f4f0; --surface: #fbfbf9; --land: #e7eae4; --ink: #121614; --ink-2: #454c48; --muted: #747b76;
+  --rule: #d6dbd4; --mid: #b9beb8; --rise: #c8364f; --fall: #2c6db0; --gold: #c98d00; --gold-ink: #8a6200;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Newsreader", "Iowan Old Style", Georgia, serif;
+}
+:root[data-theme="dark"] {
+  --bg: #1b1813; --surface: #262118; --land: #2e2820; --ink: #f2ece0; --ink-2: #cfc7b8; --muted: #a39b8c;
+  --rule: #3a332a; --mid: #5c554a; --rise: #e25a6e; --fall: #4f8fd8; --gold: #bf8a0e; --gold-ink: #e3b23c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); }
+body { width: 1200px; height: 630px; overflow: hidden; color: var(--ink); font-family: var(--font-display); -webkit-font-smoothing: antialiased; }
+.card { position: relative; width: 1200px; height: 630px; }
+
+/* una linea d'oro in testa, come il bordo della fascia delle impennate */
+.card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: var(--gold); }
+
+.text { position: absolute; left: 64px; top: 58px; bottom: 56px; width: 620px; display: flex; flex-direction: column; }
+
+.wordmark { display: inline-flex; align-items: center; gap: 0; font-weight: 800; font-stretch: 118%; font-size: 27px; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1; }
+.wordmark .w1 { color: var(--ink); }
+.wordmark .w2 { font-weight: 400; color: var(--muted); }
+.wordmark .w3 { color: var(--gold-ink); }
+.wordmark svg { width: 30px; height: 30px; flex: none; margin-right: 12px; }
+
+.bottom { margin-top: auto; }
+.kicker { font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-ink); margin: 0 0 18px; }
+.kicker::before { content: "— "; }
+h1 { font-family: var(--font-body); font-weight: 400; font-size: 56px; line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 22px; text-wrap: balance; }
+h1 em { font-style: italic; color: var(--gold-ink); }
+.sub { font-family: var(--font-body); font-size: 24px; line-height: 1.35; color: var(--ink-2); margin: 0; max-width: 560px; }
+
+.map { position: absolute; right: 40px; top: 20px; width: 520px; height: 590px; }
+.map svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.map .land { fill: var(--land); }
+.map .prov { fill: none; stroke: var(--bg); stroke-width: 0.7px; }
+.map .reg { fill: none; stroke: var(--rule); stroke-width: 1px; stroke-linejoin: round; }
+.map .coast { fill: none; stroke: var(--mid); stroke-width: 0.7px; stroke-linejoin: round; }
+.map .pin { fill: currentColor; fill-opacity: 0.62; stroke: currentColor; stroke-width: 1px; stroke-linejoin: round; }
+.map .spike .pin { stroke: var(--gold); stroke-width: 2px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="text">
+    <div class="wordmark" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></div>
+    <div class="bottom">
+      <p class="kicker">Dati ufficiali ISTAT, 2006–2024</p>
+      <h1>In Italia si denunciano meno reati di quindici anni fa. <em>Ma non ovunque, e non tutti.</em></h1>
+      <p class="sub">Città per città, reato per reato, anno per anno: classifiche, mappa e impennate dei 108 capoluoghi, e la scheda di ogni comune.</p>
+    </div>
+  </div>
+  <div class="map" id="map"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+(async function () {
+  const q = new URLSearchParams(location.search);
+  if (q.get("theme") === "dark") document.documentElement.dataset.theme = "dark";
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  const [data, topo] = await Promise.all([
+    fetch("../data/vc.json").then((r) => r.json()),
+    fetch("../data/italia.topo.json").then((r) => r.json()),
+  ]);
+  const Y = data.meta.years, LAST = Y.length - 1, iB = Y.indexOf(2019);
+  const COVID = new Set([2020, 2021]);
+
+  // Stessa statistica di vc.js: rapporto tra tassi di Poisson, z sul logaritmo.
+  function rrTest(n1, p1, n0, p0) {
+    if (n1 == null || n0 == null || !p1 || !p0) return null;
+    const a = Math.max(n1, 0.5), b = Math.max(n0, 0.5);
+    const rr = (a / p1) / (b / p0), se = Math.sqrt(1 / a + 1 / b), lr = Math.log(rr);
+    return { rr, z: lr / se, pct: n0 > 0 ? (n1 / p1) / (n0 / p0) - 1 : null };
+  }
+  function spikeLast(n, p) {
+    const base = [];
+    for (let j = LAST - 1; j >= 0 && base.length < 3; j--) if (!COVID.has(Y[j]) && n[j] != null && p[j]) base.push(j);
+    if (base.length < 2 || n[LAST] == null || !p[LAST]) return false;
+    const r = rrTest(n[LAST], p[LAST], d3.sum(base, (j) => n[j]), d3.sum(base, (j) => p[j]));
+    return r.z >= 3 && r.rr >= 1.25 && n[LAST] >= 20;
+  }
+  const sig = (cmp) => (!cmp || cmp.pct == null ? "" : Math.abs(cmp.z) < 2 ? "flat" : cmp.pct > 0 ? "up" : "down");
+  function divColor(cmp) {
+    const s = sig(cmp);
+    if (!s || s === "flat") return css("--mid");
+    const k = Math.min(1, Math.abs(cmp.pct) / 0.6);
+    return d3.interpolateLab(css("--mid"), css(s === "up" ? "--rise" : "--fall"))(0.35 + 0.65 * k);
+  }
+
+  const rows = data.cities.map((c) => {
+    const n = c.n.TOT, p = c.pop;
+    return { c, lvl: (n[LAST] / p[LAST]) * 1e5, cmp: rrTest(n[LAST], p[LAST], n[iB], p[iB]), spike: spikeLast(n, p) };
+  }).filter((d) => isFinite(d.lvl));
+
+  // Carta: la stessa proiezione del sito, adattata all'altezza della scheda.
+  const el = document.getElementById("map");
+  const w = el.clientWidth, h = el.clientHeight;
+  const maxLen = 100, sky = Math.round(maxLen / 2);
+  const obj = topo.objects[Object.keys(topo.objects)[0]];
+  const land = topojson.feature(topo, obj);
+  // Adatta la carta all'Italia fino a Capo Passero: Lampedusa e Linosa, 100 km più a sud, resterebbero un punto
+  // e ruberebbero un decimo dell'altezza alla penisola. Anello in senso orario: per d3-geo un anello
+  // antiorario racchiude tutto il globo tranne il rettangolo.
+  const frame = { type: "Polygon", coordinates: [[[6.6, 36.6], [6.6, 47.1], [18.6, 47.1], [18.6, 36.6], [6.6, 36.6]]] };
+  const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[0, sky], [w, h]], frame);
+  const path = d3.geoPath(proj);
+  const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+  const sameReg = (a, b) => a.properties.reg_istat_code === b.properties.reg_istat_code;
+  const base = svg.append("g");
+  base.append("path").attr("class", "land").attr("d", path(land));
+  base.append("path").attr("class", "prov").attr("d", path(topojson.mesh(topo, obj, (a, b) => a !== b && sameReg(a, b))));
+  base.append("path").attr("class", "reg").attr("d", path(topojson.mesh(topo, obj, (a, b) => a !== b && !sameReg(a, b))));
+  base.append("path").attr("class", "coast").attr("d", path(topojson.mesh(topo, obj, (a, b) => a === b)));
+
+  const maxL = d3.max(rows, (d) => d.lvl);
+  rows.forEach((d) => { d.xy = proj([d.c.lon, d.c.lat]); });
+  const len = d3.scaleLinear([0, maxL], [0, Math.min(maxLen, ...rows.map((d) => ((d.xy[1] - 4) * maxL) / d.lvl))]);
+  const half = 4.5;
+  const pin = (x, y, l) => `M${x - half},${y}L${x},${y - l}L${x + half},${y}Z`;
+  const g = svg.append("g");
+  rows.sort((a, b) => a.xy[1] - b.xy[1]).forEach((d) => {
+    g.append("g").attr("class", d.spike ? "city spike" : "city").style("color", divColor(d.cmp))
+      .append("path").attr("class", "pin").attr("d", pin(d.xy[0], d.xy[1], Math.max(2, len(d.lvl))));
+  });
+
+  await document.fonts.ready;
+  document.documentElement.dataset.ready = "1";
+})().catch((e) => { document.body.insertAdjacentHTML("beforeend", `<pre style="position:absolute;left:0;top:0;background:#fff;color:#c00;padding:8px">${e.message}</pre>`); });
+</script>
+</body>
+</html>

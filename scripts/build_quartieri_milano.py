@@ -4,18 +4,17 @@
 Il Comune di Milano pubblica i confini e i residenti dei suoi 88 quartieri (NIL, Nuclei
 di identità locale, PGT 2030), ma nessuna fonte ufficiale pubblica i reati denunciati
 sotto il livello comunale: ISTAT e Ministero dell'Interno si fermano al comune.
-Questo script scrive tre file in data/quartieri/:
+Questo script scrive due file in data/quartieri/ (più l'indice delle città che li hanno):
 
-  015146.json       dati veri per quartiere, dal portale open data del Comune di Milano:
+  015146.json       dati per quartiere, dal portale open data del Comune di Milano:
                     residenti, stranieri, 65 e più, famiglie, famiglie unipersonali
                     (2011-2024), superficie, pendolari in entrata (censimento 2011),
                     edifici degradati censiti nel 2014-2017, municipio
   015146.topo.json  confini dei quartieri (TopoJSON scritto qui, senza dipendenze)
-  015146.sim.json   SIMULAZIONE dei reati denunciati per quartiere: i delitti denunciati
-                    a Milano (ISTAT, data/vc.json) ripartiti tra i quartieri in proporzione
-                    a residenti e pendolari, con una variazione casuale riproducibile.
-                    Serve solo a mostrare come apparirà la sezione quando esisterà una
-                    fonte vera. Non dice dove si denuncia di più.
+
+Se un giorno una fonte ufficiale pubblicherà i reati per quartiere, basterà aggiungere a ogni
+quartiere un blocco "n" (conteggi per tipo di reato e anno, come in data/vc.json): la pagina
+mostrerà da sola lo strato dei reati.
 
 Uso:  python3 scripts/build_quartieri_milano.py     (dopo build_data.py, dalla cartella atlante-della-sicurezza/)
 Solo libreria standard. I download restano in scripts/.cache/.
@@ -25,7 +24,6 @@ import io
 import json
 import math
 import os
-import random
 import re
 import sys
 import urllib.request
@@ -57,18 +55,6 @@ RENAME = {"Citta' Studi": "Città Studi", "Monlue' - Ponte Lambro": "Monluè - P
           "Pta Romana": "Porta Romana", "Giardini P.ta Venezia": "Giardini Porta Venezia", "QT 8": "QT8", "Magenta - S.Vittore": "Magenta - San Vittore"}
 RENAME_CI = {k.lower(): v for k, v in RENAME.items()}
 
-# Simulazione: quanto pesano i pendolari in entrata (censimento 2011) accanto ai residenti nel ripartire ogni reato.
-# 1 = reati di strada, che seguono chi passa; 0,1 = reati in casa, che seguono chi abita; in mezzo gli altri.
-STREET = 1.0
-K = {"THEFT": STREET, "PICKTHEF": STREET, "BAGTHEF": STREET, "SHOPTHEF": STREET, "CARTHEF": STREET, "VEHITHEF": STREET,
-     "ROBBER": STREET, "STREETROB": STREET, "SHOPROB": STREET, "DAMAGE": STREET, "DRUG": STREET, "RECEIV": STREET,
-     "BURGTHEF": 0.1, "HOUSEROB": 0.1,
-     "INTENHOM": 0.5, "ATTEMPHOM": 0.5, "CULPINJU": 0.5, "BLOWS": 0.5, "MENACE": 0.3, "RAPE": 0.5,
-     "SWINCYB": 0.2, "CYBERCRIM": 0.2, "EXTORT": 0.3, "USURY": 0.2, "TOT": 0.7}
-# Sottotipi e voce madre condividono la stessa variazione casuale, così un sottotipo non supera mai la voce madre.
-PARENT = {"BURGTHEF": "THEFT", "PICKTHEF": "THEFT", "BAGTHEF": "THEFT", "SHOPTHEF": "THEFT", "CARTHEF": "THEFT", "VEHITHEF": "THEFT",
-          "STREETROB": "ROBBER", "HOUSEROB": "ROBBER", "SHOPROB": "ROBBER"}
-SEED = 2030
 
 
 def fetch_bytes(url, cache_name):
@@ -361,63 +347,6 @@ def load_commuters():
     return c, mun
 
 
-# ---------------------------------------------------------------- simulazione
-
-def simulate(areas, city):
-    """Ripartisce i delitti denunciati a Milano tra i quartieri. Vedi la nota in testa al file."""
-    rnd = random.Random(SEED)
-    ids = sorted(areas)
-    # variazione fissa di ogni quartiere per gruppo di reati, e piccola variazione annuale
-    f = {(i, g): math.exp(rnd.gauss(0, 0.35)) for i in ids for g in sorted({PARENT.get(t, t) for t in TYPE_IDS})}
-    gy = {(i, g, y): math.exp(rnd.gauss(0, 0.06)) for i in ids for g in sorted({PARENT.get(t, t) for t in TYPE_IDS}) for y in QYEARS}
-    # qualche impennata inventata, per mostrare il segno d'oro: un anno in cui un reato raddoppia in un quartiere.
-    # L'aumento passa, in proporzione ai casi, anche alla voce madre e al totale, così un sottotipo non supera mai la voce madre.
-    spikes = {}
-    pool = [t for t in ("PICKTHEF", "STREETROB", "BURGTHEF", "VEHITHEF", "DAMAGE", "SHOPTHEF", "DRUG", "CULPINJU") ]
-    big = [i for i in ids if areas[i]["pop"][-1] >= 15000]
-    while len(spikes) < 10:
-        i, t, y = rnd.choice(big), rnd.choice(pool), rnd.choice([y for y in QYEARS if y >= 2015 and y not in (2020, 2021)])
-        spikes[(i, t, y)] = rnd.uniform(1.7, 2.3)
-
-    def spike(i, t, y):
-        m = 1.0
-        for (si, st, sy), k in spikes.items():
-            if si != i or sy != y:
-                continue
-            if st == t:
-                m *= k
-            elif t in (PARENT.get(st), "TOT") and t != st:
-                nt, nu = city["n"][st][YEARS.index(y)], city["n"][t][YEARS.index(y)]
-                if nt and nu:
-                    m *= 1 + (k - 1) * nt / nu
-        return m
-
-    sim = {i: {} for i in ids}
-    for t in TYPE_IDS:
-        g = PARENT.get(t, t)
-        for yi, y in enumerate(QYEARS):
-            total = city["n"][t][YEARS.index(y)]
-            if total is None:
-                for i in ids:
-                    sim[i].setdefault(t, []).append(None)
-                continue
-            w = {}
-            for i in ids:
-                a = areas[i]
-                expo = a["pop"][yi] + K[t] * a["com"]
-                w[i] = expo * f[(i, g)] * gy[(i, g, y)] * spike(i, t, y)
-            s = sum(w.values())
-            raw = {i: total * w[i] / s for i in ids}
-            # arrotondamento con i resti più grandi: la somma dei quartieri è esattamente il totale ISTAT
-            base = {i: int(raw[i]) for i in ids}
-            rest = total - sum(base.values())
-            for i in sorted(ids, key=lambda k: raw[k] - base[k], reverse=True)[:rest]:
-                base[i] += 1
-            for i in ids:
-                sim[i].setdefault(t, []).append(base[i])
-    return sim, sorted(f"{areas[i]['name']} · {t} · {y}" for (i, t, y) in spikes)
-
-
 # ---------------------------------------------------------------- scrittura
 
 def build():
@@ -471,45 +400,19 @@ def build():
     with open(os.path.join(out_dir, f"{CITY}.topo.json"), "w", encoding="utf-8") as f:
         json.dump(topo, f, separators=(",", ":"))
 
-    sim, spike_list = simulate(areas, city)
-    sim_out = {
-        "meta": {
-            "sim": True, "city": CITY, "name": city["name"], "built": date.today().isoformat(), "years": QYEARS, "seed": SEED,
-            "what": "SIMULAZIONE: numeri inventati per mostrare il disegno della sezione, non dati sui reati nei quartieri.",
-            "method": "I delitti denunciati a Milano (ISTAT, per tipo di reato e anno) sono ripartiti tra gli 88 quartieri in proporzione a residenti più "
-                      "pendolari in entrata (censimento 2011, peso diverso per reato: pieno per i reati di strada, un decimo per quelli in casa), "
-                      "moltiplicati per una variazione casuale fissa per quartiere e per una piccola variazione annuale, con dieci impennate inventate. "
-                      "La somma dei quartieri è esattamente il totale ISTAT del comune.",
-            "spikes": spike_list,
-        },
-        "areas": [{"id": i, "n": sim[i]} for i in sorted(sim)],
-    }
-    with open(os.path.join(out_dir, f"{CITY}.sim.json"), "w", encoding="utf-8") as f:
-        json.dump(sim_out, f, ensure_ascii=False, separators=(",", ":"))
     # indice delle città con i quartieri: la pagina lo legge all'avvio e carica i file solo per queste
     ids = sorted(n[:-len(".topo.json")] for n in os.listdir(out_dir) if n.endswith(".topo.json"))
     with open(os.path.join(out_dir, "index.json"), "w", encoding="utf-8") as f:
         json.dump(ids, f)
-    for name in (f"{CITY}.json", f"{CITY}.topo.json", f"{CITY}.sim.json", "index.json"):
+    for name in (f"{CITY}.json", f"{CITY}.topo.json", "index.json"):
         log(f"scritto data/quartieri/{name} ({os.path.getsize(os.path.join(out_dir, name)) // 1024} KB)")
-    check(data, topo, sim_out, city)
+    check(data, topo)
 
 
-def check(data, topo, sim, city):
+def check(data, topo):
     assert len(data["areas"]) == 88 and len(topo["objects"]["nil"]["geometries"]) == 88
     assert {a["id"] for a in data["areas"]} == {g["properties"]["id"] for g in topo["objects"]["nil"]["geometries"]}
-    for t in TYPE_IDS:
-        for yi, y in enumerate(QYEARS):
-            tot = city["n"][t][YEARS.index(y)]
-            s = [a["n"][t][yi] for a in sim["areas"]]
-            assert (tot is None and all(v is None for v in s)) or sum(s) == tot, (t, y)
-    # sottotipi mai sopra la voce madre
-    for a in sim["areas"]:
-        for t, p in PARENT.items():
-            for yi in range(len(QYEARS)):
-                if a["n"][t][yi] is not None and a["n"][p][yi] is not None:
-                    assert a["n"][t][yi] <= a["n"][p][yi], (a["id"], t, yi)
-    log(f"controllo: {len(topo['arcs'])} archi, {sum(len(a) for a in topo['arcs'])} vertici; la simulazione torna con i totali ISTAT per ogni reato e anno")
+    log(f"controllo: {len(topo['arcs'])} archi, {sum(len(a) for a in topo['arcs'])} vertici")
 
 
 if __name__ == "__main__":

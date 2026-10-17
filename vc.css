@@ -81,26 +81,71 @@ button, select, input { font: inherit; color: inherit; }
 }
 
 /* ---------------------------------------------------------------- testata */
-.masthead { border-bottom: 1px solid var(--rule); }
-.masthead .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 12px; }
+/* Una sola barra, incollata in alto a ogni larghezza: il nome a sinistra, le sezioni della pagina
+   in mezzo, a destra i due pulsanti dell'autore (caffè su Ko-fi, LinkedIn) come nel piè di pagina.
+   La barra dei comandi (reato, comune) le si incolla sotto. Le due altezze sono fisse e dichiarate
+   qui, così le ancore delle sezioni sanno di quanto scostarsi. */
+:root { --bar-h: 52px; --controls-h: 57px; }
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 45; /* sopra la barra dei comandi (20) e le tendine di ricerca (40), sotto il suggerimento (50) */
+  height: var(--bar-h);
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+}
+.masthead .wrap { display: flex; align-items: stretch; gap: 18px; height: 100%; }
 /* Il nome è scritto senza spazi visibili: una parola per <span>, spazi veri nel markup,
    contenitore inline-flex con gap 0 (gli spazi restano nel testo per lettori di schermo e motori). */
-.wordmark {
+.wordmark { display: flex; align-items: center; flex: none; margin: 0; font-size: var(--step-0); }
+.wordmark a {
   display: inline-flex;
   align-items: center;
   gap: 0;
   font-weight: 800;
   font-stretch: 118%;
-  font-size: var(--step-1);
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  margin: 0;
+  text-decoration: none;
+  color: inherit;
 }
 .wordmark .w1 { font-weight: 800; color: var(--ink); }
 .wordmark .w2 { font-weight: 400; color: var(--muted); }
 .wordmark .w3 { font-weight: 800; color: var(--gold-ink); }
 .wordmark svg { width: 20px; height: 20px; flex: none; margin-right: 10px; }
-.masthead .meta { color: var(--muted); font-size: var(--step--1); letter-spacing: 0.02em; }
+/* Le sezioni: una riga di voci alte quanto la barra, la voce in vista sottolineata in oro.
+   Quando non ci stanno (telefono) la riga scorre di lato e una sfumatura a destra dice che c'è altro. */
+.menu { display: flex; flex: 1 1 auto; min-width: 0; position: relative; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.menu::-webkit-scrollbar { display: none; }
+.menu[data-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); }
+.menu ul { display: flex; list-style: none; margin: 0; padding: 0; }
+.menu li { display: flex; }
+.menu a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  outline-offset: -2px;
+}
+.menu a:hover { color: var(--ink); border-bottom-color: var(--rule); }
+.menu a[aria-current] { color: var(--ink); border-bottom-color: var(--gold); }
+.bar-cta { flex: none; align-self: center; margin-left: auto; flex-wrap: nowrap; }
+/* Sotto i 1200px i due pulsanti tengono solo l'icona; sotto i 1024px del nome resta il simbolo. */
+@media (max-width: 1199px) {
+  .bar-cta a { width: 32px; padding: 0; justify-content: center; }
+  .bar-cta a span { display: none; }
+}
+@media (max-width: 1023px) {
+  .wordmark .w1, .wordmark .w2, .wordmark .w3 { display: none; }
+  .wordmark svg { margin-right: 0; }
+  .masthead .wrap { gap: 12px; }
+}
 
 /* ---------------------------------------------------------------- ottotipo */
 .hero { background: var(--surface); border-bottom: 1px solid var(--rule); padding-block: 44px 36px; }
@@ -148,25 +193,20 @@ button, select, input { font: inherit; color: inherit; }
 /* ---------------------------------------------------------------- comandi */
 .controls {
   position: sticky;
-  top: env(safe-area-inset-top, 0px);
+  top: var(--bar-h);
   z-index: 20;
+  min-height: var(--controls-h);
   background: var(--bg);
   border-bottom: 1px solid var(--rule);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
 }
 .controls .wrap { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding-block: 10px; }
-/* Il marchio compare nella barra dei comandi solo quando la barra è incollata in alto e la testata
-   è uscita dallo schermo: una sentinella di 1px subito prima della barra lo dice al JS. */
-.controls-sentinel { height: 1px; margin-bottom: -1px; }
-.bar-brand { display: none; align-items: center; margin-right: 6px; text-decoration: none; color: inherit; }
-.bar-brand svg { width: 20px; height: 20px; flex: none; }
-.bar-brand .wordmark { font-size: 12px; margin-left: 8px; }
-/* sotto i 1240px il nome farebbe andare a capo i comandi: resta solo il simbolo */
-@media (max-width: 1240px) { .bar-brand .wordmark { display: none; } .bar-brand { margin-right: 0; } }
-/* quando il nome è visibile, le etichette facoltative dei comandi lasciano il posto (come già sotto i 1080px) */
-@media (min-width: 1241px) { .controls.scrolled .control > .label.opt { display: none; } }
-.controls.scrolled .bar-brand { display: inline-flex; animation: brand-in 0.25s ease-out both; }
-@keyframes brand-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+/* La barra ha due soli comandi, il reato e la ricerca del comune: sta su una riga a ogni larghezza. */
+.controls .control-search { margin-left: auto; }
+/* Le ancore si fermano sotto le barre incollate: la sola testata sopra i comandi, tutte e due da lì in giù
+   (selettori più specifici del margine generico di section.block, più sotto). */
+section.finder, section.block.brief { scroll-margin-top: var(--bar-h); }
+.controls ~ section.block { scroll-margin-top: calc(var(--bar-h) + var(--controls-h) + 8px); }
 .control { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .control > .label { font-size: var(--step--1); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
 select, input[type="search"] {
@@ -193,7 +233,7 @@ input[type="search"] { width: 180px; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 600; }
 
 /* ---------------------------------------------------------------- sezioni */
-section.block { padding-block: var(--section); border-top: 1px solid var(--rule); }
+section.block { padding-block: var(--section); border-top: 1px solid var(--rule); scroll-margin-top: 24px; } /* i link interni non finiscono sotto la barra */
 .controls + section.block, section.block.band, section.block.band + section.block { border-top: 0; }
 .kicker {
   display: inline-flex; align-items: center; gap: 10px;
@@ -460,28 +500,29 @@ td.num, th.num { text-align: right; }
 .sources code, code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); border: 1px solid var(--grid); padding: 0 4px; border-radius: 3px; overflow-wrap: anywhere; }
 footer.colophon { border-top: 1px solid var(--rule); padding-block: 22px 40px; font-size: var(--step--1); color: var(--muted); }
 footer.colophon .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; }
-/* credito dell'autore con i due pulsanti (caffè su Ko-fi, LinkedIn), come negli altri progetti */
+/* credito dell'autore con i due pulsanti (caffè su Ko-fi, LinkedIn), come negli altri progetti;
+   gli stessi pulsanti stanno anche in testata (.bar-cta) */
 footer.colophon .credit { display: flex; flex-direction: column; gap: 10px; }
 footer.colophon .made { margin: 0; font-size: var(--step-0); color: var(--ink-2); }
 footer.colophon .made a { color: var(--ink); font-weight: 700; text-decoration-color: var(--rule); }
 footer.colophon .heart { color: var(--rise); }
-footer.colophon .cta { display: flex; flex-wrap: wrap; gap: 8px; }
-footer.colophon .cta a {
+.cta { display: flex; flex-wrap: wrap; gap: 8px; }
+.cta a {
   display: inline-flex; align-items: center; gap: 7px;
   height: 32px; padding: 0 12px 0 9px; border-radius: 3px;
   font-size: 11.5px; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; text-decoration: none;
   color: var(--ink); background: var(--surface); border: 1px solid var(--rule);
   transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
 }
-footer.colophon .cta svg { width: 16px; height: 16px; flex: none; }
-footer.colophon .cta a:hover, footer.colophon .cta a:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.35); }
-footer.colophon .coffee { background: #ffdd00; color: #1f1a00; border-color: #d9b900; }
-footer.colophon .coffee svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
-footer.colophon .coffee .steam { opacity: 0; transition: opacity 0.2s; }
-footer.colophon .coffee:hover, footer.colophon .coffee:focus-visible { background: #ffe733; }
-footer.colophon .coffee:hover .steam, footer.colophon .coffee:focus-visible .steam { opacity: 1; }
-footer.colophon .li svg { fill: currentColor; }
-footer.colophon .li:hover, footer.colophon .li:focus-visible { background: var(--bg); }
+.cta svg { width: 16px; height: 16px; flex: none; }
+.cta a:hover, .cta a:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.35); }
+.cta .coffee { background: #ffdd00; color: #1f1a00; border-color: #d9b900; }
+.cta .coffee svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.cta .coffee .steam { opacity: 0; transition: opacity 0.2s; }
+.cta .coffee:hover, .cta .coffee:focus-visible { background: #ffe733; }
+.cta .coffee:hover .steam, .cta .coffee:focus-visible .steam { opacity: 1; }
+.cta .li svg { fill: currentColor; }
+.cta .li:hover, .cta .li:focus-visible { background: var(--bg); }
 /* loghi delle fonti in monocromia: l'svg fa da maschera, il colore è quello del testo del piè di pagina */
 .source-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
 .source-logos .lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-right: 4px; }
@@ -555,6 +596,28 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .finder-dek { font-family: var(--font-body); font-size: var(--step-1); color: var(--ink-2); max-width: var(--measure); margin: 0; }
 .finder-hint { font-size: var(--step--1); color: var(--muted); margin: 10px 0 0; max-width: 56ch; }
 .finder-hint.warn { color: var(--ink); }
+
+/* ---------------------------------------------------------------- in breve */
+/* Le domande di chiunque, una per riquadro: domanda, risposta in poche righe, la sezione che la spiega. */
+.finder + .brief { border-top: 0; }
+.qa { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+.brief-q { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px 14px; }
+.brief-q h3 { font-size: var(--step-1); font-weight: 700; line-height: 1.25; margin: 0 0 8px; text-wrap: balance; }
+.brief-q p { font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.45; color: var(--ink-2); margin: 0 0 14px; }
+.brief-q .go { margin-top: auto; align-self: flex-start; font-size: var(--step--1); font-weight: 700; color: var(--ink); text-decoration: none; }
+.brief-q .go:hover { text-decoration: underline; }
+.brief-key { margin: 20px 0 0; }
+.brief-key .lead { font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.06em; }
+.brief-key .k-gold { width: 14px; height: 10px; background: var(--gold); border-radius: 2px; }
+
+/* scheda del comune: la frase d'apertura e la spiegazione del reato scelto */
+.verdict { font-family: var(--font-body); font-size: var(--step-1); line-height: 1.45; color: var(--ink); max-width: 70ch; margin: 0 0 20px; }
+.verdict .gl { display: block; font-size: var(--step-0); color: var(--ink-2); margin-top: 8px; }
+.verdict .gl b { font-family: var(--font-display); font-weight: 700; color: var(--ink); }
+.card-head + .verdict { margin-top: 2px; }
+
+/* il confronto tra anni, sotto il titolo della mappa: vale per tutta la pagina */
+.base-pick { flex-wrap: wrap; margin-top: 16px; }
 
 .combo { position: relative; min-width: 0; }
 .combo-big input[type="search"] {
@@ -667,40 +730,39 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 @keyframes rv-rise { from { transform: scaleY(0); } }
 @keyframes rv-grow { from { transform: scaleX(0); } }
 @keyframes rv-up { from { opacity: 0; transform: translateY(10px); } }
-/* tempi per tipo di grafico: sparkline, grafici con assi, mappe, treemap, barre */
-[data-reveal="on"] .spark .rv-draw { --dur: 0.8s; }
-[data-reveal="on"] .spark .rv-pop { --t0: 0.6s; }
-[data-reveal="on"] .chart .rv-draw { --dur: 1.3s; }
-[data-reveal="on"] .chart .area { --t0: 0.4s; --dur: 1s; }
-[data-reveal="on"] .chart .mark { --t0: 1.15s; }
-[data-reveal="on"] .mapbox .base { --dur: 0.5s; }
-[data-reveal="on"] .mapbox .pin { --t0: 0.2s; --stag: 10ms; }
-[data-reveal="on"] .mapbox .labels, [data-reveal="on"] .mapbox .sizekey { --t0: 1.4s; }
-[data-reveal="on"] .mapbox .legend { --t0: 1.3s; }
-[data-reveal="on"] .flowmap .base { --dur: 0.5s; }
-[data-reveal="on"] .flowmap .flow { --t0: 0.35s; --stag: 12ms; --dur: 1s; }
-[data-reveal="on"] .flowmap .bub { --t0: 1.25s; --stag: 12ms; }
-[data-reveal="on"] .flowmap .lbl-strong { --t0: 1.7s; }
-[data-reveal="on"] .rimp-mapblock .legend { --t0: 1.6s; }
-[data-reveal="on"] .treemap .leaf { --stag: 10ms; animation-timing-function: var(--rv-ease); }
-[data-reveal="on"] .treemap text { --t0: 0.3s; --stag: 10ms; }
-[data-reveal="on"] .treemap .cont, [data-reveal="on"] .treemap .hd, [data-reveal="on"] .treemap .cl { --t0: 0.7s; --stag: 0ms; }
-[data-reveal="on"] #carceri-offences svg, [data-reveal="on"] #carceri-age svg { --stag: 40ms; }
-[data-reveal="on"] #perc-scatter svg { --stag: 20ms; }
-[data-reveal="on"] #perc-scatter .lbl { --t0: 0.8s; --stag: 0ms; }
-.rank li[data-reveal], .mrow[data-reveal] { --stag: 30ms; }
-[data-reveal="on"] .rank .bar b, [data-reveal="on"] .mbar .ref { --t0: 0.5s; }
-[data-reveal="on"] .mbar .b.down { transform-origin: 100% 50%; }
-.card[data-reveal] { --stag: 45ms; }
-[data-reveal="on"].card .spark .rv-draw { --t0: 0.2s; }
-[data-reveal="on"].card .spark .rv-pop { --t0: 0.8s; }
+/* Tempi per tipo di grafico. Le variabili si ereditano e contano solo quando l'animazione parte, quindi stanno
+   sempre sugli elementi, senza [data-reveal]: così valgono sia quando l'attributo è sul grafico stesso (#map, .chart)
+   sia quando è su un contenitore più grande (la scheda, la riga di una classifica). */
+.spark .rv-draw { --dur: 0.8s; }
+.spark .rv-pop { --t0: 0.6s; }
+.chart .rv-draw { --dur: 1.3s; }
+.chart .area { --t0: 0.4s; --dur: 1s; }
+.chart .mark { --t0: 1.15s; }
+.mapbox .base { --dur: 0.5s; }
+.mapbox .pin { --t0: 0.2s; --stag: 10ms; }
+.mapbox .labels, .mapbox .sizekey { --t0: 1.4s; }
+.mapbox .legend { --t0: 1.3s; }
+.flowmap .base { --dur: 0.5s; }
+.flowmap .flow { --t0: 0.35s; --stag: 12ms; --dur: 1s; }
+.flowmap .bub { --t0: 1.25s; --stag: 12ms; }
+.flowmap .lbl-strong { --t0: 1.7s; }
+.rimp-mapblock .legend { --t0: 1.6s; }
+.treemap .leaf { --stag: 10ms; animation-timing-function: var(--rv-ease); }
+.treemap text { --t0: 0.3s; --stag: 10ms; }
+.treemap .cont, .treemap .hd, .treemap .cl { --t0: 0.7s; --stag: 0ms; }
+#carceri-offences svg, #carceri-age svg { --stag: 40ms; }
+#perc-scatter svg { --stag: 20ms; }
+#perc-scatter .lbl { --t0: 0.8s; --stag: 0ms; }
+.rank li, .mrow { --stag: 30ms; }
+.rank .bar b, .mbar .ref { --t0: 0.5s; }
+.mbar .b.down { transform-origin: 100% 50%; }
+.card { --stag: 45ms; }
+.card .spark .rv-draw { --t0: 0.2s; }
+.card .spark .rv-pop { --t0: 0.8s; }
 /* la carta di posizione nella scheda: il punto sboccia e l'anello gli si allarga intorno, a ogni apertura */
 .loc-dot, .loc-ring { transform-box: fill-box; transform-origin: center; animation: rv-pop 0.6s var(--rv-spring) both; }
 .loc-ring { animation-delay: 0.15s; }
 
-@media (max-width: 1080px) {
-  .control > .label.opt { display: none; }
-}
 @media (max-width: 920px) {
   :root { --section: 56px; }
   .hero-grid, .two, .perc-grid, .carceri-grid, .carceri-grid.two-even { grid-template-columns: minmax(0, 1fr); gap: 32px; }
@@ -709,11 +771,9 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   .national .chart { flex: 0 0 auto; height: clamp(240px, 40vw, 360px); min-height: 0; }
 }
 @media (max-width: 560px) {
-  :root { --step-3: 1.85rem; --step-2: 1.3rem; --section: 44px; }
+  :root { --step-3: 1.85rem; --step-2: 1.3rem; --section: 44px; --bar-h: 48px; --controls-h: 53px; }
   .hero { padding-block: 28px 24px; }
-  .controls .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 6px 8px; padding-block: 8px; }
-  .controls .control[role="group"] { grid-column: 1 / -1; order: 3; }
-  .controls.scrolled .wrap { grid-template-columns: auto minmax(0, 1fr) 118px; }
+  .controls .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 6px 8px; padding-block: 8px; }
   .controls select, .controls input[type="search"] { width: 100%; min-height: 34px; }
   .controls .combo { width: 100%; }
   .finder { padding-block: 24px 26px; }
@@ -745,15 +805,12 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .quart-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 .quart-mapbox { position: relative; }
 .quart-mapbox svg { width: 100%; height: auto; display: block; }
-/* lo strato simulato si vede da lontano: bordo tratteggiato d'oro e scritta sulla carta */
-.quart-mapbox.demo { outline: 2px dashed var(--gold); outline-offset: 6px; border-radius: 4px; }
 .qmap .area { stroke: none; cursor: pointer; }
 .qmap .area:hover, .qmap .area.hot { stroke: var(--ink); stroke-width: 1.5px; }
 .qmap .area.sel { stroke: var(--ink); stroke-width: 2.25px; }
 .qmap .edge { fill: none; stroke: var(--surface); stroke-width: 0.6px; stroke-linejoin: round; pointer-events: none; }
 .qmap .mun { fill: none; stroke: var(--ink-2); stroke-width: 1.1px; stroke-linejoin: round; pointer-events: none; }
 .qmap .lbl { fill: var(--ink); font-size: 10px; font-weight: 600; font-family: var(--font-display); letter-spacing: 0.01em; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
-.qmap .wm { fill: var(--gold); fill-opacity: 0.32; font-size: 46px; font-weight: 800; font-stretch: 112%; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-display); pointer-events: none; }
 .legend .k-mun { display: inline-block; width: 18px; height: 0; border-top: 1.5px solid var(--ink-2); vertical-align: middle; }
 .legend .k-hatch { display: inline-block; width: 18px; height: 12px; border: 1px solid var(--rule); vertical-align: middle; background: repeating-linear-gradient(45deg, var(--land) 0 3px, var(--mid) 3px 4px); }
 .quart-ranks li.sel { background: var(--surface); box-shadow: 0 0 0 4px var(--surface); border-radius: 3px; }

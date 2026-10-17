@@ -41,10 +41,41 @@
     DRUG: '<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/> <path d="m8.5 8.5 7 7"/>',
   };
   const iconSVG = (id) => (ICONS[id] ? `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[id]}</svg>` : "");
+  // Che cosa conta ogni voce, in parole semplici: il fatto, non la definizione del codice penale.
+  const GLOSS = {
+    THEFT: "prendere una cosa che appartiene ad altri, senza violenza sulle persone",
+    BURGTHEF: "furti dentro una casa, anche quando non c’è nessuno",
+    PICKTHEF: "furti dalla tasca o dalla borsa, senza che la vittima se ne accorga",
+    BAGTHEF: "strappare di mano o di dosso una borsa, una collana, un telefono",
+    SHOPTHEF: "merce presa in un negozio senza pagarla",
+    CARTHEF: "furto dell’intera automobile",
+    VEHITHEF: "furto di oggetti lasciati in un’auto parcheggiata, o di sue parti",
+    ROBBER: "prendere qualcosa a qualcuno con la violenza o con la minaccia",
+    STREETROB: "rapine per strada o in altri luoghi pubblici",
+    HOUSEROB: "rapine dentro casa, con le persone presenti",
+    SHOPROB: "rapine in negozi, bar e altri esercizi commerciali",
+    INTENHOM: "uccidere una persona volontariamente",
+    ATTEMPHOM: "cercare di uccidere una persona, senza riuscirci",
+    CULPINJU: "ferire volontariamente una persona, causandole una lesione o una malattia",
+    BLOWS: "colpire una persona senza causarle lesioni",
+    MENACE: "minacciare a qualcuno un danno ingiusto",
+    RAPE: "atti sessuali imposti con la violenza, la minaccia o l’abuso di autorità; sono tra i reati che si denunciano meno",
+    SWINCYB: "ottenere soldi o beni con l’inganno: di persona, al telefono o online",
+    CYBERCRIM: "entrare senza permesso in computer, telefoni o account, danneggiarli o spiarne le comunicazioni",
+    EXTORT: "costringere qualcuno a pagare o a dare qualcosa con la violenza o la minaccia, compreso il pizzo",
+    USURY: "prestare denaro a interessi illegalmente alti",
+    RECEIV: "comprare, ricevere o nascondere soldi o oggetti di provenienza illecita, per esempio rubati",
+    DAMAGE: "distruggere o rovinare cose di altri, per esempio beni pubblici",
+    DRUG: "produzione, spaccio e traffico di droga; i numeri dipendono molto da quanti controlli fanno le forze dell’ordine",
+  };
+  // città dove ogni giorno arrivano molti pendolari e turisti: il tasso sui residenti le fa sembrare più a rischio di quanto siano
+  const TOURIST = ["Milano", "Firenze", "Bologna", "Rimini", "Venezia", "Roma", "Torino"];
+  const TOURIST_GROUPS = ["Totale", "Furti", "Rapine"];
+  const TOURIST_NOT = ["BURGTHEF", "HOUSEROB"]; // furti e rapine in casa: le vittime sono i residenti
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   let Y, LAST, TYPES, TYPE, CITIES, ITALY, TOPO, META;
-  const state = { type: "TOT", base: 2019, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "sim", qSel: null };
+  const state = { type: "TOT", base: 2019, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null };
   let CARCERI = null;
   let RIMP = null, WORLD = null;
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
@@ -198,7 +229,8 @@
       host._rvShown = true;
       const i = k.get(host) || 0;
       k.set(host, i + 1);
-      el.style.setProperty("--i", i);
+      // tetto all'ordine: su uno schermo alto compaiono insieme decine di riquadri, e l'ultimo deve partire comunque entro RV_MS
+      el.style.setProperty("--i", Math.min(i, 36));
       el.dataset.reveal = "on";
       setTimeout(() => { if (el.dataset.reveal === "on") { delete el.dataset.reveal; el.style.removeProperty("--i"); } }, RV_MS);
     });
@@ -356,7 +388,6 @@
         showTip(`<b>${Y[i]}</b>${COVID.has(Y[i]) ? " · Covid" : ""}<br>` + o.series.map((s) => `${esc(s.name)}: ${fmtRate(s.values[i])}`).join("<br>") + (o.extra ? o.extra(i) : ""), ev);
       })
       .on("mouseleave", () => { guide.style("display", "none"); hideTip(); });
-    reveal(el);
   }
 
   // ------------------------------------------------------------------ apertura
@@ -367,13 +398,100 @@
     const i19 = Y.indexOf(2019);
     const hom = ITALY.n.INTENHOM, fr = ITALY.n.SWINCYB;
     const rows = [
-      [nf0.format(tot[LAST]), `delitti denunciati ogni 100.000 abitanti in Italia nel ${Y[LAST]}`],
-      [fmtPct(tot[LAST] / tot[iPeak] - 1), `rispetto al ${Y[iPeak]}, l’anno con il tasso più alto della serie`],
+      [nf0.format(tot[LAST]), `delitti denunciati ogni 100.000 abitanti in Italia nel ${Y[LAST]}: circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno`],
+      [fmtPct(tot[LAST] / tot[iPeak] - 1), `rispetto al ${Y[iPeak]}, l’anno con più denunce per abitante`],
       [fmtPct(tot[LAST] / tot[i19] - 1), `rispetto al 2019: dopo il crollo del 2020 le denunce sono tornate a salire`],
       [fmtPct(hom[LAST] / hom[0] - 1), `omicidi volontari dal ${Y[0]}: da ${nf0.format(hom[0])} a ${nf0.format(hom[LAST])} l’anno`],
       [fmtPct(fr[LAST] / fr[0] - 1), `truffe e frodi informatiche dal ${Y[0]}: da ${nf0.format(Math.round(fr[0] / 1000))} mila a ${nf0.format(Math.round(fr[LAST] / 1000))} mila denunce`],
     ];
     $("#eyechart").innerHTML = rows.map(([f, c]) => `<li><span class="fig">${f}</span><span class="cap">${c}</span></li>`).join("");
+  }
+
+  // ------------------------------------------------------------------ in breve
+
+  // Le domande che chiunque si fa, con una risposta in poche righe. Ogni cifra viene dagli stessi calcoli delle
+  // sezioni sotto e segue l'anno di confronto scelto; carceri e rimpatri compaiono quando i loro dati sono arrivati.
+  const shortLabel = (t) => lower(t.label.replace(/ \(.*\)$/, ""));
+  // numeri che si leggono con la vocale davanti (uno, otto, undici, ottanta…): "dell’8%", "l’11%", "all’83° posto"
+  const vowelNum = (n) => n === 1 || n === 11 || /^8/.test(String(n));
+  const delPct = (p) => { const n = Math.round(Math.abs(p) * 100); return `${vowelNum(n) ? "dell’" : "del "}${nf0.format(n)}%`; };
+  const moved = (p, m, f) => (Math.round(p * 100) === 0 ? "rimasti uguali" : `${p > 0 ? m : f} ${delPct(p)}`);
+
+  function renderBrief() {
+    const host = $("#brief");
+    if (!host) return;
+    const tot = ITALY.rate.TOT, iB = Y.indexOf(state.base), tm = model("TOT");
+    const cards = [];
+    const card = (q, a, href, go) => cards.push(`<article class="brief-q rv-up"><h3>${q}</h3><p>${a}</p><a class="go" href="${href}">${go} <span aria-hidden="true">→</span></a></article>`);
+
+    // cosa sale e cosa scende, in Italia
+    const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 })).filter((d) => isFinite(d.ch));
+    const ups = ch.filter((d) => d.ch > 0.03).sort((a, b) => b.ch - a.ch).slice(0, 3);
+    const downs = ch.filter((d) => d.ch < -0.03).sort((a, b) => a.ch - b.ch).slice(0, 3);
+    const list = (l) => andList(l.map((d) => `${esc(shortLabel(d.t))} (${fmtPct(d.ch)})`));
+    card("Quali reati aumentano, e quali calano?",
+      `Dal ${state.base} al ${Y[LAST]} i delitti denunciati in Italia, tutti insieme, sono ${moved(tot[LAST] / tot[iB] - 1, "aumentati", "diminuiti")}. ` +
+      (ups.length ? `Sono cresciute soprattutto le denunce per ${list(ups)}. ` : "") +
+      (downs.length ? `Sono calate quelle per ${list(downs)}. ` : "") +
+      `Più denunce non vuol dire sempre più reati: a volte vuol dire che le vittime denunciano di più${ups.some((d) => d.t.id === "RAPE") ? ", come può accadere per le violenze sessuali" : ""}.`,
+      "#mix", `Tutti i ${TYPES.length - 1} reati`);
+
+    // le città in cima alle classifiche
+    const top = tm.ranked.slice(0, 3);
+    if (top.length) {
+      const tour = top.some((r) => TOURIST.includes(r.c.name));
+      card("Le città in cima alle classifiche sono le più pericolose?",
+        `Non per forza. ${esc(andList(top.map((r) => r.c.name)))} hanno più denunce per abitante: ${nf0.format(top[0].lvl)} ogni 100.000 ${/^[Aa]/.test(top[0].c.name) ? "ad" : "a"} ${esc(top[0].c.name)}, ${nf0.format(tot[LAST])} in Italia. ` +
+        (tour ? "Ma ogni giorno vi arrivano pendolari, studenti e turisti: i reati che subiscono, o commettono, si contano lì, mentre loro non sono contati tra i residenti. " : "") +
+        "Il tasso dice quanto si denuncia in una città, non quanto rischia chi ci abita.",
+        "#mappa", `La classifica dei ${CITIES.length} capoluoghi`);
+    }
+
+    // percezione e realtà
+    const sy = Object.keys(ITALY.silc).map(Number).sort((a, b) => a - b), sv = sy.map((y) => ITALY.silc[y]);
+    const ya = sy[d3.maxIndex(sv)], yb = sy[d3.minIndex(sv)], ylast = sy[sy.length - 1];
+    if (sy.length && Y.includes(ya) && Y.includes(yb) && ya < yb) {
+      const crime = tot[Y.indexOf(yb)] / tot[Y.indexOf(ya)] - 1, after = tot[LAST] / tot[Y.indexOf(yb)] - 1;
+      const pts = CITIES.filter((c) => c.perc && c.perc["2024"] != null);
+      const most = pts.length ? pts.reduce((p, q) => (q.perc["2024"] > p.perc["2024"] ? q : p)) : null;
+      const mr = most && tm.rows.find((r) => r.c.id === most.id);
+      card("Ci sentiamo in pericolo quanto lo siamo?",
+        `No: la paura si muove molto più dei reati. Tra il ${ya} e il ${yb} le famiglie che segnalano criminalità o vandalismo nella propria zona sono scese dal ${nf1.format(ITALY.silc[ya])}% al ${nf1.format(ITALY.silc[yb])}%, mentre i delitti denunciati per abitante sono ${moved(crime, "cresciuti", "calati")}. ` +
+        (ylast > yb ? `Nel ${ylast} la quota è risalita al ${nf1.format(ITALY.silc[ylast])}%${Math.abs(after) < 0.05 ? ", con le denunce quasi ferme" : ""}. ` : "") +
+        (mr && mr.rank ? `${esc(most.name)} è la grande città dove più famiglie sentono a rischio la propria zona (${nf1.format(most.perc["2024"])}%), ma per denunce è ${vowelNum(mr.rank) ? "all’" : "al "}${mr.rank}° posto su ${tm.ranked.length}.` : ""),
+        "#percezione", "Percezione e realtà");
+    }
+
+    // stranieri in carcere
+    if (CARCERI) {
+      const C = CARCERI, Yc = C.meta.years, L = Yc.length - 1, last = C.meta.last;
+      const share = (i) => (100 * C.serie.str[i]) / C.serie.tot[i];
+      const ra = (C.residenti && C.residenti.anni) || {}, rk = [last, last - 1].find((y) => ra[String(y)]), res = rk ? ra[String(rk)] : null;
+      const nonDef = (p) => (p.AWFJ + p.APP + p.REC + p.MWOD) / Object.values(p).reduce((a, b) => a + b, 0);
+      card("Gli stranieri commettono più reati degli italiani?",
+        `Questi dati non bastano per dirlo. A fine ${last} gli stranieri erano il ${nf1.format(share(L))}% dei detenuti (nel ${Yc[0]} il ${nf1.format(share(0))}%)${res ? ` e il ${nf1.format(res.quota)}% dei residenti` : ""}. ` +
+        "Ma il confronto è sbilanciato: tra i detenuti ci sono anche persone senza permesso di soggiorno, che tra i residenti non compaiono; gli stranieri sono in media più giovani, e i giovani adulti finiscono in carcere più spesso in ogni paese; " +
+        `senza casa o lavoro stabile, poi, si resta più spesso in cella in attesa di giudizio: è senza condanna definitiva il ${nf1.format(nonDef(C.posizione.str) * 100)}% dei detenuti stranieri, contro il ${nf1.format(nonDef(C.posizione.it) * 100)}% degli italiani.`,
+        "#carceri", "Chi è in carcere");
+    }
+
+    // rimpatri
+    if (RIMP) {
+      const D = RIMP, L = D.meta.years.length - 1, R = D.totale.rimpatri[L], O = D.totale.ordini[L];
+      card("Quante persone vengono davvero rimpatriate?",
+        `Circa ${Math.round((100 * R) / O)} ogni 100 di quelle a cui viene ordinato di andarsene. Nel ${D.meta.last} l’Italia ha ordinato a ${nf0.format(O)} cittadini di paesi fuori dall’Unione europea di lasciare il territorio, e ne ha rimpatriati ${nf0.format(R)}. ` +
+        "Ordini e rimpatri dello stesso anno non riguardano sempre le stesse persone; sul divario pesano, tra l’altro, gli accordi con i singoli paesi e i posti nei centri di trattenimento.",
+        "#rimpatri", "Rimpatri");
+    }
+
+    // che cosa contano i numeri
+    card("Questi numeri contano tutti i reati?",
+      "No, solo quelli denunciati alle forze di polizia. Molti reati non vengono mai denunciati, e quanto si denuncia cambia da reato a reato: un furto d’auto quasi sempre, per l’assicurazione; una violenza in famiglia molto meno. " +
+      `Per confrontare città grandi e piccole si contano le denunce ogni 100.000 abitanti: i ${nf0.format(tot[LAST])} dell’Italia nel ${Y[LAST]} sono circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno.`,
+      "#metodo", "Come leggere questi numeri");
+
+    host.innerHTML = cards.join("");
+    reveal(host, host.querySelectorAll(".brief-q"));
   }
 
   function renderNational() {
@@ -421,7 +539,7 @@
       const cls = d.ch > 0.03 ? "up" : d.ch < -0.03 ? "down" : "flat";
       const left = Math.min(50, pos(d.ch)), width = Math.abs(pos(d.ch) - 50);
       b.innerHTML = `<span class="ml">${esc(d.t.label)}</span>` +
-        `<span class="mbar" aria-hidden="true"><i class="z"></i><i class="b ${cls}" style="left:${left}%;width:${width}%"></i><i class="ref" style="left:${pos(totCh)}%"></i></span>` +
+        `<span class="mbar" aria-hidden="true"><i class="z"></i><i class="b ${cls} rv-grow" style="left:${left}%;width:${width}%"></i><i class="ref rv-fade" style="left:${pos(totCh)}%"></i></span>` +
         `<span class="mv ${cls}">${fmtPct(d.ch)}</span><svg aria-hidden="true"></svg>`;
       b.setAttribute("aria-label", `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${state.base}`);
       b.addEventListener("click", () => setType(d.t.id, true));
@@ -435,6 +553,7 @@
         hover: (i) => `<b>${esc(d.t.label)}</b><br>${Y[i]}: ${fmtRate(d.it[i])} ogni 100.000 ab.`,
       });
     });
+    reveal(grid, grid.querySelectorAll(".mrow"));
   }
 
   // ------------------------------------------------------------------ mappa
@@ -458,7 +577,7 @@
     svg.selectAll("*").remove();
 
     const sameReg = (a, b) => a.properties.reg_istat_code === b.properties.reg_istat_code;
-    const base = svg.append("g").attr("class", "base");
+    const base = svg.append("g").attr("class", "base rv-fade");
     base.append("path").attr("class", "land").attr("d", path(land));
     base.append("path").attr("class", "prov").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a !== b && sameReg(a, b))));
     base.append("path").attr("class", "reg").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a !== b && !sameReg(a, b))));
@@ -474,17 +593,17 @@
     const pin = (x, y, l, half) => `M${x - half},${y}L${x},${y - l}L${x + half},${y}Z`;
     const g = svg.append("g").attr("class", "cities");
     // da nord a sud, così le guglie più a sud coprono quelle dietro
-    rows.sort((a, b) => a._xy[1] - b._xy[1]).forEach((d) => {
+    rows.sort((a, b) => a._xy[1] - b._xy[1]).forEach((d, k) => {
       d._len = Math.max(2, len(d.lvl));
       const [x, y] = d._xy;
       const spike = d.an[LAST] && d.an[LAST].flag === "spike";
       // data-c e non data-city: il clic lo gestisce la guglia, non il gestore globale della pagina
-      const c = g.append("g").attr("class", spike ? "city spike" : "city").attr("data-c", d.c.id).style("color", divColor(d.cmp))
+      const c = g.append("g").attr("class", spike ? "city spike" : "city").attr("data-c", d.c.id).style("color", divColor(d.cmp)).style("--i", k)
         .on("mouseenter", () => hotCity(d.c.id, true))
         .on("mousemove", (ev) => showTip(cityTip(d, m), ev))
         .on("mouseleave", () => { hideTip(); hotCity(d.c.id, false); })
         .on("click", () => openCity(d.c));
-      c.append("path").attr("class", "pin").attr("d", pin(x, y, d._len, pw / 2));
+      c.append("path").attr("class", "pin rv-rise").attr("d", pin(x, y, d._len, pw / 2));
       // zona sensibile più larga della guglia, perché le guglie basse si prendano col mouse
       c.append("path").attr("class", "hit").attr("d", pin(x, y + 2, Math.max(d._len, 8) + 4, pw / 2 + 3));
     });
@@ -497,7 +616,7 @@
     const taken = rows.filter((d) => d._len > 6).map((d) => ({ id: d.c.id, x: d._xy[0] - pw / 2, y: d._xy[1] - d._len, w: pw, h: d._len }));
     const hits = (b, id) => b.x < 2 || b.y < 2 || b.x + b.w > w - 2 || b.y + b.h > h - 2 ||
       taken.some((t) => t.id !== id && b.x < t.x + t.w && b.x + b.w > t.x && b.y < t.y + t.h && b.y + b.h > t.y);
-    const lg = svg.append("g").attr("class", "labels");
+    const lg = svg.append("g").attr("class", "labels rv-fade");
     rows.filter((d) => big.has(d.c.id)).sort((a, b) => b.c.pop[LAST] - a.c.pop[LAST]).forEach((d) => {
       const [x, y] = d._xy, o = pw / 2 + pad, tw = d.c.name.length * cw;
       const cands = [
@@ -514,7 +633,7 @@
     // Chiave delle altezze: tre guglie affiancate con valori tondi, nel mare a sud-ovest della Sardegna.
     const nice = (v) => { const p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p; return (n >= 5 ? 5 : n >= 2 ? 2 : 1) * p; };
     const vals = [nice(maxL), nice(maxL / 3), nice(maxL / 10)].filter((v, i, a) => v > 0 && isFinite(v) && a.indexOf(v) === i);
-    const key = svg.append("g").attr("class", "sizekey").attr("aria-hidden", "true");
+    const key = svg.append("g").attr("class", "sizekey rv-fade").attr("aria-hidden", "true");
     const step = Math.max(30, 6 * Math.max(...vals.map((v) => fmtRate(v).length)) + 8), ky = h - 22;
     vals.forEach((v, i) => {
       const kx = 8 + step / 2 + i * step;
@@ -536,6 +655,7 @@
         <div class="lg-t">Altezza · denunce ogni 100.000 abitanti, ${m.levelNote}</div>
         <div class="lg-row"><svg class="pin-k" viewBox="0 0 14 20" aria-hidden="true"><path d="M2,19L7,1L12,19Z"/></svg>bordo d’oro: impennata nel ${Y[LAST]}</div>
       </div>`;
+    reveal(el.parentNode);
   }
 
   // Evidenzia la stessa città nella mappa e nelle classifiche, al passaggio del mouse sull'una o sull'altra.
@@ -565,22 +685,22 @@
     const top = m.ranked.slice(0, 10);
     const bottom = m.ranked.slice().sort((a, b) => a.lvl - b.lvl || b.c.pop[LAST] - a.c.pop[LAST]).slice(0, 10);
     const maxL = top[0] ? top[0].lvl : 1;
-    $("#map-dek").textContent = `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${state.base}.`;
+    $("#map-dek").textContent = `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${state.base}.${GLOSS[state.type] ? ` ${m.label}: ${GLOSS[state.type]}.` : ""}`;
     $("#rank-top-title").textContent = `Più denunce · ${m.levelNote}`;
     $("#rank-bottom-title").textContent = `Meno denunce · ${m.levelNote}`;
     const li = (d, pos) => {
       const few = d.nl < (m.rare ? 10 : 20) ? ` <span class="few">${nf0.format(d.nl)} casi</span>` : "";
       return `<li data-c="${d.c.id}"><span class="pos">${pos}</span><span class="dotc ${sig(d.cmp)}" title="Rispetto al ${state.base}: ${fmtPct(d.cmp && d.cmp.pct)}"></span><button type="button" data-city="${d.c.id}" title="${esc(d.c.name)}">${esc(d.c.name)}</button>` +
-        `<span class="bar" aria-hidden="true"><i style="width:${(100 * d.lvl) / maxL}%"></i><b style="left:${Math.min(100, (100 * m.itLvl) / maxL)}%"></b></span>` +
+        `<span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * d.lvl) / maxL}%"></i><b class="rv-fade" style="left:${Math.min(100, (100 * m.itLvl) / maxL)}%"></b></span>` +
         `<span class="val">${fmtRate(d.lvl)}${few}</span></li>`;
     };
     $("#rank-top").innerHTML = top.map((d) => li(d, d.rank)).join("");
     $("#rank-bottom").innerHTML = bottom.map((d) => li(d, d.rank)).join("");
+    reveal($(".rank-cols"), document.querySelectorAll(".rank-cols li"));
     const zeros = m.ranked.filter((d) => d.lvl === 0).length;
-    const tourist = ["Milano", "Firenze", "Bologna", "Rimini", "Venezia", "Roma", "Torino"];
-    const topTourist = top.filter((d) => tourist.includes(d.c.name)).map((d) => d.c.name);
+    const topTourist = top.filter((d) => TOURIST.includes(d.c.name)).map((d) => d.c.name);
     let note = `La linea sottile su ogni barra è la media italiana: ${fmtRate(m.itLvl)}. `;
-    if (topTourist.length && ["Totale", "Furti", "Rapine"].includes(TYPE[state.type].group)) note += `${topTourist.slice(0, 3).join(", ")} ${topTourist.length > 1 ? "sono" : "è"} in alto anche perché ogni giorno ${topTourist.length > 1 ? "accolgono" : "accoglie"} pendolari e turisti che non entrano nel conto dei residenti. `;
+    if (topTourist.length && TOURIST_GROUPS.includes(TYPE[state.type].group) && !TOURIST_NOT.includes(state.type)) note += `${topTourist.slice(0, 3).join(", ")} ${topTourist.length > 1 ? "sono" : "è"} in alto anche perché ogni giorno ${topTourist.length > 1 ? "accolgono" : "accoglie"} pendolari e turisti che non entrano nel conto dei residenti. `;
     if (zeros) note += `${zeros} capoluoghi non hanno avuto nessun caso ${m.rare ? "tra il 2022 e il 2024" : "nel 2024"}, a pari merito in fondo alla classifica. `;
     if (m.rare) note += "Con pochi casi l’anno, una sola differenza sposta molto il tasso: per questo usiamo la media di tre anni.";
     $("#rank-note").textContent = note;
@@ -621,7 +741,7 @@
 
   function cardHTML(d, kind) {
     const yrs = d.a.baseYears.join(", ").replace(/, (\d+)$/, " e $1");
-    return `<button type="button" class="card ${kind}" data-city="${d.r.c.id}" data-type="${d.t.id}">
+    return `<button type="button" class="card ${kind} rv-up" data-city="${d.r.c.id}" data-type="${d.t.id}">
       <span class="what">${esc(d.t.label)}</span>
       <span class="city">${esc(d.r.c.name)}</span>
       <span class="row"><span class="big">${fmtPct(d.a.rr - 1)}</span><span class="small">${esc(d.r.c.region)}</span></span>
@@ -650,6 +770,8 @@
         drawSpark(s, { w, h: 44, values: vals, yMax: d3.max(vals) * 1.1, an, hover: (i) => `${esc(d.r.c.name)} · ${esc(d.t.label)}<br><b>${Y[i]}</b>: ${nf0.format(d.r.c.n[d.t.id][i] ?? 0)} casi, ${fmtRate(vals[i])} ogni 100.000 ab.` });
       });
     });
+    reveal(wrap, wrap.querySelectorAll(".card"));
+    reveal($("#fall-cards"), $("#fall-cards").querySelectorAll(".card"));
   }
 
   // ------------------------------------------------------------------ small multiples
@@ -709,6 +831,7 @@
         },
       });
     });
+    reveal(host, panels.map((p) => p[0]));
   }
 
   // ------------------------------------------------------------------ percezione
@@ -760,7 +883,7 @@
     svg.selectAll(".axis .tick line").style("stroke", "var(--grid)");
     svg.append("text").attr("class", "lbl").attr("x", w - mg.r).attr("y", h - 6).attr("text-anchor", "end").text("delitti ogni 100.000 abitanti →");
     const itX = tot[LAST], itY = ITALY.perc["2024"];
-    svg.append("circle").attr("cx", x(itX)).attr("cy", y(itY)).attr("r", 6).style("fill", "none").style("stroke", "var(--ink)").style("stroke-width", 1.5);
+    svg.append("circle").attr("class", "rv-pop").style("--t0", "0.5s").attr("cx", x(itX)).attr("cy", y(itY)).attr("r", 6).style("fill", "none").style("stroke", "var(--ink)").style("stroke-width", 1.5);
     const labelled = new Set();
     pts.slice().sort((p, q) => q.x - p.x).slice(0, 3).forEach((d) => labelled.add(d.c.id));
     pts.slice().sort((p, q) => q.y - p.y).slice(0, 3).forEach((d) => labelled.add(d.c.id));
@@ -776,14 +899,14 @@
         if (b[0] < 0 || b[2] > w || b[1] < 0) continue;
         if (boxes.some((o) => !(b[2] < o[0] || b[0] > o[2] || b[3] < o[1] || b[1] > o[3]))) continue;
         boxes.push(b);
-        svg.append("text").attr("class", "lbl halo").attr("x", lx).attr("y", ly).attr("text-anchor", anchor).text(text).style("pointer-events", "none");
+        svg.append("text").attr("class", "lbl halo rv-fade").attr("x", lx).attr("y", ly).attr("text-anchor", anchor).text(text).style("pointer-events", "none");
         return true;
       }
       return false;
     };
     place(x(itX), y(itY), "Italia");
-    pts.forEach((d) => {
-      svg.append("circle").attr("cx", x(d.x)).attr("cy", y(d.y)).attr("r", 5).style("fill", "var(--ink-2)").style("stroke", "var(--surface)").style("stroke-width", 2)
+    pts.forEach((d, k) => {
+      svg.append("circle").attr("class", "rv-pop").style("--i", k).attr("cx", x(d.x)).attr("cy", y(d.y)).attr("r", 5).style("fill", "var(--ink-2)").style("stroke", "var(--surface)").style("stroke-width", 2)
         .style("cursor", "pointer")
         .on("mousemove", (ev) => showTip(`<b>${esc(d.c.name)}</b><br>${nf0.format(d.x)} delitti ogni 100.000 ab. (2024)<br>${nf1.format(d.y)}% famiglie che sentono a rischio la zona`, ev))
         .on("mouseleave", hideTip)
@@ -793,6 +916,7 @@
     const r = pearson(pts.map((d) => d.x), pts.map((d) => d.y));
     const hiP = pts.slice().sort((p, q) => q.y - p.y)[0], loC = pts.slice().sort((p, q) => p.x - q.x)[0];
     $("#perc-note").textContent = `Nelle ${pts.length} grandi città misurate dall’ISTAT, il legame tra delitti denunciati e paura è ${Math.abs(r) < 0.3 ? "debole" : Math.abs(r) < 0.6 ? "moderato" : "forte"} (correlazione ${nf2.format(r)}). ${hiP.c.name} è la città dove più famiglie si sentono a rischio (${nf1.format(hiP.y)}%), con ${nf0.format(hiP.x)} delitti ogni 100.000 abitanti. Il dato sulla percezione viene dall’indagine ISTAT Aspetti della vita quotidiana.`;
+    reveal(el);
   }
 
   function pearson(a, b) {
@@ -811,7 +935,12 @@
   const andList = (a) => (a.length > 1 ? a.slice(0, -1).join(", ") + " e " + a[a.length - 1] : a[0] || "");
 
   function showCard() {
-    if (!dlg.open) dlg.showModal();
+    if (!dlg.open) {
+      dlg._rvShown = false;
+      // finché dura l'animazione d'ingresso i dati che arrivano dopo (province, quartieri) non ridisegnano la scheda
+      dlg._rvUntil = revealer && !stillMotion.matches ? Date.now() + 1800 : 0;
+      dlg.showModal();
+    }
     dlg.scrollTop = 0;
     dlg.appendChild(tip);
   }
@@ -825,9 +954,16 @@
     showCard();
     try { history.replaceState(null, "", "#" + slug(c.name)); } catch (e) { /* ignorato */ }
     // la provincia del capoluogo arriva con data/province.json: la scheda si completa appena c'è
-    if (!PROV && !placesFailed) loadPlaces().then(() => { if (state.city === c) renderCity(); }).catch(() => {});
+    if (!PROV && !placesFailed) loadPlaces().then(() => redrawCard(c)).catch(() => {});
     // i quartieri, per le città che li hanno (data/quartieri/index.json): stessa cosa
-    if (QINDEX.has(c.id) && QUART[c.id] === undefined) loadQuart(c.id).then((q) => { if (q && state.city === c) renderCity(); });
+    if (QINDEX.has(c.id) && QUART[c.id] === undefined) loadQuart(c.id).then((q) => { if (q) redrawCard(c); });
+  }
+
+  // Ridisegna la scheda quando arrivano dati in ritardo, ma solo a scheda ancora aperta sulla stessa città
+  // e dopo la fine dell'animazione d'ingresso, così il grafico non si interrompe a metà tratto.
+  function redrawCard(c) {
+    const wait = Math.max(0, (dlg._rvUntil || 0) - Date.now());
+    setTimeout(() => { if (state.city === c) renderCity(); }, wait);
   }
 
   function openProv(e) {
@@ -850,13 +986,14 @@
       const el = $("#place-chart");
       if (el) multiLine(el, { series, an, label: `${TYPE[state.type].label} ogni 100.000 abitanti, ${Y[0]}–${Y[LAST]}` });
       const svgs = $("#city-grid").querySelectorAll("svg");
-      if (!svgs.length) return;
-      const w = svgs[0].getBoundingClientRect().width || 140;
+      const w = svgs.length ? svgs[0].getBoundingClientRect().width || 140 : 0;
       svgs.forEach((s, k) => {
         const { t, row } = rows[k];
         const it = ITALY.rate[t.id];
         drawSpark(s, { w, h: 58, values: row.s, italy: it, an: row.an, yMax: Math.max(d3.max(row.s) || 0, d3.max(it)) * 1.08, hover: (i) => hoverRow(t, row, i) });
       });
+      // il grafico e i riquadri si animano insieme a ogni apertura (showCard azzera il ricordo della scheda)
+      reveal(dlg, [el].concat(Array.from(svgs, (s) => s.closest(".sm"))).filter(Boolean));
     });
   }
 
@@ -889,7 +1026,7 @@
       return `<div class="mover ${dir}"><h4>${title}</h4><ol>${items}</ol></div>`;
     };
     const how = tested
-      ? "Solo le variazioni che il caso da solo non spiega (z ≥ 2). Furti e rapine nel loro insieme lasciano il posto ai sottotipi."
+      ? "Solo le variazioni abbastanza grandi da non dipendere dal caso. Furti e rapine nel loro insieme lasciano il posto ai sottotipi."
       : "Variazioni sui tassi ufficiali della provincia, senza test statistico. Furti e rapine nel loro insieme lasciano il posto ai sottotipi.";
     return `<div class="movers">
         <h3>Cosa è salito e cosa è sceso di più</h3>
@@ -935,6 +1072,47 @@
     return `<figure class="loc"><svg viewBox="${LOC.box}" role="img" aria-label="${esc(name)} sulla carta d’Italia"><path class="loc-land" d="${LOC.d}"/><circle class="loc-ring" cx="${x}" cy="${y}" r="9"/><circle class="loc-dot" cx="${x}" cy="${y}" r="4"/></svg></figure>`;
   }
 
+  // In testa alla scheda, in parole semplici: quanto si denuncia, rispetto all'Italia, in che posizione e come è cambiato.
+  // Stessi numeri dei riquadri sotto; vale per i capoluoghi e per le province.
+  function timesItaly(r) {
+    if (r >= 1.4) {
+      const h = Math.round(r * 2) / 2;
+      const W = { 1.5: "una volta e mezza", 2: "due volte", 2.5: "due volte e mezza", 3: "tre volte", 3.5: "tre volte e mezza", 4: "quattro volte", 4.5: "quattro volte e mezza", 5: "cinque volte" };
+      return `${Math.abs(r - h) <= 0.08 ? "circa" : r < h ? "quasi" : "più di"} ${W[h] || nf1.format(h) + " volte"} la media italiana`;
+    }
+    const p = Math.round(Math.abs(r - 1) * 100);
+    return p < 5 ? "in linea con la media italiana" : `${vowelNum(p) ? "l’" : "il "}${nf0.format(p)}% ${r > 1 ? "sopra" : "sotto"} la media italiana`;
+  }
+  function perPeople(v) {
+    for (const s of [100, 1000, 10000]) { const x = (v * s) / 1e5; if (x >= 1.5) return `circa ${nf0.format(Math.round(x))} ogni ${nf0.format(s)} residenti`; }
+    return "";
+  }
+  // o: { t, where ("a Firenze"), lvl, it, rank, n, unit ("capoluoghi"/"province"), cmp, tourist }
+  function verdictHTML(o) {
+    if (o.lvl == null) return "";
+    const m = model(o.t), pp = perPeople(o.lvl);
+    const gl = GLOSS[o.t] ? `<span class="gl"><b>${esc(m.label)}</b>: ${GLOSS[o.t]}.</span>` : "";
+    if (o.lvl === 0) return `<p class="verdict">${esc(m.label)} ${o.where}, ${m.levelNote}: nessuna denuncia. In Italia ${fmtRate(o.it)} ogni 100.000 abitanti${m.rare ? " all’anno" : ""}.${gl}</p>`;
+    let s = o.t === "TOT"
+      ? `Nel ${Y[LAST]} ${o.where} sono stati denunciati ${fmtRate(o.lvl)} delitti ogni 100.000 abitanti${pp ? `: in un anno, ${pp}` : ""}. `
+      : `${esc(m.label)} ${o.where}, ${m.levelNote}: ${fmtRate(o.lvl)} denunce ogni 100.000 abitanti${m.rare ? " all’anno" : ""}${pp ? `, ${pp}${m.rare ? "" : " in un anno"}` : ""}. `;
+    const of = (o.unit === "province" ? "delle " : "dei ") + o.n + " " + o.unit;
+    const pos = !o.rank ? "" : o.rank === 1 ? `il valore più alto ${of}` : o.rank === o.n ? `il valore più basso ${of}` : o.rank <= 10 ? `uno dei dieci valori più alti ${of} (${o.rank}°)` : o.rank > o.n - 10 ? `uno dei dieci valori più bassi ${of} (${o.rank}°)` : `${vowelNum(o.rank) ? "all’" : "al "}${o.rank}° posto su ${o.n} ${o.unit}`;
+    if (o.it) s += `È ${timesItaly(o.lvl / o.it)} (${fmtRate(o.it)})${pos ? " e " + pos : ""}${o.tourist && o.lvl / o.it >= 1.15 ? ", anche perché ogni giorno arrivano pendolari, studenti e turisti che non sono contati tra i residenti" : ""}. `;
+    const c = o.cmp;
+    if (c && c.pct != null && isFinite(c.pct)) {
+      // reati rari nelle province senza conteggi: c.win è "media 2022–2024 su 2017–2019"
+      const win = c.win ? c.win.replace(/^media /, "").split(" su ") : null;
+      const since = win ? `Tra il ${win[1]} e il ${win[0]}, in media,` : `Rispetto al ${state.base}${state.base === 2019 ? ", prima del Covid," : ""}`;
+      s += Math.round(c.pct * 100) === 0 ? `${since} le denunce per abitante sono rimaste le stesse.`
+        : sig(c) === "flat" ? (Math.abs(c.pct) < 0.1
+          ? `${since} le denunce per abitante sono più o meno le stesse (${fmtPct(c.pct)}): una differenza così piccola può dipendere dal caso.`
+          : `${since} le denunce per abitante sono ${c.pct > 0 ? "aumentate" : "diminuite"} ${delPct(c.pct)}, ma è una differenza che può dipendere dal caso.`)
+        : `${since} le denunce per abitante sono ${c.pct > 0 ? "aumentate" : "diminuite"} ${delPct(c.pct)}.`;
+    }
+    return `<p class="verdict">${s}${gl}</p>`;
+  }
+
   function percFact(perc, where) {
     if (!perc || perc["2024"] == null) return "";
     const before = perc["2022"] != null ? `; ${nf1.format(perc["2022"])}% nel 2022` : "";
@@ -959,7 +1137,9 @@
     const iB = Y.indexOf(state.base);
     const movers = moversHTML(rows, (t) => `${nf0.format(c.n[t.id][LAST] ?? 0)} casi nel ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} nel ${state.base}`, true);
     const q = QUART[c.id] || null; // quartieri, se la città li ha e sono arrivati
+    const verdict = verdictHTML({ t: state.type, where: (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.type].group) && !TOURIST_NOT.includes(state.type) });
     $("#city-body").innerHTML = `
+      ${verdict}
       <div class="card-head">
       <div class="facts">
         <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti (${m.levelNote}) · ${r.rank ? r.rank + "° su " + m.ranked.length : ""} · Italia ${fmtRate(m.itLvl)}</div></div>
@@ -996,14 +1176,13 @@
 
   // ------------------------------------------------------------------ quartiere per quartiere (prototipo: Milano)
 
-  // Per le città elencate in data/quartieri/index.json: confini e dati veri dei quartieri (<id>.json, <id>.topo.json,
-  // dal Comune) e, se c'è <id>.sim.json, una SIMULAZIONE dei reati per quartiere, segnata come tale ovunque compaia.
-  // Nessuna fonte ufficiale pubblica i reati denunciati sotto il livello comunale: lo strato simulato mostra
-  // solo come apparirà la sezione quando esisterà una fonte vera.
+  // Per le città elencate in data/quartieri/index.json: confini e dati dei quartieri (<id>.json, <id>.topo.json, dal Comune).
+  // Nessuna fonte ufficiale pubblica i reati denunciati sotto il livello comunale: lo strato «Reati» compare solo
+  // se ogni quartiere ha i conteggi (areas[].n per tipo di reato e anno, come in vc.json).
   let QINDEX = new Set();
   const QUART = {};
   const QLAYERS = [
-    { id: "sim", label: "Reati · simulazione", sim: true },
+    { id: "crime", label: "Reati", crime: true },
     { id: "pop", label: "Residenti", title: (y) => `Residenti al 31 dicembre ${y}`, fmt: (v) => nf0.format(v) },
     { id: "dens", label: "Densità", title: (y) => `Residenti per km² nel ${y}`, fmt: (v) => nf0.format(v) },
     { id: "str", label: "Stranieri", title: (y) => `Residenti stranieri ogni 100 residenti nel ${y}`, fmt: (v) => nf1.format(v) + "%", pct: true },
@@ -1016,15 +1195,16 @@
   function loadQuart(id) {
     if (QUART[id] !== undefined) return Promise.resolve(QUART[id]);
     const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-    return Promise.all([get(`data/quartieri/${id}.json`), get(`data/quartieri/${id}.topo.json`), get(`data/quartieri/${id}.sim.json`).catch(() => null)])
-      .then(([d, t, s]) => {
+    return Promise.all([get(`data/quartieri/${id}.json`), get(`data/quartieri/${id}.topo.json`)])
+      .then(([d, t]) => {
         const obj = t.objects[Object.keys(t.objects)[0]];
         const feats = topojson.feature(t, obj).features;
         const byId = new Map(d.areas.map((a) => [a.id, a]));
         feats.forEach((f) => { f.properties.area = byId.get(f.properties.id); });
-        const simById = s && s.meta && s.meta.sim ? new Map(s.areas.map((a) => [a.id, a.n])) : null;
-        QUART[id] = { id, d, t, obj, feats, byId, areas: d.areas, s: simById ? s : null, simById };
-        if (state.qLayer === "sim" && !simById) state.qLayer = "pop";
+        // lo strato dei reati esiste solo se ogni quartiere ha i conteggi: oggi nessuna fonte li pubblica
+        const crime = d.areas.length > 0 && d.areas.every((a) => a.n && a.n.TOT);
+        QUART[id] = { id, d, t, obj, feats, byId, areas: d.areas, crime };
+        if (state.qLayer === "crime" && !crime) state.qLayer = "pop";
         $("#sources").insertAdjacentHTML("beforeend", d.meta.sources.map((src) => `<li><code>${esc(src.id)}</code> ${esc(src.label)}</li>`).join(""));
         return QUART[id];
       })
@@ -1041,8 +1221,8 @@
     const crow = cm.rows.find((d) => d.c.id === q.id);
     const rows = q.areas.map((a) => {
       const r = { a, pop: a.pop[L], few: a.pop[L] < QFEW, lvl: null, s: null, cmp: null, an: null, n: null, nl: null };
-      if (layer.sim) {
-        const n = q.simById.get(a.id)[t];
+      if (layer.crime) {
+        const n = a.n[t];
         r.n = n;
         r.s = n.map((v, i) => (v == null || !a.pop[i] ? null : (v / a.pop[i]) * 1e5));
         r.an = anomaliesSeries(n, a.pop, yrs);
@@ -1068,19 +1248,19 @@
     ranked.forEach((r, i) => (r.rank = i > 0 && r.lvl === ranked[i - 1].lvl ? ranked[i - 1].rank : i + 1));
     // il riferimento sulle barre: la città intera
     const totPop = d3.sum(q.areas, (a) => a.pop[L]), totKm2 = d3.sum(q.areas, (a) => a.km2);
-    const ref = layer.sim ? (crow ? crow.lvl : null)
+    const ref = layer.crime ? (crow ? crow.lvl : null)
       : layer.id === "dens" ? totPop / totKm2
       : layer.id === "str" || layer.id === "old" ? (100 * d3.sum(q.areas, (a) => a[layer.id][L])) / totPop
       : null;
-    const title = layer.sim ? `${TYPE[t].label} ogni 100.000 residenti (${cm.levelNote})` : layer.title(yrs[L]);
-    const out = { rows, ranked, byId: new Map(rows.map((r) => [r.a.id, r])), yrs, L, iB, layer, ref, title, rare, t, cm, crow, fmt: layer.sim ? fmtRate : layer.fmt };
+    const title = layer.crime ? `${TYPE[t].label} ogni 100.000 residenti (${cm.levelNote})` : layer.title(yrs[L]);
+    const out = { rows, ranked, byId: new Map(rows.map((r) => [r.a.id, r])), yrs, L, iB, layer, ref, title, rare, t, cm, crow, fmt: layer.crime ? fmtRate : layer.fmt };
     qcache.set(key, out);
     return out;
   }
 
   function quartHTML(q) {
     const M = q.d.meta;
-    const btns = QLAYERS.filter((l) => !l.sim || q.s).map((l) => `<button type="button" data-ql="${l.id}" aria-pressed="${l.id === state.qLayer}">${esc(l.label)}</button>`).join("");
+    const btns = QLAYERS.filter((l) => !l.crime || q.crime).map((l) => `<button type="button" data-ql="${l.id}" aria-pressed="${l.id === state.qLayer}">${esc(l.label)}</button>`).join("");
     return `<section class="quart" aria-labelledby="quart-title">
       <h3 class="subhead" id="quart-title">${esc(M.name)} quartiere per quartiere</h3>
       <p class="small quart-dek">${esc(M.unit.long)}: ${q.areas.length} quartieri. Confini, residenti e pendolari dal portale open data del Comune di ${esc(M.name)}. I residenti sono quelli dell’anagrafe comunale, un po’ più dei residenti ISTAT usati nel resto dell’atlante. Tocca un quartiere, sulla mappa o nella classifica, per la sua scheda.</p>
@@ -1100,13 +1280,11 @@
 
   function renderQuart(q) {
     if (!q || !$("#quart-map")) return;
-    const m = quartModel(q), layer = m.layer, M = q.d.meta, c = state.city;
-    const tot = c.n[m.t][LAST];
-    $("#quart-note").innerHTML = layer.sim
-      ? `<p><strong>Simulazione, non dati.</strong> ${esc(M.gap)} Questi numeri ripartiscono ${tot != null ? `${nf0.format(tot)} ${esc(lower(TYPE[m.t].label))} denunciati` : "i delitti denunciati"} a ${esc(M.name)} nel ${Y[LAST]} tra i ${q.areas.length} quartieri in proporzione a residenti e pendolari in entrata, con una variazione casuale e qualche impennata inventata. Mostrano come apparirà questa sezione quando esisterà una fonte vera, non dove si denuncia di più.</p>`
-      : `<p>${esc(M.gap)} Questo strato usa i dati veri del Comune di ${esc(M.name)}: ${esc(lower(layer.title(m.yrs[m.L])))}.</p>`;
+    const m = quartModel(q), M = q.d.meta;
+    const note = $("#quart-note");
+    note.hidden = !!q.crime;
+    if (!q.crime) note.innerHTML = `<p>${esc(M.gap)} Qui ci sono i dati che il Comune di ${esc(M.name)} pubblica sui suoi quartieri: residenti, densità, stranieri, età ed edifici degradati.</p>`;
     $("#quart-seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.ql === state.qLayer));
-    $("#quart-mapbox").classList.toggle("demo", !!layer.sim);
     const sec = $(".quart");
     if (!sec._wired) {
       sec._wired = true;
@@ -1122,9 +1300,9 @@
   function quartTip(q, m, r) {
     const a = r.a;
     const head = `<b>${esc(a.name)}</b> · Municipio ${a.mun}<br>`;
-    if (m.layer.sim) {
+    if (m.layer.crime) {
       const s = sig(r.cmp), note = s === "flat" ? " (non significativa)" : "";
-      return head + `Simulazione · ${esc(lower(TYPE[m.t].label))}: ${r.few ? "meno di 1.000 residenti, nessun tasso" : `${fmtRate(r.lvl)} ogni 100.000 residenti`} (${nf0.format(r.nl)} casi, ${m.cm.levelNote})` +
+      return head + `${esc(TYPE[m.t].label)}: ${r.few ? "meno di 1.000 residenti, nessun tasso" : `${fmtRate(r.lvl)} ogni 100.000 residenti`} (${nf0.format(r.nl)} casi, ${m.cm.levelNote})` +
         (r.rank ? `<br>${r.rank}° su ${m.ranked.length} · rispetto al ${state.base}: ${fmtPct(r.cmp && r.cmp.pct)}${note}` : "") + `<br>${nf0.format(r.pop)} residenti`;
     }
     return head + `${esc(m.title)}: ${r.lvl == null ? "meno di 1.000 residenti" : m.fmt(r.lvl)}` + (m.layer.id === "pop" ? "" : `<br>${nf0.format(r.pop)} residenti`);
@@ -1186,27 +1364,28 @@
       boxes.push(b);
       lg.append("text").attr("class", "lbl").attr("x", x).attr("y", y + 4).attr("text-anchor", "middle").text(a.short);
     });
-    if (layer.sim) svg.append("text").attr("class", "wm").attr("x", w / 2).attr("y", h / 2 + 14).attr("text-anchor", "middle").attr("transform", `rotate(-18 ${w / 2} ${h / 2})`).text("Simulazione");
     const bar = `linear-gradient(to right, ${col(0)}, ${col(hi * 0.25)}, ${col(hi * 0.5)}, ${col(hi * 0.75)}, ${col(hi)})`;
     $("#quart-legend").innerHTML = `
-      <div class="lg"><div class="lg-t">${layer.sim ? "Simulazione · " : ""}${esc(m.title)}</div><div class="lg-bar" style="background:${bar}"></div><div class="lg-ticks"><span>0</span><span>${m.fmt(hi / 2)}</span><span>${m.fmt(hi)}${top > hi ? " o più" : ""}</span></div></div>
-      <div class="lg"><div class="lg-t">Confini</div><div class="lg-row"><i class="k-mun"></i>municipi</div>${m.rows.some((r) => r.lvl == null) ? `<div class="lg-row"><i class="k-hatch"></i>meno di ${nf0.format(QFEW)} residenti: nessun ${layer.sim || layer.pct ? "tasso" : "valore"}</div>` : ""}</div>`;
+      <div class="lg"><div class="lg-t">${esc(m.title)}</div><div class="lg-bar" style="background:${bar}"></div><div class="lg-ticks"><span>0</span><span>${m.fmt(hi / 2)}</span><span>${m.fmt(hi)}${top > hi ? " o più" : ""}</span></div></div>
+      <div class="lg"><div class="lg-t">Confini</div><div class="lg-row"><i class="k-mun"></i>municipi</div>${m.rows.some((r) => r.lvl == null) ? `<div class="lg-row"><i class="k-hatch"></i>meno di ${nf0.format(QFEW)} residenti: nessun ${layer.crime || layer.pct ? "tasso" : "valore"}</div>` : ""}</div>`;
   }
 
   function renderQuartRank(q, m) {
     const top = m.ranked.slice(0, 10);
     const bottom = m.ranked.slice().sort((a, b) => a.lvl - b.lvl || b.pop - a.pop).slice(0, 10);
     const maxL = top[0] ? top[0].lvl : 1;
-    $("#quart-top-title").textContent = m.layer.sim ? "Più denunce · simulazione" : "Più alto";
-    $("#quart-bottom-title").textContent = m.layer.sim ? "Meno denunce · simulazione" : "Più basso";
-    const li = (r) => `<li data-q="${r.a.id}"${r.a.id === state.qSel ? ' class="sel"' : ""}><span class="pos">${r.rank}</span><span class="dotc ${r.cmp ? sig(r.cmp) : "none"}"${r.cmp ? ` title="Rispetto al ${state.base}: ${fmtPct(r.cmp.pct)}"` : ""}></span><button type="button" data-q="${r.a.id}" title="${esc(r.a.name)}">${esc(r.a.short)}</button>` +
+    $("#quart-top-title").textContent = m.layer.crime ? "Più denunce" : "Più alto";
+    $("#quart-bottom-title").textContent = m.layer.crime ? "Meno denunce" : "Più basso";
+    // il punto: per i reati vale il test statistico, per i residenti basta il segno della variazione (oltre il 3%)
+    const dot = (r) => (!r.cmp ? "none" : m.layer.crime ? sig(r.cmp) : r.cmp.pct > 0.03 ? "up" : r.cmp.pct < -0.03 ? "down" : "flat");
+    const li = (r) => `<li data-q="${r.a.id}"${r.a.id === state.qSel ? ' class="sel"' : ""}><span class="pos">${r.rank}</span><span class="dotc ${dot(r)}"${r.cmp ? ` title="Rispetto al ${state.base}: ${fmtPct(r.cmp.pct)}"` : ""}></span><button type="button" data-q="${r.a.id}" title="${esc(r.a.name)}">${esc(r.a.short)}</button>` +
       `<span class="bar" aria-hidden="true"><i style="width:${(100 * r.lvl) / maxL}%"></i>${m.ref != null ? `<b style="left:${Math.min(100, (100 * m.ref) / maxL)}%"></b>` : ""}</span><span class="val">${m.fmt(r.lvl)}</span></li>`;
     $("#quart-top").innerHTML = top.map(li).join("");
     $("#quart-bottom").innerHTML = bottom.map(li).join("");
     const few = m.rows.length - m.ranked.length;
     let note = m.ref != null ? `La linea sottile su ogni barra è il valore di tutta ${esc(q.d.meta.name)}: ${m.fmt(m.ref)}. ` : "";
-    if (m.layer.sim) note += `Il punto colorato dice se il quartiere è salito o sceso rispetto al ${state.base}, sempre nella simulazione. `;
-    else if (m.layer.id === "pop") note += `Il punto colorato dice se i residenti sono cresciuti o calati rispetto al ${state.base}. `;
+    if (m.layer.crime) note += `Il punto colorato dice se il quartiere è salito o sceso rispetto al ${state.base}. `;
+    else if (m.layer.id === "pop") note += `Il punto colorato dice se i residenti sono cresciuti o calati di oltre il 3% rispetto al ${state.base}. `;
     if (few) note += `${few} quartieri con meno di ${nf0.format(QFEW)} residenti, parchi o aree industriali, restano fuori dalla classifica.`;
     $("#quart-rank-note").innerHTML = note;
   }
@@ -1217,15 +1396,15 @@
     const id = state.qSel != null && m.byId.has(state.qSel) ? state.qSel : (m.ranked[0] ? m.ranked[0].a.id : null);
     document.querySelectorAll(".quart-ranks li").forEach((n) => n.classList.toggle("sel", +n.dataset.q === id));
     if (id == null) { el.innerHTML = ""; return; }
-    const r = m.byId.get(id), a = r.a, L = m.L, yrs = m.yrs, sim = m.layer.sim, name = q.d.meta.name;
+    const r = m.byId.get(id), a = r.a, L = m.L, yrs = m.yrs, crime = m.layer.crime, name = q.d.meta.name;
     const pct = (num, den) => (den ? nf1.format((100 * num) / den) + "%" : "–");
     let body;
-    if (sim) {
+    if (crime) {
       const s = sig(r.cmp), sigText = s === "flat" ? ", variazione non significativa" : s === "up" ? ", aumento significativo" : s === "down" ? ", calo significativo" : "";
       const spikes = (r.an || []).filter((x) => x && x.flag === "spike").map((x) => x.y);
-      const txt = r.few ? `Meno di ${nf0.format(QFEW)} residenti: ${nf0.format(r.n[L] ?? 0)} casi simulati nel ${yrs[L]}, ma nessun tasso ha senso.`
-        : `${nf0.format(r.n[L] ?? 0)} casi simulati di ${esc(lower(TYPE[m.t].label))} nel ${yrs[L]}: ${fmtRate(r.s[L])} ogni 100.000 residenti, contro ${fmtRate(m.crow ? m.crow.s[LAST] : null)} in tutta ${esc(name)} · ${r.rank}° su ${m.ranked.length} quartieri · ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${state.base}${sigText}.${spikes.length ? ` Impennate simulate: ${spikes.join(", ")}.` : ""}`;
-      body = `<p class="chart-title">Simulazione · ${esc(TYPE[m.t].label)} ogni 100.000 residenti, ${yrs[0]}–${yrs[L]}</p>
+      const txt = r.few ? `Meno di ${nf0.format(QFEW)} residenti: ${nf0.format(r.n[L] ?? 0)} casi nel ${yrs[L]}, ma nessun tasso ha senso.`
+        : `${nf0.format(r.n[L] ?? 0)} casi di ${esc(lower(TYPE[m.t].label))} nel ${yrs[L]}: ${fmtRate(r.s[L])} ogni 100.000 residenti, contro ${fmtRate(m.crow ? m.crow.s[LAST] : null)} in tutta ${esc(name)} · ${r.rank}° su ${m.ranked.length} quartieri · ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${state.base}${sigText}.${spikes.length ? ` Impennate: ${spikes.join(", ")}.` : ""}`;
+      body = `<p class="chart-title">${esc(TYPE[m.t].label)} ogni 100.000 residenti, ${yrs[0]}–${yrs[L]}</p>
         <div class="key" aria-hidden="true"><span><i class="k-city"></i>quartiere</span><span><i class="k-it"></i>${esc(name)}</span><span><i class="k-gold"></i>impennata</span><span><i class="k-covid"></i>2020–21</span></div>
         <svg id="quart-spark" aria-hidden="true"></svg><p class="small qsel-note">${txt}</p>`;
     } else {
@@ -1250,11 +1429,11 @@
     const padded = (s) => Array(Math.max(0, pad)).fill(null).concat(s);
     const svg = $("#quart-spark");
     const w = svg.getBoundingClientRect().width || 300;
-    if (sim) {
+    if (crime) {
       const vals = padded(r.s), city = m.crow ? m.crow.s : [];
       const an = padded(r.an.map((x) => (x ? { ...x, i: x.i + pad } : null)));
       drawSpark(svg, { w, h: 56, values: vals, italy: city, an, yMax: Math.max(d3.max(vals, (v) => v || 0) || 0, d3.max(city, (v) => v || 0) || 0) * 1.08,
-        hover: (i) => `<b>${Y[i]}</b> · simulazione<br>${nf0.format(r.n[i - pad] ?? 0)} casi, ${fmtRate(vals[i])} ogni 100.000 residenti (${esc(name)} ${fmtRate(city[i])})` });
+        hover: (i) => `<b>${Y[i]}</b><br>${nf0.format(r.n[i - pad] ?? 0)} casi, ${fmtRate(vals[i])} ogni 100.000 residenti (${esc(name)} ${fmtRate(city[i])})` });
     } else {
       const vals = padded(a.pop);
       drawSpark(svg, { w, h: 56, values: vals, yMax: (d3.max(vals, (v) => v || 0) || 1) * 1.08, hover: (i) => `<b>${Y[i]}</b>: ${nf0.format(vals[i])} residenti` });
@@ -1262,14 +1441,14 @@
   }
 
   function renderQuartTable(q, m) {
-    const sim = m.layer.sim, L = m.L;
+    const crime = m.layer.crime, L = m.L;
     const rows = m.ranked.concat(m.rows.filter((r) => r.lvl == null));
-    const head = sim
+    const head = crime
       ? `<th class="num">Casi (${m.cm.levelNote})</th><th class="num">Ogni 100.000 res.</th><th class="num">Var. su ${state.base}</th>`
       : `<th class="num" title="${esc(m.title)}">${esc(m.layer.label)}${m.layer.pct ? " %" : ""}</th>`;
     $("#quart-table").innerHTML = `<thead><tr><th class="num">#</th><th>Quartiere</th><th class="num">Municipio</th><th class="num">Residenti ${m.yrs[L]}</th>${head}</tr></thead><tbody>` +
       rows.map((r) => `<tr><td class="num">${r.rank || ""}</td><td><button type="button" class="link" data-q="${r.a.id}">${esc(r.a.name)}</button></td><td class="num">${r.a.mun}</td><td class="num">${nf0.format(r.pop)}</td>` +
-        (sim ? `<td class="num">${nf0.format(r.nl ?? 0)}</td><td class="num">${r.lvl == null ? "–" : fmtRate(r.lvl)}</td><td class="num">${r.cmp ? chgHTML(r.cmp) : "–"}</td>` : `<td class="num">${r.lvl == null ? "–" : m.fmt(r.lvl)}</td>`) + "</tr>").join("") +
+        (crime ? `<td class="num">${nf0.format(r.nl ?? 0)}</td><td class="num">${r.lvl == null ? "–" : fmtRate(r.lvl)}</td><td class="num">${r.cmp ? chgHTML(r.cmp) : "–"}</td>` : `<td class="num">${r.lvl == null ? "–" : m.fmt(r.lvl)}</td>`) + "</tr>").join("") +
       `</tbody>`;
   }
 
@@ -1341,6 +1520,7 @@
       </div>
       ${locMap(e.lon, e.lat, e.name)}
       </div>
+      ${verdictHTML({ t, where: `in provincia di ${esc(P.name)}`, lvl: r.lvl, it: m.itLvl, rank: r.rank, n: pm.ranked.length, unit: "province", cmp: r.cmp })}
       <div class="facts">
         <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti in provincia (${m.levelNote}) · ${r.rank}° su ${pm.ranked.length} province · Italia ${fmtRate(m.itLvl)}</div></div>
         <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))} in provincia: ${r.cmp && r.cmp.win ? r.cmp.win + " (reato raro)" : !r.cmp && m.rare && !counts ? "reato raro, troppo pochi anni per un confronto" : `${Y[LAST]} rispetto al ${state.base}`}${sigText}</div></div>
@@ -1532,6 +1712,7 @@
   }
 
   function renderScoped() {
+    renderBrief();
     renderNational();
     renderMix();
     renderMap();
@@ -1570,6 +1751,7 @@
         renderTreemap();
       });
       renderCarceri();
+      renderBrief();
     } catch (e) {
       $("#carceri-facts").innerHTML = `<p class="note">I dati sulle carceri non si sono caricati (${esc(e.message)}).</p>`;
     }
@@ -1608,7 +1790,8 @@
     const regs = C.regioni;
     $("#carceri-reg-sub").textContent = `Quota di stranieri tra i detenuti nel ${last}; la linea è l'Italia (${nf1.format(quota)}%).`;
     const maxQ = d3.max(regs, (r) => r.quota);
-    $("#carceri-regions").innerHTML = regs.map((r) => `<li><span class="name" title="${esc(r.name)}">${esc(r.name)}</span><span class="bar" aria-hidden="true"><i style="width:${(100 * r.quota) / maxQ}%"></i><b style="left:${(100 * quota) / maxQ}%"></b></span><span class="val">${nf1.format(r.quota)}%</span></li>`).join("");
+    $("#carceri-regions").innerHTML = regs.map((r) => `<li><span class="name" title="${esc(r.name)}">${esc(r.name)}</span><span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * r.quota) / maxQ}%"></i><b class="rv-fade" style="left:${(100 * quota) / maxQ}%"></b></span><span class="val">${nf1.format(r.quota)}%</span></li>`).join("");
+    reveal($("#carceri-regions"), $("#carceri-regions").querySelectorAll("li"));
 
     renderOffences();
     renderAge();
@@ -1631,25 +1814,27 @@
       .attr("role", "img").attr("aria-label", `Treemap dei detenuti stranieri per cittadinanza nel ${y}`);
     svg.selectAll("*").remove();
     const conts = root.children;
+    let nLeaf = 0;
     conts.forEach((g, gi) => {
       g.leaves().forEach((d) => {
-        const cw = d.x1 - d.x0, ch = d.y1 - d.y0;
-        const r = svg.append("rect").attr("class", "leaf" + (gi % 2 ? " alt" : "")).attr("x", d.x0).attr("y", d.y0).attr("width", cw).attr("height", ch).attr("rx", 2);
+        const cw = d.x1 - d.x0, ch = d.y1 - d.y0, li = nLeaf++;
+        const r = svg.append("rect").attr("class", "leaf rv-pop" + (gi % 2 ? " alt" : "")).style("--i", li).attr("x", d.x0).attr("y", d.y0).attr("width", cw).attr("height", ch).attr("rx", 2);
         r.on("mousemove", (ev) => showTip(`<b>${esc(d.data.name)}</b> · ${esc(g.data.name)}<br>${nf0.format(d.value)} detenuti, ${nf1.format((100 * d.value) / total)}% degli stranieri`, ev)).on("mouseleave", hideTip);
         const label = d.data.name, est = label.length * 6.6;
         if (cw > est + 10 && ch > 30) {
-          svg.append("text").attr("class", "ll").attr("x", d.x0 + 6).attr("y", d.y0 + 16).text(label);
-          svg.append("text").attr("class", "lv").attr("x", d.x0 + 6).attr("y", d.y0 + 30).text(`${nf0.format(d.value)} · ${nf1.format((100 * d.value) / total)}%`);
+          svg.append("text").attr("class", "ll rv-fade").style("--i", li).attr("x", d.x0 + 6).attr("y", d.y0 + 16).text(label);
+          svg.append("text").attr("class", "lv rv-fade").style("--i", li).attr("x", d.x0 + 6).attr("y", d.y0 + 30).text(`${nf0.format(d.value)} · ${nf1.format((100 * d.value) / total)}%`);
         } else if (cw > 40 && ch > 18) {
-          svg.append("text").attr("class", "lv").attr("x", d.x0 + 5).attr("y", d.y0 + 13).text(label.length * 6 < cw - 8 ? label : nf1.format((100 * d.value) / total) + "%");
+          svg.append("text").attr("class", "lv rv-fade").style("--i", li).attr("x", d.x0 + 5).attr("y", d.y0 + 13).text(label.length * 6 < cw - 8 ? label : nf1.format((100 * d.value) / total) + "%");
         }
       });
-      svg.append("rect").attr("class", "cont").attr("x", g.x0).attr("y", g.y0).attr("width", g.x1 - g.x0).attr("height", g.y1 - g.y0);
+      svg.append("rect").attr("class", "cont rv-fade").attr("x", g.x0).attr("y", g.y0).attr("width", g.x1 - g.x0).attr("height", g.y1 - g.y0);
       if (g.x1 - g.x0 > 60) {
-        svg.append("rect").attr("x", g.x0).attr("y", g.y0).attr("width", g.x1 - g.x0).attr("height", 18).style("fill", "var(--ink)");
-        svg.append("text").attr("class", "cl").attr("x", g.x0 + 6).attr("y", g.y0 + 13).text(`${g.data.name} ${nf1.format((100 * g.value) / total)}%`);
+        svg.append("rect").attr("class", "hd rv-fade").attr("x", g.x0).attr("y", g.y0).attr("width", g.x1 - g.x0).attr("height", 18).style("fill", "var(--ink)");
+        svg.append("text").attr("class", "cl rv-fade").attr("x", g.x0 + 6).attr("y", g.y0 + 13).text(`${g.data.name} ${nf1.format((100 * g.value) / total)}%`);
       }
     });
+    reveal(el);
     // tabella gemella
     const years = C.meta.years;
     const leaves = groups.flatMap((g) => g.children.map((c) => ({ cont: g.name, ...c })));
@@ -1678,15 +1863,17 @@
       const short = OFF_SHORT[r.id] || r.name;
       svg.append("text").attr("class", "lbl").attr("x", m.l - 10).attr("y", yy + 4).attr("text-anchor", "end").text(short.length * 6.2 > m.l - 14 ? short.slice(0, Math.floor((m.l - 20) / 6.2)) + "…" : short)
         .append("title").text(r.name);
-      svg.append("line").attr("x1", x(r.it)).attr("x2", x(r.str)).attr("y1", yy).attr("y2", yy).style("stroke", "var(--rule)").style("stroke-width", 3);
-      svg.append("circle").attr("cx", x(r.it)).attr("cy", yy).attr("r", 5.5).style("fill", "var(--ink)").style("stroke", "var(--surface)").style("stroke-width", 1.5);
-      svg.append("circle").attr("cx", x(r.str)).attr("cy", yy).attr("r", 5.5).style("fill", "var(--fall)").style("stroke", "var(--surface)").style("stroke-width", 1.5);
+      svg.append("line").attr("class", "rv-grow").style("--i", i).style("--t0", "0.15s").style("transform-origin", r.it <= r.str ? "0 50%" : "100% 50%")
+        .attr("x1", x(r.it)).attr("x2", x(r.str)).attr("y1", yy).attr("y2", yy).style("stroke", "var(--rule)").style("stroke-width", 3);
+      svg.append("circle").attr("class", "rv-pop").style("--i", i).attr("cx", x(r.it)).attr("cy", yy).attr("r", 5.5).style("fill", "var(--ink)").style("stroke", "var(--surface)").style("stroke-width", 1.5);
+      svg.append("circle").attr("class", "rv-pop").style("--i", i).style("--t0", "0.5s").attr("cx", x(r.str)).attr("cy", yy).attr("r", 5.5).style("fill", "var(--fall)").style("stroke", "var(--surface)").style("stroke-width", 1.5);
       const hi = Math.max(r.it, r.str), lo = Math.min(r.it, r.str);
-      svg.append("text").attr("class", "lbl halo").attr("x", x(hi) + 9).attr("y", yy + 4).text(nf1.format(hi));
-      if (x(hi) - x(lo) > 34 && x(lo) - m.l > 34) svg.append("text").attr("class", "lbl halo").attr("x", x(lo) - 9).attr("y", yy + 4).attr("text-anchor", "end").text(nf1.format(lo));
+      svg.append("text").attr("class", "lbl halo rv-fade").style("--i", i).style("--t0", "0.7s").attr("x", x(hi) + 9).attr("y", yy + 4).text(nf1.format(hi));
+      if (x(hi) - x(lo) > 34 && x(lo) - m.l > 34) svg.append("text").attr("class", "lbl halo rv-fade").style("--i", i).style("--t0", "0.7s").attr("x", x(lo) - 9).attr("y", yy + 4).attr("text-anchor", "end").text(nf1.format(lo));
       svg.append("rect").attr("x", 0).attr("y", yy - rowH / 2).attr("width", w).attr("height", rowH).style("fill", "transparent")
         .on("mousemove", (ev) => showTip(`<b>${esc(r.name)}</b><br>italiani ${nf1.format(r.it)} · stranieri ${nf1.format(r.str)} ogni 100<br>${nf0.format(r.n)} detenuti in tutto con questo reato`, ev)).on("mouseleave", hideTip);
     });
+    reveal(el);
     if (!el.previousElementSibling.classList.contains("dumb-key")) {
       el.insertAdjacentHTML("beforebegin", `<div class="dumb-key" aria-hidden="true"><span><i class="k-it"></i>italiani</span><span><i class="k-str"></i>stranieri</span></div>`);
     }
@@ -1711,15 +1898,16 @@
     const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`).call(d3.axisBottom(x).tickSize(0).tickValues(rows.map((r) => r.c).filter((_, i) => i % every === 0)));
     xa.select(".domain").style("stroke", "var(--rule)");
     const bw = x.bandwidth() / 2 - 1;
-    rows.forEach((r) => {
-      svg.append("rect").attr("x", x(r.c)).attr("y", y(r.it)).attr("width", bw).attr("height", y(0) - y(r.it)).attr("rx", 2).style("fill", "var(--ink)");
-      svg.append("rect").attr("x", x(r.c) + bw + 2).attr("y", y(r.str)).attr("width", bw).attr("height", y(0) - y(r.str)).attr("rx", 2).style("fill", "var(--fall)");
+    rows.forEach((r, i) => {
+      svg.append("rect").attr("class", "rv-rise").style("--i", i).attr("x", x(r.c)).attr("y", y(r.it)).attr("width", bw).attr("height", y(0) - y(r.it)).attr("rx", 2).style("fill", "var(--ink)");
+      svg.append("rect").attr("class", "rv-rise").style("--i", i).style("--t0", "0.12s").attr("x", x(r.c) + bw + 2).attr("y", y(r.str)).attr("width", bw).attr("height", y(0) - y(r.str)).attr("rx", 2).style("fill", "var(--fall)");
       svg.append("rect").attr("x", x(r.c) - 2).attr("y", m.t).attr("width", x.bandwidth() + 4).attr("height", h - m.t - m.b).style("fill", "transparent")
         .on("mousemove", (ev) => showTip(`<b>${r.c} anni</b><br>italiani ${nf1.format(r.it)}% · stranieri ${nf1.format(r.str)}%`, ev)).on("mouseleave", hideTip);
     });
     const peakIt = rows.reduce((a, b) => (b.it > a.it ? b : a)), peakStr = rows.reduce((a, b) => (b.str > a.str ? b : a));
-    svg.append("text").attr("class", "lbl halo").attr("x", x(peakIt.c) + bw / 2).attr("y", y(peakIt.it) - 5).attr("text-anchor", "middle").text("italiani");
-    svg.append("text").attr("class", "lbl halo").attr("x", x(peakStr.c) + bw + 2 + bw / 2).attr("y", y(peakStr.str) - 5).attr("text-anchor", "middle").text("stranieri");
+    svg.append("text").attr("class", "lbl halo rv-fade").style("--t0", "0.8s").attr("x", x(peakIt.c) + bw / 2).attr("y", y(peakIt.it) - 5).attr("text-anchor", "middle").text("italiani");
+    svg.append("text").attr("class", "lbl halo rv-fade").style("--t0", "0.8s").attr("x", x(peakStr.c) + bw + 2 + bw / 2).attr("y", y(peakStr.str) - 5).attr("text-anchor", "middle").text("stranieri");
+    reveal(el);
   }
 
   // ------------------------------------------------------------------ rimpatri
@@ -1738,6 +1926,7 @@
       yr.value = state.rimpYear;
       yr.addEventListener("input", () => { state.rimpYear = +yr.value; renderRimpMap(); });
       renderRimpatri();
+      renderBrief();
     } catch (e) {
       $("#rimpatri-facts").innerHTML = `<p class="note">I dati sui rimpatri non si sono caricati (${esc(e.message)}).</p>`;
     }
@@ -1783,14 +1972,14 @@
     const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`).call(d3.axisBottom(x).tickValues(ticks).tickFormat(d3.format("d")).tickSize(4));
     xa.select(".domain").style("stroke", "var(--rule)");
     // lo spazio tra le due linee: ordini che non sono diventati rimpatri
-    svg.append("path").attr("d", d3.area().x((_, i) => x(Yr[i])).y0((_, i) => y(R[i])).y1((v) => y(v))(O)).style("fill", "var(--muted)").style("fill-opacity", 0.1);
+    svg.append("path").attr("class", "area rv-fade").attr("d", d3.area().x((_, i) => x(Yr[i])).y0((_, i) => y(R[i])).y1((v) => y(v))(O)).style("fill", "var(--muted)").style("fill-opacity", 0.1);
     const line = d3.line().x((_, i) => x(Yr[i])).y((v) => y(v));
-    svg.append("path").attr("d", line(O)).style("fill", "none").style("stroke", "var(--ink-2)").style("stroke-width", 2).style("stroke-linejoin", "round");
-    svg.append("path").attr("d", line(R)).style("fill", "none").style("stroke", "var(--fall)").style("stroke-width", 2.5).style("stroke-linejoin", "round");
+    svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).attr("d", line(O)).style("fill", "none").style("stroke", "var(--ink-2)").style("stroke-width", 2).style("stroke-linejoin", "round");
+    svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).style("--t0", "0.15s").attr("d", line(R)).style("fill", "none").style("stroke", "var(--fall)").style("stroke-width", 2.5).style("stroke-linejoin", "round");
     [[O, "var(--ink-2)", "ordini di lasciare l'Italia"], [R, "var(--fall)", "rimpatri"]].forEach(([s, c, label]) => {
-      svg.append("circle").attr("cx", x(Yr[L])).attr("cy", y(s[L])).attr("r", 4).style("fill", c).style("stroke", "var(--surface)").style("stroke-width", 2);
-      svg.append("text").attr("class", "lbl-strong halo").attr("x", x(Yr[L]) - 6).attr("y", y(s[L]) - 9).attr("text-anchor", "end").text(nf0.format(s[L]));
-      svg.append("text").attr("class", "lbl halo").attr("x", x(Yr[0]) + 4).attr("y", y(s[0]) - 9).text(label);
+      svg.append("circle").attr("class", "mark rv-pop").attr("cx", x(Yr[L])).attr("cy", y(s[L])).attr("r", 4).style("fill", c).style("stroke", "var(--surface)").style("stroke-width", 2);
+      svg.append("text").attr("class", "lbl-strong halo mark rv-fade").attr("x", x(Yr[L]) - 6).attr("y", y(s[L]) - 9).attr("text-anchor", "end").text(nf0.format(s[L]));
+      svg.append("text").attr("class", "lbl halo rv-fade").attr("x", x(Yr[0]) + 4).attr("y", y(s[0]) - 9).text(label);
     });
     const guide = svg.append("line").attr("y1", m.t).attr("y2", h - m.b).style("stroke", "var(--rule)").style("display", "none");
     const dots = [O, R].map((_, k) => svg.append("circle").attr("r", 4).style("fill", k ? "var(--fall)" : "var(--ink-2)").style("stroke", "var(--surface)").style("stroke-width", 2).style("display", "none"));
@@ -1803,6 +1992,7 @@
         showTip(`<b>${Yr[i]}</b><br>${nf0.format(O[i])} ordini di lasciare l'Italia<br>${nf0.format(R[i])} rimpatri, ${nf0.format(Math.round((100 * R[i]) / O[i]))} ogni 100 ordini`, ev);
       })
       .on("mouseleave", () => { guide.style("display", "none"); dots.forEach((d) => d.style("display", "none")); hideTip(); });
+    reveal(el);
   }
 
   // Rimpatri ogni 100 ordini negli ultimi quattro anni, per i paesi con abbastanza ordini da rendere stabile il rapporto.
@@ -1815,7 +2005,8 @@
     $("#rimp-ratio-sub").textContent = `${Yr[from]}–${Yr[L]}, paesi con almeno ${nf0.format(MIN)} ordini nel periodo. La linea è la media di tutti i paesi: ${nf0.format(all)}.`;
     const maxK = d3.max(rows, (d) => d.k);
     const ol = $("#rimp-ratio");
-    ol.innerHTML = rows.map((d) => `<li data-id="${d.p.id}"><span class="name" title="${esc(d.p.name)}">${esc(d.p.name)}</span><span class="bar" aria-hidden="true"><i style="width:${(100 * d.k) / maxK}%"></i><b style="left:${(100 * all) / maxK}%"></b></span><span class="val">${nf0.format(d.k)}</span></li>`).join("");
+    ol.innerHTML = rows.map((d) => `<li data-id="${d.p.id}"><span class="name" title="${esc(d.p.name)}">${esc(d.p.name)}</span><span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * d.k) / maxK}%"></i><b class="rv-fade" style="left:${(100 * all) / maxK}%"></b></span><span class="val">${nf0.format(d.k)}</span></li>`).join("");
+    reveal(ol, ol.querySelectorAll("li"));
     ol.querySelectorAll("li").forEach((li, i) => {
       const d = rows[i];
       li.addEventListener("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${Yr[from]}–${Yr[L]}<br>${nf0.format(d.r)} rimpatri su ${nf0.format(d.o)} ordini`, ev));
@@ -1844,7 +2035,7 @@
 
     const rows = placed.map((p) => ({ p, n: p.r[i] || 0, o: p.o[i] })).filter((d) => d.n > 0).sort((a, b2) => b2.n - a.n);
     const dest = new Set(rows.map((d) => d.p.id));
-    svg.append("g").selectAll("path").data(WORLD).join("path").attr("d", path)
+    svg.append("g").attr("class", "base rv-fade").selectAll("path").data(WORLD).join("path").attr("d", path)
       .attr("class", (f) => "land" + (f.id === "IT" ? " home" : dest.has(f.id) ? " dest" : ""));
 
     // scale comuni a tutti gli anni, così cambiare anno confronta davvero le quantità
@@ -1854,7 +2045,7 @@
     const wid = d3.scaleLinear([0, gmax], [0.6, Math.max(3, rMax / 3)]);
     const [sx, sy] = proj(D.meta.origine);
     const ends = rows.map((d) => ({ ...d, xy: proj(d.p.ll) }));
-    svg.append("g").selectAll("path").data(ends).join("path").attr("class", "flow")
+    svg.append("g").selectAll("path").data(ends).join("path").attr("class", "flow rv-draw").attr("pathLength", 1).style("--i", (d, k) => k)
       .attr("d", (d) => {
         const [tx, ty] = d.xy, dx = tx - sx, dy = ty - sy;
         // curva verso nord: il punto di controllo sta a lato della corda, proporzionale alla distanza
@@ -1863,7 +2054,7 @@
       })
       .style("stroke-width", (d) => wid(d.n));
     const g = svg.append("g");
-    g.selectAll("circle").data(ends).join("circle").attr("class", "bub")
+    g.selectAll("circle").data(ends).join("circle").attr("class", "bub rv-pop").style("--i", (d, k) => k)
       .attr("cx", (d) => d.xy[0]).attr("cy", (d) => d.xy[1]).attr("r", (d) => Math.max(1.5, rad(d.n)))
       .on("mousemove", (ev, d) => showTip(`<b>${esc(d.p.name)}</b> · ${y}<br>${nf0.format(d.n)} rimpatri${d.o ? `<br>${nf0.format(d.o)} ordini di lasciare l'Italia` : ""}`, ev))
       .on("mouseleave", hideTip);
@@ -1872,7 +2063,7 @@
     ends.slice(0, w < 560 ? 5 : 8).forEach((d) => {
       const [tx, ty] = d.xy, len = Math.hypot(tx - sx, ty - sy) || 1, ux = (tx - sx) / len, uy = (ty - sy) / len;
       const off = rad(d.n) + 4;
-      const t = svg.append("text").attr("class", "lbl-strong halo").attr("x", tx + ux * off).attr("y", ty + uy * off + (uy > 0.5 ? 10 : uy < -0.5 ? -2 : 4))
+      const t = svg.append("text").attr("class", "lbl-strong halo rv-fade").attr("x", tx + ux * off).attr("y", ty + uy * off + (uy > 0.5 ? 10 : uy < -0.5 ? -2 : 4))
         .attr("text-anchor", ux > 0.35 ? "start" : ux < -0.35 ? "end" : "middle").style("pointer-events", "none")
         .text(`${d.p.name} ${nf0.format(d.n)}`);
       const bb = t.node().getBBox();
@@ -1885,6 +2076,7 @@
     const keys = [100, 500, 1000].filter((v) => v < gmax);
     $("#rimp-legend").innerHTML = keys.map((v) => `<span><i class="bubk" style="width:${2 * rad(v)}px;height:${2 * rad(v)}px"></i>${nf0.format(v)}</span>`).join("") +
       `<span><i class="swk home"></i>Italia</span><span><i class="swk dest"></i>paesi con almeno un rimpatrio nell'anno</span>`;
+    reveal(el.closest(".rimp-mapblock"));
   }
 
   function renderRimpGrid() {
@@ -1900,15 +2092,15 @@
     const w = panels[0].querySelector("svg").getBoundingClientRect().width || 150, h = 64, pad = { t: 6, r: 6, b: 4, l: 2 };
     panels.forEach((el, k) => {
       const p = rows[k], vals = p.r;
-      const svg = d3.select(el.querySelector("svg")).attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
+      const svg = d3.select(el.querySelector("svg")).classed("spark", true).attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
       const x = d3.scaleLinear([Yr[0], Yr[L]], [pad.l, w - pad.r]);
       const yy = d3.scaleLinear([0, d3.max(vals, (v) => v || 0) || 1], [h - pad.b, pad.t]);
       const step = x(Yr[1]) - x(Yr[0]);
       svg.append("rect").attr("x", x(2020) - step / 2).attr("width", step * 2).attr("y", pad.t - 4).attr("height", h - pad.t - pad.b + 4).style("fill", "var(--covid)");
       svg.append("line").attr("x1", pad.l).attr("x2", w - pad.r).attr("y1", yy(0)).attr("y2", yy(0)).style("stroke", "var(--rule)");
       const def = (v) => v != null;
-      svg.append("path").attr("d", d3.area().defined(def).x((_, i) => x(Yr[i])).y0(yy(0)).y1((v) => yy(v))(vals)).style("fill", "var(--fall)").style("fill-opacity", 0.12);
-      svg.append("path").attr("d", d3.line().defined(def).x((_, i) => x(Yr[i])).y((v) => yy(v))(vals)).style("fill", "none").style("stroke", "var(--fall)").style("stroke-width", 1.75).style("stroke-linejoin", "round");
+      svg.append("path").attr("class", "area rv-fade").attr("d", d3.area().defined(def).x((_, i) => x(Yr[i])).y0(yy(0)).y1((v) => yy(v))(vals)).style("fill", "var(--fall)").style("fill-opacity", 0.12);
+      svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).attr("d", d3.line().defined(def).x((_, i) => x(Yr[i])).y((v) => yy(v))(vals)).style("fill", "none").style("stroke", "var(--fall)").style("stroke-width", 1.75).style("stroke-linejoin", "round");
       const dot = svg.append("circle").attr("r", 3.5).style("fill", "var(--fall)").style("stroke", "var(--surface)").style("stroke-width", 1.5).style("display", "none");
       svg.append("rect").attr("width", w).attr("height", h).style("fill", "transparent")
         .on("mousemove", (ev) => {
@@ -1919,6 +2111,7 @@
         })
         .on("mouseleave", () => { dot.style("display", "none"); hideTip(); });
     });
+    reveal(host, panels);
   }
 
   function renderRimpTable() {
@@ -1937,6 +2130,7 @@
     sel.value = state.type;
     sel.addEventListener("change", () => setType(sel.value, false));
 
+    $("#base-label").textContent = `Confronta il ${Y[LAST]} con il`;
     seg("#base-seg", "base", (v) => { state.base = +v; renderScoped(); if (state.city) renderCity(); if (state.place) renderProv(); });
     seg("#spike-year-seg", "year", (v) => { state.spikeYear = +v; state.spikeShown = 12; renderSpikes(); });
     seg("#spike-sort-seg", "ssort", (v) => { state.spikeSort = v; state.spikeShown = 12; renderSpikes(); });
@@ -1975,13 +2169,37 @@
       t = setTimeout(() => { if (Math.abs(innerWidth - lastW) > 20) { lastW = innerWidth; renderAll(); } }, 180);
     });
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
-    // marchio nella barra dei comandi quando è incollata in alto (la sentinella è subito prima della barra).
-    // Il margine in basso enorme estende l'area osservata sotto lo schermo: così "non visibile" vuol dire
-    // solo "sopra il bordo superiore", e lo stato cambia anche saltando con un'ancora oltre la sentinella.
-    const sentinel = $(".controls-sentinel"), controls = $(".controls"), brand = $(".bar-brand");
-    if (sentinel && controls && brand && "IntersectionObserver" in window) {
-      new IntersectionObserver(([e]) => controls.classList.toggle("scrolled", !e.isIntersecting), { rootMargin: "0px 0px 100000px 0px", threshold: 0 }).observe(sentinel);
-      brand.addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
+    // menu in testata: segna la sezione in vista (l'ultima il cui inizio è salito sotto le due barre incollate)
+    // e, quando la riga delle voci scorre di lato (telefono), tiene la voce segnata in vista.
+    const menu = $(".masthead .menu");
+    if (menu) {
+      const links = [...menu.querySelectorAll('a[href^="#"]')];
+      const targets = links.map((a) => document.getElementById(a.hash.slice(1)));
+      const bars = [$(".masthead"), $(".controls")];
+      let current = null;
+      const more = () => menu.toggleAttribute("data-more", menu.scrollWidth - menu.clientWidth - menu.scrollLeft > 4);
+      const spy = () => {
+        const line = bars.reduce((h, b) => h + (b ? b.offsetHeight : 0), 0) + 24;
+        let i = -1;
+        targets.forEach((t, k) => { if (t && t.getBoundingClientRect().top <= line) i = k; });
+        if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) i = targets.length - 1;
+        const next = i < 0 ? null : links[i];
+        if (next !== current) {
+          if (current) current.removeAttribute("aria-current");
+          current = next;
+          if (current) {
+            current.setAttribute("aria-current", "true");
+            if (menu.scrollWidth > menu.clientWidth) menu.scrollTo({ left: current.offsetLeft - (menu.clientWidth - current.offsetWidth) / 2, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+          }
+        }
+        more();
+      };
+      addEventListener("scroll", spy, { passive: true });
+      addEventListener("resize", spy);
+      menu.addEventListener("scroll", more, { passive: true });
+      spy();
+      // il nome riporta in cima (l'ancora non basta: la testata è incollata e per il browser è già in vista)
+      $(".wordmark a").addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
     }
     new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
