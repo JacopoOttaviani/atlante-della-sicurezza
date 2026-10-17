@@ -2199,7 +2199,8 @@
       menu.addEventListener("scroll", more, { passive: true });
       spy();
       // il nome riporta in cima (l'ancora non basta: la testata è incollata e per il browser è già in vista)
-      $(".wordmark a").addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
+      const home = $(".wordmark a");
+      if (home) home.addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
     }
     new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 

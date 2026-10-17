@@ -135,7 +135,8 @@ button, select, input { font: inherit; color: inherit; }
 }
 .menu a:hover { color: var(--ink); border-bottom-color: var(--rule); }
 .menu a[aria-current] { color: var(--ink); border-bottom-color: var(--gold); }
-.bar-cta { flex: none; align-self: center; margin-left: auto; flex-wrap: nowrap; }
+.cta.bar-cta { flex: none; align-self: center; margin-left: auto; flex-wrap: nowrap; }
+.bar-cta .li:hover, .bar-cta .li:focus-visible { background: var(--land); } /* sul fondo della barra var(--bg) non si vedrebbe */
 /* Sotto i 1200px i due pulsanti tengono solo l'icona; sotto i 1024px del nome resta il simbolo. */
 @media (max-width: 1199px) {
   .bar-cta a { width: 32px; padding: 0; justify-content: center; }
