@@ -123,7 +123,7 @@ button, select, input { font: inherit; color: inherit; }
 .menu a {
   display: inline-flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 7px;
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -137,8 +137,8 @@ button, select, input { font: inherit; color: inherit; }
 .menu a[aria-current] { color: var(--ink); border-bottom-color: var(--gold); }
 .cta.bar-cta { flex: none; align-self: center; margin-left: auto; flex-wrap: nowrap; }
 .bar-cta .li:hover, .bar-cta .li:focus-visible { background: var(--land); } /* sul fondo della barra var(--bg) non si vedrebbe */
-/* Sotto i 1200px i due pulsanti tengono solo l'icona; sotto i 1024px del nome resta il simbolo. */
-@media (max-width: 1199px) {
+/* Sotto i 1240px i due pulsanti tengono solo l'icona; sotto i 1024px del nome resta il simbolo. */
+@media (max-width: 1239px) {
   .bar-cta a { width: 32px; padding: 0; justify-content: center; }
   .bar-cta a span { display: none; }
 }
