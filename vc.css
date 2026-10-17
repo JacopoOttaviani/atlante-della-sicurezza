@@ -191,6 +191,48 @@ button, select, input { font: inherit; color: inherit; }
 .national .chart { position: relative; flex: 1 1 auto; min-height: 240px; }
 .national .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 
+/* L'apertura fa scorrere tre grafici (nel tempo, nelle città, per reato) su una striscia: titolo e sottotitolo
+   si dissolvono insieme al grafico; sotto, due frecce e tre punti, e il punto acceso è una pillola che si riempie
+   d'oro col tempo che manca al cambio (--p, dal JS). La striscia è alta quanto resta del riquadro. */
+.hero-car .car-head { display: grid; }
+.hero-car .car-meta { grid-area: 1 / 1; opacity: 0; pointer-events: none; transition: opacity 0.4s var(--rv-ease); }
+.hero-car .car-meta.on { opacity: 1; pointer-events: auto; }
+.hero-car .car-strip { position: relative; flex: 1 1 auto; min-height: 240px; overflow: hidden; touch-action: pan-y; }
+.hero-car .car-track { display: flex; height: 100%; transform: translateX(calc(var(--i, 0) * -100%)); transition: transform 0.55s var(--rv-ease); }
+.hero-car .car-panel { position: relative; flex: 0 0 100%; height: 100%; min-width: 0; }
+.hero-car .car-panel .chart { position: absolute; inset: 0; flex: none; height: auto; min-height: 0; }
+.hero-car .car-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 12px; }
+.hero-car .arr { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); cursor: pointer; display: grid; place-items: center; padding: 0; }
+.hero-car .arr:hover { border-color: var(--ink-2); }
+.hero-car .arr svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hero-car .car-dots { display: flex; gap: 8px; align-items: center; }
+.hero-car .car-dots button { position: relative; width: 8px; height: 8px; border-radius: 999px; border: 0; padding: 0; background: var(--mid); cursor: pointer; overflow: hidden; transition: width 0.3s var(--rv-ease), background-color 0.3s; }
+.hero-car .car-dots button:hover { background: var(--ink-2); }
+.hero-car .car-dots button[aria-selected="true"] { width: 32px; background: var(--rule); }
+.hero-car .car-dots button[aria-selected="true"]::before { content: ""; position: absolute; inset: 0; background: var(--gold); transform: scaleX(var(--p, 0)); transform-origin: 0 50%; }
+/* il pannello delle città: la carta a sinistra, alta quanto il pannello; a destra i movimenti più netti */
+.hero-car .cities { display: flex; gap: 14px; align-items: stretch; }
+.hero-car .cmap { position: relative; flex: none; height: 100%; }
+.hero-car .clist { flex: 1 1 auto; min-width: 0; font-size: var(--step--1); display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.hero-car .clist h4 { margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.hero-car .clist ul + h4 { margin-top: 12px; }
+.hero-car .clist ul { list-style: none; margin: 0; padding: 0; }
+.hero-car .clist li { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--grid); }
+.hero-car .clist li:hover, .hero-car .clist li.hot { border-bottom-color: var(--ink-2); }
+.hero-car .clist button { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-car .clist button:hover { text-decoration: underline; text-underline-offset: 2px; }
+.hero-car .clist .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+.hero-car .clist .v.up { color: var(--rise); }
+.hero-car .clist .v.down { color: var(--fall); }
+.hero-car .clist .v.spike { color: var(--gold-ink); }
+.hero-car .clist .tot { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
+/* il pannello dei reati: l'etichetta sta dal lato libero della barra; la linea tratteggiata è «tutti i delitti» */
+.hero-car .types .lab { fill: var(--ink); font-size: 12px; font-family: var(--font-display); }
+.hero-car .types .lab.sub { fill: var(--ink-2); }
+.hero-car .types .val { font-size: 12px; font-weight: 700; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+.hero-car .types .zero { stroke: var(--ink-2); }
+.hero-car .types .ref { stroke: var(--ink-2); stroke-dasharray: 2 3; }
+
 /* ---------------------------------------------------------------- comandi */
 .controls {
   position: sticky;
@@ -769,7 +811,7 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   .hero-grid, .two, .perc-grid, .carceri-grid, .carceri-grid.two-even { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .finder-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .national { min-height: 0; }
-  .national .chart { flex: 0 0 auto; height: clamp(240px, 40vw, 360px); min-height: 0; }
+  .national .chart, .hero-car .car-strip { flex: 0 0 auto; height: clamp(240px, 40vw, 360px); min-height: 0; }
 }
 /* Telefono: una barra sola. Sotto i 560px la testata incollata è l'unica barra: il simbolo, le sezioni in un menu
    a tendina, il reato e la lente; il JS ci sposta il menu dei reati e la ricerca, e la barra dei comandi sparisce.

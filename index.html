@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=37">
+<link rel="stylesheet" href="vc.css?v=38">
 </head>
 <body>
 <!-- vc:content -->
@@ -86,11 +86,43 @@
           </ol>
           <p class="hero-note">Uno strumento per leggere i dati ufficiali sui reati da vicino: città per città, reato per reato, anno per anno. Le impennate, cioè gli aumenti improvvisi, sono segnate in oro.</p>
         </div>
-        <div class="national" id="national">
-          <div class="kicker">Italia, 2006–2024</div>
-          <h3 id="national-title">…</h3>
-          <p class="sub" id="national-sub">Delitti denunciati ogni 100.000 abitanti</p>
-          <div class="chart" id="national-chart"></div>
+        <!-- Tre grafici su una striscia, uno per ogni pezzo del titolo: l'Italia nel tempo, le città (non ovunque),
+             i reati (non tutti). Avanza da sola ogni otto secondi, si ferma con il mouse sopra; frecce, punti e dito
+             per sfogliare. Titoli e grafici li riempie vc.js e seguono il reato scelto e l'anno di confronto. -->
+        <div class="national hero-car" id="national">
+          <div class="car-head">
+            <div class="car-meta on" data-k="0">
+              <div class="kicker">Italia, 2006–2024</div>
+              <h3 id="national-title">…</h3>
+              <p class="sub" id="national-sub">Delitti denunciati ogni 100.000 abitanti</p>
+            </div>
+            <div class="car-meta" data-k="1">
+              <div class="kicker" id="cities-kicker">Non ovunque · le città</div>
+              <h3 id="cities-title">…</h3>
+              <p class="sub" id="cities-sub"></p>
+            </div>
+            <div class="car-meta" data-k="2">
+              <div class="kicker" id="types-kicker">Non tutti · i reati</div>
+              <h3 id="types-title">…</h3>
+              <p class="sub" id="types-sub"></p>
+            </div>
+          </div>
+          <div class="car-strip">
+            <div class="car-track">
+              <div class="car-panel" data-k="0" role="group" aria-roledescription="grafico" aria-label="Nel tempo"><div class="chart" id="national-chart"></div></div>
+              <div class="car-panel" data-k="1" role="group" aria-roledescription="grafico" aria-label="Nelle città" aria-hidden="true"><div class="chart" id="cities-chart"></div></div>
+              <div class="car-panel" data-k="2" role="group" aria-roledescription="grafico" aria-label="Per reato" aria-hidden="true"><div class="chart" id="types-chart"></div></div>
+            </div>
+          </div>
+          <div class="car-nav">
+            <button type="button" class="arr" data-dir="-1" aria-label="Grafico precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <div class="car-dots" role="tablist" aria-label="Tre grafici">
+              <button type="button" role="tab" aria-selected="true" aria-label="Nel tempo" data-k="0"></button>
+              <button type="button" role="tab" aria-selected="false" aria-label="Nelle città" data-k="1"></button>
+              <button type="button" role="tab" aria-selected="false" aria-label="Per reato" data-k="2"></button>
+            </div>
+            <button type="button" class="arr" data-dir="1" aria-label="Grafico successivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+          </div>
         </div>
       </div>
     </div>
@@ -455,6 +487,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=35"></script>
+<script src="vc.js?v=38"></script>
 </body>
 </html>

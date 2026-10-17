@@ -515,6 +515,194 @@
     });
   }
 
+  // ------------------------------------------------------------------ apertura: le città e i reati sulla striscia
+
+  // Il riquadro a destra dell'apertura fa scorrere tre grafici, uno per ogni pezzo del titolo: l'Italia nel tempo
+  // (renderNational), le città (guglie come nella mappa, con i movimenti più netti accanto) e i reati (quali
+  // salgono e quali calano). Seguono il reato scelto e l'anno di confronto come il resto della pagina.
+  function renderHeroCities() {
+    const el = $("#cities-chart");
+    if (!el) return;
+    const m = model(state.type);
+    const rows = m.rows.filter((r) => r.lvl != null);
+    const up = rows.filter((r) => sig(r.cmp) === "up"), down = rows.filter((r) => sig(r.cmp) === "down");
+    const flat = rows.length - up.length - down.length;
+    $("#cities-kicker").textContent = `Non ovunque · ${rows.length} capoluoghi`;
+    $("#cities-title").textContent = `${m.label}: dal ${state.base} le denunce salgono in ${up.length} città e calano in ${down.length}`;
+    $("#cities-sub").textContent = `Ogni guglia un capoluogo, alta quanto le denunce per abitante (${m.levelNote}); rossa se dal ${state.base} salgono, blu se calano; in oro le impennate`;
+    const r0 = el.getBoundingClientRect();
+    const w = Math.max(260, Math.round(r0.width)), h = Math.min(560, Math.max(240, Math.round(r0.height)));
+    el.innerHTML = "";
+    el.classList.add("cities");
+    // la carta è alta quanto il pannello e larga quanto le serve, ma non oltre metà; se resta posto, accanto l'elenco
+    const mapW = Math.min(Math.round(w * 0.55), Math.round(h / 1.08));
+    const withList = w - mapW >= 150;
+    const mw = withList ? mapW : w;
+    const mapEl = document.createElement("div");
+    mapEl.className = "mapbox cmap";
+    mapEl.style.width = mw + "px";
+    el.appendChild(mapEl);
+    const maxLen = Math.round(mw * 0.17), sky = Math.round(maxLen / 2);
+    const obj = TOPO.objects[Object.keys(TOPO.objects)[0]];
+    const land = topojson.feature(TOPO, obj);
+    const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[4, 4 + sky], [mw - 4, h - 4]], land);
+    const path = d3.geoPath(proj);
+    const svg = d3.select(mapEl).append("svg").attr("viewBox", `0 0 ${mw} ${h}`).attr("role", "img")
+      .attr("aria-label", `Mappa dei capoluoghi: ${m.label}, denunce per abitante e variazione rispetto al ${state.base}`);
+    const sameReg = (a, b) => a.properties.reg_istat_code === b.properties.reg_istat_code;
+    const base = svg.append("g").attr("class", "base rv-fade");
+    base.append("path").attr("class", "land").attr("d", path(land));
+    base.append("path").attr("class", "prov").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a !== b && sameReg(a, b))));
+    base.append("path").attr("class", "reg").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a !== b && !sameReg(a, b))));
+    base.append("path").attr("class", "coast").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a === b)));
+    const pts = rows.map((d) => ({ d, xy: proj([d.c.lon, d.c.lat]) }));
+    const maxL = d3.max(rows, (r) => r.lvl) || 1;
+    const len = d3.scaleLinear([0, maxL], [0, Math.min(maxLen, ...pts.filter((p) => p.d.lvl > 0).map((p) => ((p.xy[1] - 6) * maxL) / p.d.lvl))]);
+    const pw = Math.max(4, Math.round(mw / 80));
+    const pin = (x, y, l, half) => `M${x - half},${y}L${x},${y - l}L${x + half},${y}Z`;
+    const g = svg.append("g").attr("class", "spires");
+    pts.sort((a, b) => a.xy[1] - b.xy[1]).forEach(({ d, xy }, k) => {
+      const l = Math.max(2, len(d.lvl)), [x, y] = xy;
+      const spike = d.an[LAST] && d.an[LAST].flag === "spike";
+      const c = g.append("g").attr("class", spike ? "city spike" : "city").attr("data-c", d.c.id).style("color", divColor(d.cmp)).style("--i", k)
+        .on("mouseenter", () => hotCity(d.c.id, true))
+        .on("mousemove", (ev) => showTip(cityTip(d, m), ev))
+        .on("mouseleave", () => { hideTip(); hotCity(d.c.id, false); })
+        .on("click", () => openCity(d.c));
+      c.append("path").attr("class", "pin rv-rise").attr("d", pin(x, y, l, pw / 2));
+      c.append("path").attr("class", "hit").attr("d", pin(x, y + 2, Math.max(l, 8) + 4, pw / 2 + 3));
+    });
+    // i nomi delle tre città con più denunce per abitante
+    const lg = svg.append("g").attr("class", "labels rv-fade");
+    pts.slice().sort((a, b) => b.d.lvl - a.d.lvl).slice(0, 3).forEach(({ d, xy }) => {
+      lg.append("text").attr("class", "lbl").attr("x", xy[0] + pw / 2 + 3).attr("y", xy[1] + 4).text(d.c.name);
+    });
+    if (withList) {
+      const list = document.createElement("div");
+      list.className = "clist";
+      const li = (r) => `<li data-c="${r.c.id}"><button type="button" data-city="${r.c.id}">${esc(r.c.name)}</button>` +
+        `<span class="v ${sig(r.cmp)}${r.an[LAST] && r.an[LAST].flag === "spike" ? " spike" : ""}">${fmtPct(r.cmp.pct)}</span></li>`;
+      const topUp = up.slice().sort((a, b) => b.cmp.pct - a.cmp.pct).slice(0, 3);
+      const topDown = down.slice().sort((a, b) => a.cmp.pct - b.cmp.pct).slice(0, 3);
+      list.innerHTML =
+        (topUp.length ? `<h4>Salgono di più dal ${state.base}</h4><ul>${topUp.map(li).join("")}</ul>` : "") +
+        (topDown.length ? `<h4>Calano di più</h4><ul>${topDown.map(li).join("")}</ul>` : "") +
+        `<p class="tot">${up.length} città in aumento, ${down.length} in calo, ${flat} con differenze troppo piccole per dirlo</p>`;
+      el.appendChild(list);
+      // la riga accende la sua guglia, qui e nella mappa grande
+      list.addEventListener("mouseover", (ev) => { const r = ev.target.closest("li[data-c]"); if (r) hotCity(r.dataset.c, true); });
+      list.addEventListener("mouseout", (ev) => { const r = ev.target.closest("li[data-c]"); if (r && !r.contains(ev.relatedTarget)) hotCity(r.dataset.c, false); });
+    }
+    reveal(el);
+  }
+
+  // Barre divergenti: i cinque reati che salgono di più e i cinque che calano di più rispetto all'anno di confronto;
+  // l'etichetta sta dal lato libero della barra, la linea tratteggiata è «tutti i delitti». Un clic sceglie il reato.
+  function renderHeroTypes() {
+    const el = $("#types-chart");
+    if (!el) return;
+    const iB = Y.indexOf(state.base);
+    const items = TYPES.filter((t) => t.id !== "TOT")
+      .map((t) => ({ t, lvl: ITALY.rate[t.id][LAST], ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 }))
+      .filter((d) => isFinite(d.ch)).sort((a, b) => b.ch - a.ch);
+    if (items.length < 2) return;
+    const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
+    const rows = items.slice(0, 5).concat(items.slice(-5));
+    const short = (t) => t.label.replace(/ \(.*\)$/, "");
+    const first = items[0], last = items[items.length - 1];
+    $("#types-kicker").textContent = `Non tutti · ${items.length} reati`;
+    $("#types-title").textContent = `${short(first.t)} ${fmtPct(first.ch)}, ${lower(short(last.t))} ${fmtPct(last.ch)}: i reati non si muovono insieme`;
+    $("#types-sub").textContent = `Variazione delle denunce ogni 100.000 abitanti in Italia, ${Y[LAST]} rispetto al ${state.base}`;
+    const r0 = el.getBoundingClientRect();
+    const w = Math.max(260, Math.round(r0.width)), h = Math.min(560, Math.max(240, Math.round(r0.height)));
+    const small = w < 420;
+    const m = { t: 22, b: 6 };
+    const rowH = (h - m.t - m.b) / rows.length;
+    const cap = Math.max(0.3, Math.ceil(d3.max(rows, (d) => Math.abs(d.ch)) * 10) / 10);
+    const zero = Math.round(w * 0.5), half = Math.min(zero - 46, w - zero - 46);
+    const x = d3.scaleLinear([-cap, cap], [zero - half, zero + half]);
+    const svg = d3.select(el).classed("types", true).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("role", "img")
+      .attr("aria-label", `Variazione delle denunce per reato in Italia, ${Y[LAST]} rispetto al ${state.base}`);
+    svg.selectAll("*").remove();
+    svg.append("line").attr("class", "ref").attr("x1", x(totCh)).attr("x2", x(totCh)).attr("y1", m.t - 4).attr("y2", h - m.b);
+    svg.append("text").attr("class", "lbl halo").attr("x", x(totCh) + 4).attr("y", m.t - 10).text(`tutti i delitti ${fmtPct(totCh)}`);
+    svg.append("line").attr("class", "zero").attr("x1", zero).attr("x2", zero).attr("y1", m.t - 4).attr("y2", h - m.b);
+    rows.forEach((d, k) => {
+      const cy = m.t + rowH * (k + 0.5), bh = Math.min(18, rowH * 0.62), up = d.ch >= 0;
+      const x0 = Math.min(x(0), x(d.ch)), x1 = Math.max(x(0), x(d.ch));
+      const color = up ? "var(--rise)" : "var(--fall)";
+      const g = svg.append("g").style("--i", k);
+      g.append("rect").attr("class", "rv-grow").attr("x", x0).attr("y", cy - bh / 2).attr("width", Math.max(1.5, x1 - x0)).attr("height", bh)
+        .style("fill", color).style("transform-origin", up ? "0 50%" : "100% 50%").style("transform-box", "fill-box");
+      g.append("text").attr("class", "lab rv-fade" + (PARENT[d.t.id] ? " sub" : "")).attr("x", up ? zero - 8 : zero + 8).attr("y", cy + 4)
+        .attr("text-anchor", up ? "end" : "start").style("font-size", small ? "11px" : null).text(short(d.t));
+      g.append("text").attr("class", "val rv-fade").attr("x", up ? x1 + 5 : x0 - 5).attr("y", cy + 4)
+        .attr("text-anchor", up ? "start" : "end").style("fill", color).style("font-size", small ? "11px" : null).text(fmtPct(d.ch));
+      g.append("rect").attr("x", 0).attr("y", cy - rowH / 2).attr("width", w).attr("height", rowH).style("fill", "transparent").style("cursor", "pointer")
+        .on("mousemove", (ev) => showTip(`<b>${esc(d.t.label)}</b><br>${fmtRate(d.lvl)} denunce ogni 100.000 ab. nel ${Y[LAST]}<br>${fmtPct(d.ch)} rispetto al ${state.base}<br><span class="small">Clic: questo reato in tutta la pagina</span>`, ev))
+        .on("mouseleave", hideTip)
+        .on("click", () => setType(d.t.id, false));
+    });
+    reveal(el);
+  }
+
+  // La striscia: avanza da sola ogni otto secondi, si ferma finché il mouse o il fuoco sono sul riquadro e quando il
+  // riquadro è fuori dallo schermo; si sfoglia con le frecce, i punti, le frecce della tastiera e il dito. Il punto
+  // acceso si riempie d'oro col tempo (--p). Con prefers-reduced-motion non si muove da sola.
+  function heroCarousel() {
+    const box = $("#national");
+    if (!box || !box.classList.contains("hero-car")) return;
+    const DUR = 8000;
+    const dots = [...box.querySelectorAll('.car-dots [role="tab"]')];
+    const metas = [...box.querySelectorAll(".car-meta")], panels = [...box.querySelectorAll(".car-panel")];
+    let i = 0, p = 0, hover = false, focus = false, seen = true, last = performance.now();
+    const show = (k) => {
+      i = ((k % 3) + 3) % 3;
+      p = 0;
+      box.style.setProperty("--i", i);
+      box.style.setProperty("--p", "0");
+      dots.forEach((b, k2) => b.setAttribute("aria-selected", k2 === i));
+      metas.forEach((el) => el.classList.toggle("on", +el.dataset.k === i));
+      panels.forEach((el) => el.setAttribute("aria-hidden", +el.dataset.k !== i));
+    };
+    dots.forEach((b) => b.addEventListener("click", () => show(+b.dataset.k)));
+    box.querySelectorAll(".car-nav .arr").forEach((b) => b.addEventListener("click", () => show(i + +b.dataset.dir)));
+    box.addEventListener("keydown", (ev) => {
+      if (ev.target.matches("input, select, textarea")) return;
+      if (ev.key === "ArrowRight") { show(i + 1); ev.preventDefault(); }
+      if (ev.key === "ArrowLeft") { show(i - 1); ev.preventDefault(); }
+    });
+    box.addEventListener("pointerenter", () => { hover = true; });
+    box.addEventListener("pointerleave", () => { hover = false; });
+    box.addEventListener("focusin", () => { focus = true; });
+    box.addEventListener("focusout", (ev) => { if (!box.contains(ev.relatedTarget)) focus = false; });
+    if ("IntersectionObserver" in window) new IntersectionObserver((es) => { seen = es[0].isIntersecting; }).observe(box);
+    // il dito: uno spostamento netto di lato sfoglia, e il clic che ne seguirebbe non deve aprire una città
+    const strip = $(".car-strip", box);
+    let x0 = null, swiped = false;
+    strip.addEventListener("pointerdown", (ev) => { x0 = ev.clientX; swiped = false; });
+    strip.addEventListener("pointerup", (ev) => {
+      if (x0 == null) return;
+      const dx = ev.clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 40) { swiped = true; show(i + (dx < 0 ? 1 : -1)); }
+    });
+    strip.addEventListener("pointercancel", () => { x0 = null; });
+    strip.addEventListener("click", (ev) => { if (swiped) { swiped = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+    const tick = (now) => {
+      const dt = Math.min(100, now - last);
+      last = now;
+      if (!stillMotion.matches && document.visibilityState === "visible" && !hover && !focus && seen) {
+        p += dt / DUR;
+        if (p >= 1) show(i + 1);
+        else box.style.setProperty("--p", p.toFixed(4));
+      }
+      requestAnimationFrame(tick);
+    };
+    show(0);
+    requestAnimationFrame(tick);
+  }
+
   // ------------------------------------------------------------------ quadro nazionale per reato
 
   function renderMix() {
@@ -1714,6 +1902,8 @@
   function renderScoped() {
     renderBrief();
     renderNational();
+    renderHeroCities();
+    renderHeroTypes();
     renderMix();
     renderMap();
     renderRanking();
@@ -2130,6 +2320,7 @@
     sel.value = state.type;
     sel.addEventListener("change", () => setType(sel.value, false));
 
+    heroCarousel();
     $("#base-label").textContent = `Confronta il ${Y[LAST]} con il`;
     seg("#base-seg", "base", (v) => { state.base = +v; renderScoped(); if (state.city) renderCity(); if (state.place) renderProv(); });
     seg("#spike-year-seg", "year", (v) => { state.spikeYear = +v; state.spikeShown = 12; renderSpikes(); });
