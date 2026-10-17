@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlante della sicurezza — tre loghi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="vc.css?v=18">
+<style>
+/* Replica del tema scuro della pagina, per vedere il logo su fondo scuro. */
+.dark {
+  --bg: #0e1110; --surface: #151917; --land: #1d2220; --ink: #eef0ec; --ink-2: #bcc3be; --muted: #8a918c;
+  --rule: #2b312e; --grid: #222825; --mid: #4d544f; --gold: #bf8a0e; --gold-ink: #d9a226;
+  background: var(--bg); color: var(--ink); color-scheme: dark;
+}
+.light { background: var(--bg); color: var(--ink); }
+body { padding-block: 40px 80px; }
+.intro { max-width: 70ch; margin: 0 auto 36px; padding-inline: 16px; }
+.intro h1 { font-family: var(--font-body); font-weight: 400; font-size: var(--step-3); line-height: 1.1; margin: 0 0 12px; }
+.intro p { color: var(--ink-2); font-family: var(--font-body); font-size: var(--step-1); margin: 0; }
+.opt { max-width: var(--wide); margin: 0 auto 40px; padding-inline: 16px; }
+.opt h2 { font-size: var(--step-2); font-weight: 800; font-stretch: 112%; letter-spacing: -0.01em; margin: 0 0 4px; display: flex; align-items: baseline; gap: 12px; }
+.opt h2 b { font-weight: 800; color: var(--gold-ink); font-variant-numeric: tabular-nums; }
+.opt .why { color: var(--ink-2); font-family: var(--font-body); font-size: var(--step-1); max-width: 70ch; margin: 0 0 18px; }
+.frame { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+.frame .masthead { border-bottom: 0; }
+.cap { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 10px 16px 0; }
+.big { padding: 36px 16px 40px; }
+.big .wordmark { font-size: clamp(28px, 4.6vw, 56px); }
+.big .wordmark svg { width: 1em; height: 1em; margin-right: 0.4em; }
+.icons { display: flex; gap: 28px; align-items: flex-end; padding: 16px 16px 20px; }
+.icons figure { margin: 0; display: grid; justify-items: center; gap: 8px; }
+.icons figcaption { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.icons .s16 svg { width: 16px; height: 16px; } .icons .s20 svg { width: 20px; height: 20px; } .icons .s32 svg { width: 32px; height: 32px; } .icons .s64 svg { width: 64px; height: 64px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.frame:has(.big) { grid-template-columns: 1fr; }
+@media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
+
+/* Il wordmark: una parola per <span>, spazi veri nel markup. Il contenitore è inline-flex con gap 0,
+   quindi gli spazi non si vedono ma restano nel testo per lettori di schermo e motori di ricerca. */
+.wordmark { gap: 0; }
+.wordmark svg { margin-right: 10px; }
+
+/* A · Meridiano */
+.o-a { font-stretch: 118%; letter-spacing: 0.02em; }
+.o-a .w1 { font-weight: 800; color: var(--ink); }
+.o-a .w2 { font-weight: 400; color: var(--muted); font-family: var(--font-display); font-style: normal; font-size: 1em; text-transform: uppercase; }
+.o-a .w3 { font-weight: 800; color: var(--gold-ink); }
+
+/* B · Bussola */
+.o-b { text-transform: none; font-stretch: 100%; letter-spacing: -0.012em; font-size: calc(var(--step-1) * 1.12); }
+.o-b .w1 { font-weight: 700; color: var(--gold-ink); }
+.o-b .w2 { font-weight: 300; color: var(--muted); font-family: var(--font-display); font-style: normal; font-size: 1em; text-transform: none; }
+.o-b .w3 { font-weight: 700; color: var(--ink); }
+
+/* C · Tavole */
+.o-c { font-stretch: 110%; letter-spacing: 0.02em; }
+.o-c .w1 { font-weight: 500; color: var(--ink-2); }
+.o-c .w2 { font-family: var(--font-body); font-style: italic; font-weight: 400; text-transform: none; font-size: 1.24em; line-height: 1; color: var(--gold-ink); }
+.o-c .w3 { font-weight: 800; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Atlante della sicurezza: tre loghi</h1>
+  <p>Stesso nome senza spazi, tre parole distinte per colore e peso. Ogni proposta ha un'icona diversa: un meridiano, un ago di bussola, le tavole di un atlante. Sotto, il logo nella barra vera della pagina, chiaro e scuro, poi grande, poi l'icona sola alle misure della favicon.</p>
+</div>
+
+<!-- ============================================================ A -->
+<section class="opt">
+  <h2><b>A</b> Meridiano</h2>
+  <p class="why">La continuità con oggi: stesso maiuscolo largo, stessi tre pesi. Il globo con il meridiano dice "atlante" e sostituisce l'occhio, che apparteneva a "vediamoci chiaro". La parola "sicurezza" prende l'oro della pagina.</p>
+  <div class="frame two">
+    <div class="light"><div class="cap">Barra · chiaro</div>
+      <header class="masthead"><div class="wrap">
+        <h1 class="wordmark o-a"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
+        <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+      </div></header>
+    </div>
+    <div class="dark"><div class="cap">Barra · scuro</div>
+      <header class="masthead"><div class="wrap">
+        <h1 class="wordmark o-a"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
+        <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+      </div></header>
+    </div>
+  </div>
+  <div class="frame two">
+    <div class="light big"><div class="wordmark o-a"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></div></div>
+    <div class="dark big"><div class="wordmark o-a"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></div></div>
+  </div>
+  <div class="frame two">
+    <div class="light"><div class="cap">Icona sola</div><div class="icons">
+      <figure class="s16"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>16</figcaption></figure>
+      <figure class="s20"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>20</figcaption></figure>
+      <figure class="s32"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>32</figcaption></figure>
+      <figure class="s64"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>64</figcaption></figure>
+    </div></div>
+    <div class="dark"><div class="cap">Icona sola</div><div class="icons">
+      <figure class="s16"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>16</figcaption></figure>
+      <figure class="s20"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>20</figcaption></figure>
+      <figure class="s32"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>32</figcaption></figure>
+      <figure class="s64"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><figcaption>64</figcaption></figure>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============================================================ B -->
+<section class="opt">
+  <h2><b>B</b> Bussola</h2>
+  <p class="why">Minuscolo, come un indirizzo: atlantedellasicurezza. "atlante" in oro, "della" leggero e grigio, "sicurezza" in nero pieno. L'ago di bussola, oro a nord e inchiostro a sud, è lo strumento per orientarsi: è il logo più da app, e il più compatto nella barra.</p>
+  <div class="frame two">
+    <div class="light"><div class="cap">Barra · chiaro</div>
+      <header class="masthead"><div class="wrap">
+        <h1 class="wordmark o-b"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><span class="w1">atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
+        <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+      </div></header>
+    </div>
+    <div class="dark"><div class="cap">Barra · scuro</div>
+      <header class="masthead"><div class="wrap">
+        <h1 class="wordmark o-b"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><span class="w1">atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
+        <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+      </div></header>
+    </div>
+  </div>
+  <div class="frame two">
+    <div class="light big"><div class="wordmark o-b"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><span class="w1">atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></div></div>
+    <div class="dark big"><div class="wordmark o-b"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><span class="w1">atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></div></div>
+  </div>
+  <div class="frame two">
+    <div class="light"><div class="cap">Icona sola</div><div class="icons">
+      <figure class="s16"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>16</figcaption></figure>
+      <figure class="s20"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>20</figcaption></figure>
+      <figure class="s32"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>32</figcaption></figure>
+      <figure class="s64"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>64</figcaption></figure>
+    </div></div>
+    <div class="dark"><div class="cap">Icona sola</div><div class="icons">
+      <figure class="s16"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>16</figcaption></figure>
+      <figure class="s20"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>20</figcaption></figure>
+      <figure class="s32"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>32</figcaption></figure>
+      <figure class="s64"><svg viewBox="0 0 20 20"><path d="M10 .5L15 10H5z" fill="var(--gold)"/><path d="M10 19.5L15 10H5z" fill="currentColor"/></svg><figcaption>64</figcaption></figure>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============================================================ C -->
+<section class="opt">
+  <h2><b>C</b> Tavole</h2>
+  <p class="why">Il più editoriale: "ATLANTE" e "SICUREZZA" in Archivo, "della" in corsivo Newsreader oro, lo stesso carattere dei titoli della pagina. Le quattro tavole, una in oro, sono le pagine di un atlante e insieme le celle di una griglia di dati.</p>
+  <div class="frame two">
+    <div class="light"><div class="cap">Barra · chiaro</div>
+      <header class="masthead"><div class="wrap">
+        <h1 class="wordmark o-c"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
+        <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+      </div></header>
+    </div>
+    <div class="dark"><div class="cap">Barra · scuro</div>
+      <header class="masthead"><div class="wrap">
+        <h1 class="wordmark o-c"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
+        <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+      </div></header>
+    </div>
+  </div>
+  <div class="frame two">
+    <div class="light big"><div class="wordmark o-c"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></div></div>
+    <div class="dark big"><div class="wordmark o-c"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></div></div>
+  </div>
+  <div class="frame two">
+    <div class="light"><div class="cap">Icona sola</div><div class="icons">
+      <figure class="s16"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>16</figcaption></figure>
+      <figure class="s20"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>20</figcaption></figure>
+      <figure class="s32"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>32</figcaption></figure>
+      <figure class="s64"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>64</figcaption></figure>
+    </div></div>
+    <div class="dark"><div class="cap">Icona sola</div><div class="icons">
+      <figure class="s16"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>16</figcaption></figure>
+      <figure class="s20"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>20</figcaption></figure>
+      <figure class="s32"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>32</figcaption></figure>
+      <figure class="s64"><svg viewBox="0 0 20 20"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="1" width="8" height="8" rx="1" fill="var(--gold)"/><rect x="1" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><figcaption>64</figcaption></figure>
+    </div></div>
+  </div>
+</section>
+
+</body>
+</html>

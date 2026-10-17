@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atlante della sicurezza</title>
+<meta name="description" content="Atlante della sicurezza: quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT 2006–2024 sui 108 comuni capoluogo, con classifiche, mappa e impennate.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="vc.css?v=26">
+</head>
+<body>
+<!-- vc:content -->
+<header class="masthead">
+  <div class="wrap">
+    <h1 class="wordmark"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></h1>
+    <span class="meta">Reati denunciati · capoluoghi e province · ISTAT 2006–2024</span>
+  </div>
+</header>
+
+<main id="app">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <h2 id="hero-title">In Italia si denunciano meno reati di quindici anni fa. <em>Ma non ovunque, e non tutti.</em></h2>
+      <div class="hero-grid">
+        <div>
+          <ol class="eyechart" id="eyechart" aria-label="I numeri principali">
+            <li><span class="fig">…</span><span class="cap">Caricamento dei dati ISTAT</span></li>
+          </ol>
+          <p class="hero-note">Uno strumento per leggere i dati ufficiali sui reati da vicino: città per città, reato per reato, anno per anno. Le impennate sono segnate in oro.</p>
+        </div>
+        <div class="national" id="national">
+          <div class="kicker">Italia, 2006–2024</div>
+          <h3 id="national-title">…</h3>
+          <p class="sub" id="national-sub">Delitti denunciati ogni 100.000 abitanti</p>
+          <div class="chart" id="national-chart"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="finder" id="cerca" aria-labelledby="finder-title">
+    <div class="wrap finder-grid">
+      <div>
+        <div class="kicker">Il tuo comune</div>
+        <h2 id="finder-title">Com’è andata dove vivi?</h2>
+        <p class="finder-dek">Scrivi il nome del tuo comune e apri la sua scheda: tutti i reati denunciati, anno per anno dal 2006, accanto all’Italia, con la quota di famiglie che si sentono a rischio. Solo dati ufficiali ISTAT.</p>
+      </div>
+      <div>
+        <div class="combo combo-big" id="finder-combo">
+          <label for="finder-input" class="vh">Il tuo comune</label>
+          <svg class="combo-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" id="finder-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-list" aria-describedby="finder-hint" placeholder="Es. Scandicci, Bari, Bozen" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="finder-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+        <p class="finder-hint" id="finder-hint">Tutti i comuni italiani. Per i 108 capoluoghi i dati sono del comune; per gli altri l’ISTAT pubblica solo quelli della provincia, e la scheda lo dice.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="controls-sentinel" aria-hidden="true"></div>
+  <nav class="controls" aria-label="Scegli reato e confronto">
+    <div class="wrap">
+      <a class="bar-brand" href="#" aria-label="Atlante della sicurezza: torna all'inizio"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="wordmark" aria-hidden="true"><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></span></a>
+      <label class="control"><span class="label opt">Reato</span>
+        <select id="type-select"></select>
+      </label>
+      <div class="control" role="group" aria-labelledby="base-label"><span class="label" id="base-label">2024 rispetto al</span>
+        <div class="seg" id="base-seg">
+          <button type="button" data-base="2023" aria-pressed="false">2023</button>
+          <button type="button" data-base="2019" aria-pressed="true">2019 (pre-Covid)</button>
+          <button type="button" data-base="2014">2014</button>
+        </div>
+      </div>
+      <div class="control"><label class="label opt" for="city-search">Comune</label>
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="block" id="mappa" aria-labelledby="map-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Classifica e mappa</div>
+        <h2 id="map-title">Dove si denuncia di più, e dove di meno</h2>
+        <p class="dek" id="map-dek"></p>
+      </header>
+      <div class="two">
+        <div class="mapbox">
+          <div id="map"></div>
+          <div class="legend" id="map-legend"></div>
+        </div>
+        <div>
+          <div class="rank-cols">
+            <div class="rank"><h3 id="rank-top-title">Più denunce</h3><ol id="rank-top"></ol></div>
+            <div class="rank"><h3 id="rank-bottom-title">Meno denunce</h3><ol id="rank-bottom"></ol></div>
+          </div>
+          <p class="note" id="rank-note"></p>
+          <details class="full">
+            <summary>Classifica completa dei 108 capoluoghi (tabella)</summary>
+            <div class="tablewrap"><table id="rank-table"></table></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="mix" aria-labelledby="mix-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Il quadro nazionale</div>
+        <h2 id="mix-title">Cosa sale e cosa scende</h2>
+        <p class="dek" id="mix-dek">I reati non calano tutti insieme. Tocca un reato per vederlo in tutte le città.</p>
+      </header>
+      <div class="mix-key" aria-hidden="true">
+        <span><i class="k-up"></i>in aumento</span>
+        <span><i class="k-down"></i>in calo</span>
+        <span><i class="k-flat"></i>variazione minima</span>
+        <span><i class="k-zero"></i>nessuna variazione</span>
+        <span><i class="k-ref"></i>tutti i delitti</span>
+      </div>
+      <div class="mix" id="mix-grid"></div>
+    </div>
+  </section>
+
+
+  <section class="block band" id="impennate" aria-labelledby="spike-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Impennate e cali</div>
+        <h2 id="spike-title">Dove qualcosa è cambiato all’improvviso</h2>
+        <p class="dek">Un’impennata è un anno in cui le denunce per un reato superano di almeno il 25% la media dei tre anni precedenti, con un margine che il caso da solo non spiega e almeno 20 episodi. Gli anni del Covid restano fuori dal confronto. In proporzione, l’ordine segue l’aumento minimo plausibile: una città piccola con pochi casi non scavalca un cambiamento solido. Per casi in più, vengono prima le città dove l’aumento riguarda più persone.</p>
+      </header>
+      <div class="chips" role="group" aria-label="Anno delle impennate">
+        <span class="small">Anno</span>
+        <div class="seg" id="spike-year-seg">
+          <button type="button" data-year="2024" aria-pressed="true">2024</button>
+          <button type="button" data-year="2023" aria-pressed="false">2023</button>
+          <button type="button" data-year="2022" aria-pressed="false">2022</button>
+        </div>
+        <span class="small">Ordina</span>
+        <div class="seg" id="spike-sort-seg">
+          <button type="button" data-ssort="rel" aria-pressed="true">In proporzione</button>
+          <button type="button" data-ssort="abs" aria-pressed="false">Per casi in più</button>
+        </div>
+        <span class="small" id="spike-count"></span>
+      </div>
+      <div class="cards" id="spike-cards"></div>
+      <div class="more"><button type="button" class="btn" id="spike-more">Mostra altre impennate</button></div>
+      <h3 class="subhead">I cali più netti</h3>
+      <div class="cards" id="fall-cards"></div>
+    </div>
+  </section>
+
+  <section class="block" id="citta" aria-labelledby="grid-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Tutti i 108 capoluoghi</div>
+        <h2 id="grid-title">Città per città, dal 2006 al 2024</h2>
+        <p class="dek" id="grid-dek"></p>
+      </header>
+      <div class="gridbar">
+        <div class="control" role="group" aria-label="Ordina"><span class="label">Ordina</span>
+          <div class="seg" id="sort-seg">
+            <button type="button" data-sort="level" aria-pressed="true">Livello</button>
+            <button type="button" data-sort="change" aria-pressed="false">Variazione</button>
+            <button type="button" data-sort="spike" aria-pressed="false">Impennate</button>
+            <button type="button" data-sort="area" aria-pressed="false">Area</button>
+            <button type="button" data-sort="name" aria-pressed="false">A–Z</button>
+          </div>
+        </div>
+        <div class="control" role="group" aria-label="Scala"><span class="label">Scala</span>
+          <div class="seg" id="scale-seg">
+            <button type="button" data-scale="shared" aria-pressed="true">Uguale per tutte</button>
+            <button type="button" data-scale="own" aria-pressed="false">Propria</button>
+          </div>
+        </div>
+        <div class="key" aria-hidden="true">
+          <span><i class="k-line"></i>città</span>
+          <span><i class="k-it"></i>Italia</span>
+          <span><i class="k-gold"></i>impennata</span>
+          <span><i class="k-fall"></i>calo netto</span>
+          <span><i class="k-covid"></i>2020–21</span>
+        </div>
+      </div>
+      <div id="sm"></div>
+    </div>
+  </section>
+
+  <section class="block" id="carceri" aria-labelledby="carceri-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Chi è in carcere</div>
+        <h2 id="carceri-title">Gli stranieri nelle carceri italiane</h2>
+        <p class="dek" id="carceri-dek">Un altro dato ufficiale, un'altra popolazione: non le denunce ma le persone detenute negli istituti penitenziari, contate dal Ministero della Giustizia alla fine di ogni anno. I comandi in alto non valgono qui.</p>
+      </header>
+      <div class="facts" id="carceri-facts"></div>
+      <div class="carceri-grid">
+        <div>
+          <div class="chart-head">
+            <div>
+              <p class="chart-title">Detenuti stranieri per paese di cittadinanza</p>
+              <p class="chart-sub" id="tree-sub"></p>
+            </div>
+            <div class="seg" id="tree-year-seg" role="group" aria-label="Anno della treemap"></div>
+          </div>
+          <div class="treemap" id="treemap"></div>
+          <details class="full"><summary>Tabella: detenuti stranieri per cittadinanza, tutti gli anni</summary><div class="tablewrap"><table id="tree-table"></table></div></details>
+        </div>
+        <div>
+          <p class="chart-title">Quota di stranieri tra i detenuti, 2010–2025</p>
+          <p class="chart-sub">Ogni 100 detenuti presenti a fine anno</p>
+          <div class="chart" id="carceri-trend"></div>
+          <p class="chart-title" style="margin-top:22px">Regione per regione</p>
+          <p class="chart-sub" id="carceri-reg-sub"></p>
+          <div class="rank regions"><ol id="carceri-regions"></ol></div>
+        </div>
+      </div>
+      <div class="carceri-grid two-even">
+        <div>
+          <p class="chart-title">Per quali reati: italiani e stranieri a confronto</p>
+          <p class="chart-sub">Detenuti con almeno un reato di questo tipo ogni 100 detenuti dello stesso gruppo. Una persona può avere più reati, quindi le percentuali non si sommano.</p>
+          <div class="chart" id="carceri-offences"></div>
+        </div>
+        <div>
+          <p class="chart-title">Età e posizione giuridica</p>
+          <p class="chart-sub">Detenuti per classe di età, ogni 100 del proprio gruppo</p>
+          <div class="chart" id="carceri-age"></div>
+          <p class="note" id="carceri-legal"></p>
+        </div>
+      </div>
+      <div class="method carceri-notes">
+        <h3>Perché il rapporto grezzo non misura la propensione a delinquere</h3>
+        <p id="carceri-note-1"></p>
+        <h3>Cosa contano questi numeri</h3>
+        <p>Sono le persone presenti in carcere a fine anno (uno stock), non gli ingressi dell'anno né le condanne. Chi sconta pene lunghe pesa di più. I reati sono quelli ascritti, anche in attesa di giudizio: una persona può averne più d'uno.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="rimpatri" aria-labelledby="rimpatri-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Rimpatri</div>
+        <h2 id="rimpatri-title">Quante persone l'Italia rimpatria, e verso dove</h2>
+        <p class="dek" id="rimpatri-dek">Ogni anno l'Italia ordina a decine di migliaia di cittadini di paesi fuori dall'Unione europea di lasciare il territorio. Solo una parte viene davvero rimpatriata. I dati europei dicono quante persone partono e di quale paese sono cittadine, non da quale città o centro di permanenza partono. I comandi in alto non valgono qui.</p>
+      </header>
+      <div class="facts" id="rimpatri-facts"></div>
+      <div class="carceri-grid two-even">
+        <div>
+          <p class="chart-title">Ordini di lasciare l'Italia e rimpatri, <span id="rimp-span"></span></p>
+          <p class="chart-sub">Persone ogni anno</p>
+          <div class="chart" id="rimp-trend"></div>
+        </div>
+        <div>
+          <p class="chart-title">Rimpatri ogni 100 ordini, per cittadinanza</p>
+          <p class="chart-sub" id="rimp-ratio-sub"></p>
+          <div class="rank regions rimp"><ol id="rimp-ratio"></ol></div>
+        </div>
+      </div>
+      <div class="rimp-mapblock">
+        <div class="chart-head">
+          <div>
+            <p class="chart-title">Dall'Italia verso il paese di cittadinanza</p>
+            <p class="chart-sub" id="rimp-map-sub"></p>
+          </div>
+          <label class="yearpick"><span class="small">Anno</span> <input type="range" id="rimp-year" step="1"> <output id="rimp-year-out" for="rimp-year"></output></label>
+        </div>
+        <div class="flowmap" id="rimp-map"></div>
+        <div class="legend" id="rimp-legend"></div>
+      </div>
+      <h3 class="subhead">Paese per paese</h3>
+      <p class="chart-sub" id="rimp-sm-sub"></p>
+      <div class="sm-grid rimp-sm" id="rimp-sm"></div>
+      <details class="full"><summary>Tabella: rimpatri e ordini per cittadinanza, tutti gli anni</summary><div class="tablewrap"><table id="rimp-table"></table></div></details>
+      <div class="method carceri-notes">
+        <h3>Cosa contano questi numeri</h3>
+        <p>Sono cittadini di paesi non UE che hanno lasciato l'Italia dopo un ordine di allontanamento, con un rimpatrio forzato o volontario, contati da Eurostat su dati del Ministero dell'Interno. Non comprendono i respingimenti alla frontiera né chi lascia l'Italia senza che nessuno lo registri. Possono non coincidere con le cifre sui rimpatri diffuse dal Viminale, che usa conteggi propri. Eurostat arrotonda ogni valore a 5: la somma dei paesi può differire di poco dal totale.</p>
+        <h3>Da dove, verso dove</h3>
+        <p>Eurostat registra la cittadinanza delle persone rimpatriate, non il paese in cui atterrano. Quasi sempre coincidono, ma per l'Italia il dettaglio sulla destinazione effettiva non è pubblicato. Sulla carta ogni linea parte dall'Italia nel suo insieme: i dati non dicono da quale città, aeroporto o centro di permanenza per il rimpatrio sia partita ciascuna persona.</p>
+        <h3>Ordini e rimpatri non sono le stesse persone</h3>
+        <p id="rimp-note-ratio">Il rapporto tra rimpatri e ordini dello stesso periodo è un'approssimazione: chi viene rimpatriato in un anno può aver ricevuto l'ordine in un anno precedente, e la stessa persona può ricevere più ordini. Sul rapporto pesano, tra l'altro, gli accordi di riammissione con i singoli paesi e la disponibilità di voli e di posti nei centri di trattenimento.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="percezione" aria-labelledby="perc-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Percezione e realtà</div>
+        <h2 id="perc-title">Quanto ci sentiamo in pericolo, e quanto lo siamo</h2>
+        <p class="dek" id="perc-dek"></p>
+      </header>
+      <div class="perc-grid">
+        <div>
+          <p class="chart-title">Grandi città nel 2024: reati denunciati e rischio percepito</p>
+          <p class="chart-sub">Asse orizzontale: delitti ogni 100.000 abitanti. Asse verticale: famiglie che giudicano molto o abbastanza a rischio la propria zona.</p>
+          <div class="chart" id="perc-scatter"></div>
+          <p class="note" id="perc-note"></p>
+        </div>
+        <div>
+          <p class="chart-title">Delitti denunciati ogni 100.000 abitanti, Italia</p>
+          <div class="chart" id="perc-crime"></div>
+          <p class="chart-title" style="margin-top:18px">Famiglie che segnalano criminalità o vandalismo nella zona in cui vivono, %</p>
+          <p class="chart-sub">Indagine europea EU-SILC. La domanda è diversa da quella sul rischio percepito usata a sinistra e nell’apertura, per questo i livelli non coincidono.</p>
+          <div class="chart" id="perc-silc"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="metodo" aria-labelledby="method-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Metodo e fonti</div>
+        <h2 id="method-title">Come leggere questi numeri</h2>
+      </header>
+      <div class="method">
+        <h3>Sono denunce, non tutti i reati commessi</h3>
+        <p>I dati contano i delitti che le forze di polizia hanno comunicato all’autorità giudiziaria. Molti reati non vengono mai denunciati, e la propensione a denunciare cambia da reato a reato e da luogo a luogo: un furto d’auto si denuncia quasi sempre per l’assicurazione, una violenza in famiglia molto meno. Un aumento delle denunce può voler dire più reati, ma anche più fiducia o più facilità nel denunciare.</p>
+        <h3>Il tasso si calcola sui residenti</h3>
+        <p>Il tasso è il numero di delitti ogni 100.000 abitanti residenti, calcolato sulla popolazione media dell’anno, come fa l’ISTAT. Nelle città che ogni giorno accolgono pendolari, studenti e turisti, come Milano, Firenze, Bologna, Rimini o Venezia, i reati colpiscono anche chi non vi risiede, quindi il tasso risulta più alto della probabilità reale di essere vittima per chi ci vive.</p>
+        <h3>Comune, non provincia</h3>
+        <p>Ogni città qui è il territorio del comune capoluogo, non la provincia. Monza, Fermo, Andria, Barletta e Trani hanno dati dal 2011, quando sono nate le loro province.</p>
+        <h3>Se il tuo comune non è un capoluogo</h3>
+        <p>L’ISTAT pubblica i delitti denunciati comune per comune solo per i capoluoghi. Per tutti gli altri comuni la scheda mostra i tassi ufficiali della provincia in cui si trovano: un territorio che comprende il comune cercato ma anche il capoluogo, dove di solito si denuncia di più. L’elenco dei comuni è quello ufficiale dell’ISTAT. In Sardegna l’ISTAT conta i reati secondo le quattro province storiche (Sassari, Nuoro, Cagliari, Oristano): ogni comune sardo è attribuito alla provincia in cui si trovava tra il 1995 e il 2005, secondo i codici dell’elenco ufficiale ISTAT dei comuni.</p>
+        <h3>Quartiere per quartiere: un prototipo</h3>
+        <p>La scheda di Milano ha una sezione sui suoi 88 quartieri (i Nuclei di identità locale del Piano di governo del territorio), con confini, residenti, stranieri, età, pendolari ed edifici degradati pubblicati dal Comune. I reati per quartiere, invece, non esistono in nessuna fonte ufficiale: ISTAT e Ministero dell’Interno si fermano al comune. Lo strato «Reati · simulazione» ripartisce i delitti denunciati a Milano tra i quartieri in proporzione a residenti e pendolari, con una variazione casuale: è segnato come simulazione ovunque compaia e serve solo a mostrare come apparirà la sezione quando una fonte vera (Prefettura, Questura o Comune) pubblicherà i dati.</p>
+        <h3>Come si riconosce un’impennata</h3>
+        <p>Per ogni città, reato e anno confrontiamo il tasso con quello dei tre anni precedenti, saltando il 2020 e il 2021. Segniamo un’impennata quando l’aumento è di almeno il 25%, gli episodi sono almeno 20 e la differenza è almeno tre volte più grande dell’oscillazione che ci si aspetterebbe per caso con quel numero di episodi (test sul rapporto tra tassi, z ≥ 3). I cali netti seguono la stessa regola al contrario. Nelle mappe e nelle variazioni, una differenza che non supera la soglia statistica (z sotto 2) è mostrata in grigio.</p>
+        <p>Due conseguenze da tenere a mente. Una crescita costante, come quella delle truffe informatiche, produce un’impennata quasi ogni anno: il conteggio delle impennate di un anno include quindi anche tendenze lunghe. E con la soglia dei 20 episodi, i reati rari come omicidi o usura possono risultare in impennata solo nelle città più grandi.</p>
+        <h3>Anni da leggere con cautela</h3>
+        <p>Nel 2020 i lockdown hanno fatto crollare quasi tutti i reati di strada. Dal 2016 l’ingiuria non è più reato, e questo abbassa un po’ il totale dei delitti. I reati rari, come gli omicidi, vanno letti su più anni: per questo nelle classifiche usiamo la media 2022–2024.</p>
+        <h3>Fonti</h3>
+        <ul class="sources" id="sources"></ul>
+        <p style="margin-top:16px">Dati scaricati dall’API SDMX di <a href="https://esploradati.istat.it/" rel="noopener">esploradati.istat.it</a>. Il dataset si ricostruisce con <code>python3 scripts/build_data.py</code>; i comuni e le province con <code>python3 scripts/build_comuni.py</code>. I rimpatri sono l’unico dato non ISTAT: vengono dall’API di <a href="https://ec.europa.eu/eurostat/web/migration-asylum/managed-migration/database" rel="noopener">Eurostat</a> e si ricostruiscono con <code>python3 scripts/build_rimpatri.py</code>.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="credit">
+      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a>.</p>
+      <div class="cta">
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Offrimi un caffè</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+      </div>
+      <div id="colophon">Atlante della sicurezza · dati ISTAT</div>
+    </div>
+    <nav class="source-logos" aria-label="Fonti dei dati">
+      <span class="lbl">Fonti dei dati</span>
+      <a class="logo logo-istat" href="https://www.istat.it/" rel="noopener" aria-label="ISTAT, Istituto nazionale di statistica"></a>
+      <a class="logo logo-eurostat" href="https://ec.europa.eu/eurostat" rel="noopener" aria-label="Eurostat"></a>
+      <a class="logo logo-openpolis" href="https://www.openpolis.it/" rel="noopener" aria-label="Fondazione openpolis"></a>
+    </nav>
+  </div>
+</footer>
+
+<dialog class="cityd" id="city-dialog" aria-labelledby="city-name">
+  <div class="top">
+    <div>
+      <div class="kicker" id="city-kicker"></div>
+      <h2 id="city-name"></h2>
+    </div>
+    <button type="button" class="btn close" id="city-close">Chiudi</button>
+  </div>
+  <div class="body" id="city-body"></div>
+</dialog>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<!-- /vc:content -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="vc.js?v=26"></script>
+</body>
+</html>
