@@ -128,7 +128,7 @@
   // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
   // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT" };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT" };
   let CARCERI = null;
   let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
@@ -3444,11 +3444,11 @@
     // «Cosa sale e cosa scende»: due periodi, solo per questa sezione
     $("#mix-base-seg").querySelectorAll("button").forEach((b) => { b.textContent = EN ? `Between ${b.dataset.mbase} and ${Y[LAST]}` : `Tra il ${b.dataset.mbase} e il ${Y[LAST]}`; });
     seg("#mix-base-seg", "mbase", (v) => { state.mixBase = +v; renderMix(); });
-    seg("#spike-year-seg", "year", (v) => { state.spikeYear = +v; state.spikeShown = 12; renderSpikes(); });
-    seg("#spike-sort-seg", "ssort", (v) => { state.spikeSort = v; state.spikeShown = 12; renderSpikes(); });
+    seg("#spike-year-seg", "year", (v) => { state.spikeYear = +v; state.spikeShown = 8; renderSpikes(); });
+    seg("#spike-sort-seg", "ssort", (v) => { state.spikeSort = v; state.spikeShown = 8; renderSpikes(); });
     seg("#sort-seg", "sort", (v) => { state.sort = v; renderGrid(); });
     seg("#scale-seg", "scale", (v) => { state.scale = v; renderGrid(); });
-    $("#spike-more").addEventListener("click", () => { state.spikeShown += 12; renderSpikes(); });
+    $("#spike-more").addEventListener("click", () => { state.spikeShown += 8; renderSpikes(); });
     $("#grid-more").addEventListener("click", () => { state.gridShown += 12; renderGrid(); });
 
     // passaggio del mouse sulle classifiche: la guglia corrispondente si accende sulla mappa
