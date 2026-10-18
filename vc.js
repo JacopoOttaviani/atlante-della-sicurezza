@@ -128,7 +128,7 @@
   // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
   // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT" };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT" };
   let CARCERI = null;
   let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
@@ -1312,6 +1312,13 @@
     const groups = state.sort === "area"
       ? AREAS.map((a) => ({ title: a, rows: sortedRows({ ...m, rows: m.rows.filter((r) => r.c.area === a) }).sort((x, y) => (y.lvl ?? -1) - (x.lvl ?? -1)) }))
       : [{ title: null, rows: sortedRows(m) }];
+    // al massimo state.gridShown città; nell'ordine per area la quota si divide tra le aree in proporzione al numero di capoluoghi
+    const n = Math.min(state.gridShown, m.rows.length);
+    const quota = groups.map((gp) => (n * gp.rows.length) / m.rows.length);
+    const take = quota.map(Math.floor);
+    quota.map((q, i) => [q - take[i], i]).sort((a, b) => b[0] - a[0]).slice(0, n - d3.sum(take)).forEach(([, i]) => take[i]++);
+    groups.forEach((gp, i) => { gp.rows = gp.rows.slice(0, take[i]); });
+    $("#grid-more").hidden = n >= m.rows.length;
     const panels = [];
     groups.forEach((gp) => {
       const g = document.createElement("div");
@@ -3442,6 +3449,7 @@
     seg("#sort-seg", "sort", (v) => { state.sort = v; renderGrid(); });
     seg("#scale-seg", "scale", (v) => { state.scale = v; renderGrid(); });
     $("#spike-more").addEventListener("click", () => { state.spikeShown += 12; renderSpikes(); });
+    $("#grid-more").addEventListener("click", () => { state.gridShown += 12; renderGrid(); });
 
     // passaggio del mouse sulle classifiche: la guglia corrispondente si accende sulla mappa
     const rc = $(".rank-cols");
