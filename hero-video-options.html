@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Atlante della sicurezza — apertura con video, quattro filtri</title>
+<meta name="description" content="Atlante della sicurezza: quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT 2006–2024 sui 108 comuni capoluogo, con classifiche, mappa e impennate.">
+<!-- Icone della pagina (scheda del browser, preferiti, schermata iniziale): le disegna scripts/make_icons.py. -->
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#f3f4f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1110" media="(prefers-color-scheme: dark)">
+
+<!-- Anteprima del link quando viene condiviso (WhatsApp, Slack, Telegram, LinkedIn, Facebook, X).
+     L'immagine la produce scripts/make_og.py da scripts/og-card.html; quando cambia, alzare ?v=
+     così le app scaricano di nuovo la scheda invece di mostrare quella in cache. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atlante della sicurezza">
+<meta property="og:title" content="Atlante della sicurezza: reati denunciati città per città, 2006–2024">
+<meta property="og:description" content="Quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT sui 108 capoluoghi e la scheda di ogni comune, con classifiche, mappa e impennate.">
+<meta property="og:url" content="https://atlantedellasicurezza.it/">
+<meta property="og:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=2">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atlante della sicurezza. In Italia si denunciano meno reati di quindici anni fa, ma non ovunque e non tutti. Mappa dei 108 capoluoghi con una guglia per città: l’altezza è il tasso di denunce, rosso in aumento, blu in calo.">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atlante della sicurezza: reati denunciati città per città, 2006–2024">
+<meta name="twitter:description" content="Quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT sui 108 capoluoghi e la scheda di ogni comune, con classifiche, mappa e impennate.">
+<meta name="twitter:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=2">
+<meta name="twitter:image:alt" content="Atlante della sicurezza. In Italia si denunciano meno reati di quindici anni fa, ma non ovunque e non tutti. Mappa dei 108 capoluoghi con una guglia per città: l’altezza è il tasso di denunce, rosso in aumento, blu in calo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="vc.css?v=45">
+<style>
+/* ============================================================
+   APERTURA CON VIDEO — proposta, quattro filtri
+   La pagina è la home com'era il 18 ottobre 2026, prima che l'apertura a
+   video entrasse in index.html (stessi vc.css e vc.js). La quarta proposta,
+   Sorveglianza, è quella scelta: ora vive in index.html, vc.css e vc.js con
+   le classi vhead / vh-*; qui le classi sono vohead / vo-* (e la barra
+   vo-film / vo-drift) così le regole della home non toccano le altre tre.
+   Cambia solo l'apertura:
+   un film a tutta larghezza, la barra in testata che ci scorre
+   sopra trasparente e il titolo che dal riquadro bianco passa sul
+   film. Il film è un montaggio di quattro inquadrature (Colosseo,
+   banchina, corridoio, scale mobili della metro di Roma), 13
+   secondi al 75% della velocità, senza sottotitoli: video/hero-roma-*.
+   I filtri si cambiano con la barra in basso o i tasti 1–4 (0 per
+   il film senza filtro); la scelta resta nell'indirizzo (?fx=).
+   ============================================================ */
+
+.vohead {
+  --vo-ink: #eef0ec;
+  --vo-soft: rgba(238, 240, 236, 0.78);
+  --vo-accent: #e3b23c;
+  --vo-shade: 8, 10, 9;     /* rgb del velo che tiene leggibili barra e titolo */
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  /* scivola sotto la barra incollata: la barra resta nel flusso e ci passa sopra */
+  margin-top: calc(-1 * var(--bar-h));
+  height: min(86svh, 900px);
+  min-height: 520px;
+  background: #0e1110;
+  color: var(--vo-ink);
+}
+.vo-media { position: absolute; inset: 0; z-index: -1; overflow: hidden; isolation: isolate; }
+.vo-media > * { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.vo-film video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+/* iOS disegna il tasto play su un film che non parte da solo: lo nascondiamo, il primo tocco lo avvia */
+.vo-film video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
+.vo-iso, .vo-hud { display: none; }
+.vo-grain {
+  inset: -50% !important;
+  width: 200% !important;
+  height: 200% !important;
+  opacity: 0;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.3 -0.3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: vo-grain 0.6s steps(5) infinite;
+}
+/* il velo: in alto per la barra, in basso a sinistra per il titolo; il film resta pieno al centro e a destra */
+.vo-scrim {
+  background:
+    linear-gradient(to bottom, rgba(var(--vo-shade), 0.62) 0, rgba(var(--vo-shade), 0) 150px),
+    linear-gradient(to top, rgba(var(--vo-shade), 0.82) 0%, rgba(var(--vo-shade), 0.4) 34%, rgba(var(--vo-shade), 0) 62%),
+    linear-gradient(to right, rgba(var(--vo-shade), 0.55) 0%, rgba(var(--vo-shade), 0) 58%);
+}
+
+.vo-copy {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+  padding-bottom: clamp(32px, 7vh, 72px);
+}
+.vo-kicker {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112%;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vo-soft);
+}
+.vohead h2 {
+  margin: 0;
+  max-width: 21ch;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(2.3rem, 5.2vw, 4.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  color: var(--vo-ink);
+}
+.vohead h2 em { font-style: italic; color: var(--vo-accent); }
+.vo-pause {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--vo-ink) 40%, transparent);
+  background: rgba(var(--vo-shade), 0.35);
+  color: var(--vo-ink);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.vo-pause:hover { border-color: var(--vo-ink); }
+.vo-pause svg { width: 14px; height: 14px; fill: currentColor; }
+.vo-pause .i-play { display: none; }
+.vo-pause[aria-pressed="true"] .i-play { display: block; }
+.vo-pause[aria-pressed="true"] .i-pause { display: none; }
+
+/* sotto il film l'apertura riparte dai numeri: il titolo è salito sul film */
+.vohead + .hero { padding-top: 40px; }
+
+/* ---------- la barra sopra il film ----------
+   Trasparente finché il film le sta sotto (.vo-film, dallo script in fondo); le voci prendono i colori
+   del film ridefinendo i token della testata, così logo, voci, lente, pulsanti e tendina seguono da soli.
+   Con la ricerca aperta torna piena: l'elenco dei comuni scende sopra il film. */
+.masthead { transition: background-color 0.3s ease, border-color 0.3s ease; }
+.masthead.vo-film:not(.searching) { background: transparent; border-bottom-color: transparent; }
+body:not([data-fx="retino"]) .masthead.vo-film:not(.searching) {
+  --ink: #f3f4f0;
+  --ink-2: rgba(243, 244, 240, 0.84);
+  --muted: rgba(243, 244, 240, 0.62);
+  --gold-ink: #e3b23c;
+  --rule: rgba(243, 244, 240, 0.32);
+  --surface: rgba(8, 10, 9, 0.32);
+  --land: rgba(243, 244, 240, 0.14);
+  color: var(--ink);
+  color-scheme: dark;
+}
+.masthead.vo-film:not(.searching) .menu a:hover { border-bottom-color: currentColor; }
+/* a metà discesa la barra passa sul centro del film, più chiaro: un velo smerigliato la tiene leggibile */
+.masthead.vo-film.vo-drift:not(.searching) {
+  background: rgba(10, 12, 11, 0.55);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+}
+[data-fx="oro"] .masthead.vo-film.vo-drift:not(.searching) { background: rgba(27, 24, 19, 0.6); }
+[data-fx="retino"] .masthead.vo-film.vo-drift:not(.searching) { background: color-mix(in srgb, var(--bg) 82%, transparent); }
+
+/* ============================================================
+   1. ORO — bicromia: le ombre nel nero caldo della fascia delle
+      impennate, le luci nell'oro. Bianco e nero moltiplicato per
+      l'oro, poi le ombre sollevate al nero caldo (lighten).
+   ============================================================ */
+[data-fx="oro"] .vohead { --vo-ink: #f4eee2; --vo-soft: rgba(244, 238, 226, 0.8); --vo-shade: 22, 18, 12; background: #1b1813; }
+[data-fx="oro"] .vo-film video { filter: grayscale(1) contrast(1.22) brightness(1.04); }
+[data-fx="oro"] .vo-tone { background: #e2a930; mix-blend-mode: multiply; }
+[data-fx="oro"] .vo-lift { background: #1b1813; mix-blend-mode: lighten; }
+[data-fx="oro"] .vo-grain { opacity: 0.22; }
+[data-fx="oro"] .vohead h2 em { color: #ffd36a; }
+
+/* ============================================================
+   2. RETINO — retino da stampa: il film diventa punti d'inchiostro
+      sulla carta della pagina. Il film sfocato e scurito si fonde
+      (color-dodge) con una trama di punti sfumati; un contrasto
+      altissimo sul gruppo li rende netti, grandi dove il film è
+      scuro. Poi la carta: il bianco diventa il fondo della pagina.
+      Con il tema scuro i punti diventano chiari sul nero: si inverte
+      il film prima della trama e il risultato dopo, così i punti
+      grandi restano dove il film è chiaro e non esce un negativo.
+   ============================================================ */
+[data-fx="retino"] .vohead { --vo-ink: var(--ink); --vo-soft: var(--ink-2); --vo-accent: var(--gold-ink); background: var(--bg); }
+[data-fx="retino"] .vo-film { filter: contrast(28); background: #fff; overflow: hidden; }
+[data-fx="retino"] .vo-film video { filter: grayscale(1) brightness(0.6) contrast(1.15) blur(2px); }
+[data-fx="retino"] .vo-film::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle, #000 0, #fff 70%) 0 0 / 7px 7px;
+  transform: rotate(45deg);
+  mix-blend-mode: color-dodge;
+}
+[data-fx="retino"] .vo-tone { background: var(--bg); mix-blend-mode: multiply; }
+[data-fx="retino"] .vo-scrim {
+  background:
+    linear-gradient(to bottom, var(--bg) 0, color-mix(in srgb, var(--bg) 0%, transparent) 120px),
+    linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent) 0%, color-mix(in srgb, var(--bg) 55%, transparent) 36%, color-mix(in srgb, var(--bg) 0%, transparent) 64%),
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 70%, transparent) 0%, color-mix(in srgb, var(--bg) 0%, transparent) 55%);
+}
+[data-fx="retino"] .vo-pause { background: color-mix(in srgb, var(--bg) 70%, transparent); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) [data-fx="retino"] .vo-film { filter: contrast(28) invert(1); }
+  :root:not([data-theme="light"]) [data-fx="retino"] .vo-film video { filter: grayscale(1) invert(1) brightness(0.6) contrast(1.15) blur(2px); }
+  :root:not([data-theme="light"]) [data-fx="retino"] .vo-tone { mix-blend-mode: lighten; }
+}
+:root[data-theme="dark"] [data-fx="retino"] .vo-film { filter: contrast(28) invert(1); }
+:root[data-theme="dark"] [data-fx="retino"] .vo-film video { filter: grayscale(1) invert(1) brightness(0.6) contrast(1.15) blur(2px); }
+:root[data-theme="dark"] [data-fx="retino"] .vo-tone { mix-blend-mode: lighten; }
+
+/* ============================================================
+   3. ISOIPSE — curve di livello: la luce del film ridisegnata come
+      una carta topografica a ogni fotogramma (canvas, script in
+      fondo). Una curva ogni decimo di luminosità, una più marcata
+      ogni cinque come nelle carte, le più alte in oro.
+   ============================================================ */
+[data-fx="isoipse"] .vo-iso { display: block; }
+[data-fx="isoipse"] .vo-scrim {
+  background:
+    linear-gradient(to bottom, rgba(var(--vo-shade), 0.7) 0, rgba(var(--vo-shade), 0) 130px),
+    linear-gradient(to top, rgba(var(--vo-shade), 0.9) 0%, rgba(var(--vo-shade), 0.45) 32%, rgba(var(--vo-shade), 0) 58%);
+}
+
+/* ============================================================
+   4. SORVEGLIANZA — telecamera a circuito chiuso: bianco e nero
+      freddo e duro, righe di scansione, vignetta, grana; in sovra-
+      impressione REC, il nome della camera e l'ora vera.
+   ============================================================ */
+[data-fx="sorveglianza"] .vo-film video { filter: grayscale(1) contrast(1.5) brightness(1.06) blur(0.3px); }
+[data-fx="sorveglianza"] .vo-tone { background: #b4cdc2; mix-blend-mode: multiply; }
+[data-fx="sorveglianza"] .vo-lines {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0) 100%) 0 -30% / 100% 24% no-repeat,
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+  animation: vo-roll 6s linear infinite;
+}
+[data-fx="sorveglianza"] .vo-vig { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.7) 100%); }
+[data-fx="sorveglianza"] .vo-grain { opacity: 0.2; }
+[data-fx="sorveglianza"] .vo-hud { display: block; }
+.vo-hud { top: calc(var(--bar-h) + 18px) !important; bottom: auto !important; height: auto !important; }
+.vo-hud .wrap { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.vo-hud p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 236, 0.86);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+.vo-hud .rec::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #e25a6e;
+  vertical-align: 0.05em;
+  animation: vo-blink 1.2s steps(1) infinite;
+}
+.vo-hud .cam { text-align: right; }
+
+/* ============================================================
+   0. ORIGINALE — il montaggio senza filtri, per confronto
+   ============================================================ */
+
+@keyframes vo-grain {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-7%, 4%); }
+  40%  { transform: translate(5%, -6%); }
+  60%  { transform: translate(-3%, -9%); }
+  80%  { transform: translate(8%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes vo-roll { from { background-position: 0 -30%, 0 0; } to { background-position: 0 130%, 0 0; } }
+@keyframes vo-blink { 50% { opacity: 0; } }
+
+@media (max-width: 560px) {
+  .vohead { height: min(78svh, 680px); min-height: 460px; }
+  .vo-copy { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-bottom: 28px; }
+  .vo-pause { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: calc(var(--bar-h) + 14px); }
+  .vo-kicker { font-size: 11px; margin-bottom: 12px; }
+  .vo-hud p { font-size: 10.5px; }
+  .vo-hud .cam { display: none; }
+  [data-fx="sorveglianza"] .vo-pause { top: auto; bottom: 28px; }
+}
+
+/* ---------- barra delle proposte (solo in questa pagina) ---------- */
+.fx-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  pointer-events: none;
+}
+.fx-note {
+  margin: 0;
+  max-width: 54ch;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: rgba(18, 22, 20, 0.88);
+  color: #eef0ec;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+.fx-pick {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: #121614;
+  color: #f3f4f0;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+  pointer-events: auto;
+}
+.fx-pick::-webkit-scrollbar { display: none; }
+.fx-pick button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.fx-pick button:hover { background: rgba(255, 255, 255, 0.12); }
+.fx-pick button[aria-pressed="true"] { background: #f3f4f0; color: #121614; }
+.fx-pick kbd { font: inherit; font-size: 11px; font-weight: 500; opacity: 0.55; margin-right: 6px; }
+.fx-pick i { flex: none; width: 1px; height: 18px; background: rgba(255, 255, 255, 0.25); margin-inline: 4px; }
+@media (max-width: 560px) {
+  .fx-note { font-size: 12.5px; }
+  .fx-pick button { padding: 0 10px; font-size: 12px; }
+  .fx-pick kbd { display: none; }
+}
+</style>
+</head>
+<body data-fx="oro">
+<script>(function () { var f = new URLSearchParams(location.search).get("fx"); if (/^(oro|retino|isoipse|sorveglianza|originale)$/.test(f)) document.body.setAttribute("data-fx", f); })();</script>
+<!-- vc:content -->
+<header class="masthead">
+  <div class="wrap">
+    <h1 class="wordmark"><a href="#" aria-label="Atlante della sicurezza: torna all'inizio"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></a></h1>
+    <nav class="menu" aria-label="Sezioni della pagina">
+      <ul>
+        <li><a href="#mappa">Mappa</a></li>
+        <li><a href="#mix">Reati</a></li>
+        <li><a href="#impennate">Impennate</a></li>
+        <li><a href="#citta">Città</a></li>
+        <li><a href="approfondimenti/">Approfondimenti</a></li>
+        <li><a href="progetto/">Il progetto</a></li>
+      </ul>
+    </nav>
+    <div class="cta bar-cta">
+      <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+        <span>Offrimi un caffè</span>
+      </a>
+      <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+    </div>
+    <!-- La lente apre la ricerca del comune al posto delle voci; sul telefono le voci diventano il menu a tendina. -->
+    <div class="bar-tools">
+      <select id="section-select" aria-label="Vai a una sezione della pagina"></select>
+      <div class="control control-search">
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca un comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+      </div>
+      <button type="button" class="bar-find" id="bar-find" aria-label="Cerca un comune" aria-expanded="false" aria-controls="city-combo">
+        <svg class="i-find" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="i-close" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <!-- Apertura con video: il film a tutta larghezza scorre sotto la barra, che ci passa sopra trasparente.
+       Il film è decorativo (aria-hidden); il titolo è quello della pagina. Il tasto ferma e fa ripartire il film. -->
+  <section class="vohead" aria-labelledby="hero-title">
+    <div class="vo-media" aria-hidden="true">
+      <div class="vo-film">
+        <video id="vo-video" muted loop playsinline preload="none" tabindex="-1" poster="video/hero-roma-poster.jpg"></video>
+      </div>
+      <canvas class="vo-iso"></canvas>
+      <div class="vo-tone"></div>
+      <div class="vo-lift"></div>
+      <div class="vo-lines"></div>
+      <div class="vo-vig"></div>
+      <div class="vo-grain"></div>
+      <div class="vo-scrim"></div>
+      <div class="vo-hud">
+        <div class="wrap">
+          <p class="rec">Rec</p>
+          <p class="cam">Cam 03 · Roma<br><span id="vo-clock"></span></p>
+        </div>
+      </div>
+    </div>
+    <div class="wrap vo-copy">
+      <div>
+        <p class="vo-kicker">Dati ufficiali ISTAT · 108 comuni capoluogo · 2006–2024</p>
+        <h2 id="hero-title">In Italia si denunciano meno reati di quindici anni fa. <em>Ma non ovunque, e non tutti.</em></h2>
+      </div>
+      <button type="button" class="vo-pause" id="vo-pause" aria-pressed="false" aria-label="Ferma il video">
+        <svg class="i-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="1.5" width="3" height="11" rx="0.5"/><rect x="8.5" y="1.5" width="3" height="11" rx="0.5"/></svg>
+        <svg class="i-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 1.8v10.4a.5.5 0 0 0 .76.43l8.4-5.2a.5.5 0 0 0 0-.86l-8.4-5.2a.5.5 0 0 0-.76.43z"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section class="hero" aria-label="I numeri principali">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <ol class="eyechart" id="eyechart" aria-label="I numeri principali">
+            <li><span class="fig">…</span><span class="cap">Caricamento dei dati ISTAT</span></li>
+          </ol>
+          <p class="hero-note">Uno strumento per leggere i dati ufficiali sui reati da vicino: città per città, reato per reato, anno per anno. Le impennate, cioè gli aumenti improvvisi, sono segnate in oro.</p>
+          <div class="mix-key hero-key">
+            <span class="lead">Nei grafici</span>
+            <span><i class="k-up"></i>rosso: in aumento</span>
+            <span><i class="k-down"></i>blu: in calo</span>
+            <span><i class="k-flat"></i>grigio: differenza troppo piccola per dire che qualcosa sia cambiato</span>
+            <span><i class="k-gold"></i>oro: impennata, un aumento improvviso</span>
+          </div>
+        </div>
+        <!-- Tre grafici su una striscia, uno per ogni pezzo del titolo: l'Italia nel tempo, le città (non ovunque),
+             i reati (non tutti). Avanza da sola ogni otto secondi, si ferma con il mouse sopra; frecce, punti e dito
+             per sfogliare. Titoli e grafici li riempie vc.js: sempre tutti i delitti, confrontati con il 2019. -->
+        <div class="national hero-car" id="national">
+          <div class="car-head">
+            <div class="car-meta on" data-k="0">
+              <div class="kicker">Italia, 2006–2024</div>
+              <h3 id="national-title">…</h3>
+              <p class="sub" id="national-sub">Delitti denunciati ogni 100.000 abitanti</p>
+            </div>
+            <div class="car-meta" data-k="1">
+              <div class="kicker" id="cities-kicker">Non ovunque · le città</div>
+              <h3 id="cities-title">…</h3>
+              <p class="sub" id="cities-sub"></p>
+            </div>
+            <div class="car-meta" data-k="2">
+              <div class="kicker" id="types-kicker">Non tutti · i reati</div>
+              <h3 id="types-title">…</h3>
+              <p class="sub" id="types-sub"></p>
+            </div>
+          </div>
+          <div class="car-strip">
+            <div class="car-track">
+              <div class="car-panel" data-k="0" role="group" aria-roledescription="grafico" aria-label="Nel tempo"><div class="chart" id="national-chart"></div></div>
+              <div class="car-panel" data-k="1" role="group" aria-roledescription="grafico" aria-label="Nelle città" aria-hidden="true"><div class="chart" id="cities-chart"></div></div>
+              <div class="car-panel" data-k="2" role="group" aria-roledescription="grafico" aria-label="Per reato" aria-hidden="true"><div class="chart" id="types-chart"></div></div>
+            </div>
+          </div>
+          <div class="car-nav">
+            <button type="button" class="arr" data-dir="-1" aria-label="Grafico precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <div class="car-dots" role="tablist" aria-label="Tre grafici">
+              <button type="button" role="tab" aria-selected="true" aria-label="Nel tempo" data-k="0"></button>
+              <button type="button" role="tab" aria-selected="false" aria-label="Nelle città" data-k="1"></button>
+              <button type="button" role="tab" aria-selected="false" aria-label="Per reato" data-k="2"></button>
+            </div>
+            <button type="button" class="arr" data-dir="1" aria-label="Grafico successivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <!-- la fonte, uguale per i tre grafici: in basso a destra, sulla riga di frecce e punti -->
+            <p class="car-src">Fonte: ISTAT</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="finder" id="cerca" aria-labelledby="finder-title">
+    <div class="wrap finder-grid">
+      <div>
+        <div class="kicker">Il tuo comune</div>
+        <h2 id="finder-title">Com’è andata dove vivi?</h2>
+        <p class="finder-dek">Scrivi il nome del tuo comune e apri la sua scheda: tutti i reati denunciati, anno per anno dal 2006, accanto all’Italia, con la quota di famiglie che si sentono a rischio. Solo dati ufficiali ISTAT.</p>
+      </div>
+      <div>
+        <div class="combo combo-big" id="finder-combo">
+          <label for="finder-input" class="vh">Il tuo comune</label>
+          <svg class="combo-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" id="finder-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-list" aria-describedby="finder-hint" placeholder="Es. Scandicci, Bari, Bozen" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="finder-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+        <p class="finder-hint" id="finder-hint">Tutti i comuni italiani. Per i 108 capoluoghi i dati sono del comune; per gli altri l’ISTAT pubblica solo quelli della provincia, e la scheda lo dice.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="mappa" aria-labelledby="map-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Classifica e mappa</div>
+        <h2 id="map-title">Dove si denuncia di più, e dove di meno</h2>
+        <p class="dek" id="map-dek"></p>
+        <!-- i comandi della mappa: cambiano solo la mappa e la classifica qui sotto -->
+        <div class="map-picks">
+          <label class="control"><span class="label">Reato</span>
+            <select id="map-type"></select>
+          </label>
+          <div class="control base-pick" role="group" aria-labelledby="base-label"><span class="label" id="base-label">Confronta il 2024 con il</span>
+            <div class="seg" id="base-seg">
+              <button type="button" data-base="2023" aria-pressed="false">2023</button>
+              <button type="button" data-base="2019" aria-pressed="true">2019, prima del Covid</button>
+              <button type="button" data-base="2014">2014</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="two">
+        <div class="mapbox">
+          <div id="map"></div>
+          <div class="legend" id="map-legend"></div>
+        </div>
+        <div>
+          <div class="rank-cols">
+            <div class="rank"><h3 id="rank-top-title">Più denunce</h3><ol id="rank-top"></ol></div>
+            <div class="rank"><h3 id="rank-bottom-title">Meno denunce</h3><ol id="rank-bottom"></ol></div>
+          </div>
+          <p class="note" id="rank-note"></p>
+          <details class="full">
+            <summary>Classifica completa dei 108 capoluoghi (tabella)</summary>
+            <div class="tablewrap"><table id="rank-table"></table></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="mix" aria-labelledby="mix-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Il quadro nazionale</div>
+        <h2 id="mix-title">Cosa sale e cosa scende</h2>
+        <p class="dek" id="mix-dek">I reati non calano tutti insieme. Tocca un reato per vederlo in tutte le città.</p>
+        <!-- il periodo del confronto: vale solo per questa sezione (vc.js scrive l'ultimo anno nei bottoni) -->
+        <div class="seg mix-period" id="mix-base-seg" role="group" aria-label="Periodo del confronto">
+          <button type="button" data-mbase="2014" aria-pressed="false">Tra il 2014 e il 2024</button>
+          <button type="button" data-mbase="2019" aria-pressed="true">Tra il 2019 e il 2024</button>
+        </div>
+      </header>
+      <div class="mix-key" aria-hidden="true">
+        <span><i class="k-up"></i>in aumento</span>
+        <span><i class="k-down"></i>in calo</span>
+        <span><i class="k-flat"></i>variazione minima</span>
+        <span><i class="k-zero"></i>nessuna variazione</span>
+        <span><i class="k-ref"></i>tutti i delitti</span>
+      </div>
+      <div class="mix" id="mix-grid"></div>
+    </div>
+  </section>
+
+
+  <section class="block band" id="impennate" aria-labelledby="spike-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Impennate e cali</div>
+        <h2 id="spike-title">Dove qualcosa è cambiato all’improvviso</h2>
+        <p class="dek">Un’impennata è un anno in cui le denunce per un reato salgono di colpo: almeno un quarto sopra la media dei tre anni prima, con almeno 20 episodi e un salto che il caso da solo non spiega. «In proporzione» mette prima gli aumenti più solidi, «Per casi in più» quelli che riguardano più persone. <a href="progetto/#metodo">Come le riconosciamo</a>.</p>
+      </header>
+      <div class="chips" role="group" aria-label="Anno delle impennate">
+        <span class="small">Anno</span>
+        <div class="seg" id="spike-year-seg">
+          <button type="button" data-year="2024" aria-pressed="true">2024</button>
+          <button type="button" data-year="2023" aria-pressed="false">2023</button>
+          <button type="button" data-year="2022" aria-pressed="false">2022</button>
+        </div>
+        <span class="small">Ordina</span>
+        <div class="seg" id="spike-sort-seg">
+          <button type="button" data-ssort="rel" aria-pressed="true">In proporzione</button>
+          <button type="button" data-ssort="abs" aria-pressed="false">Per casi in più</button>
+        </div>
+        <span class="small" id="spike-count"></span>
+      </div>
+      <div class="cards" id="spike-cards"></div>
+      <div class="more"><button type="button" class="btn" id="spike-more">Mostra altre impennate</button></div>
+      <h3 class="subhead">I cali più netti</h3>
+      <div class="cards" id="fall-cards"></div>
+    </div>
+  </section>
+
+  <section class="block" id="citta" aria-labelledby="grid-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Tutti i 108 capoluoghi</div>
+        <h2 id="grid-title">Città per città, dal 2006 al 2024</h2>
+        <p class="dek" id="grid-dek"></p>
+      </header>
+      <div class="gridbar">
+        <label class="control"><span class="label">Reato</span>
+          <select id="grid-type"></select>
+        </label>
+        <div class="control" role="group" aria-label="Ordina"><span class="label">Ordina</span>
+          <div class="seg" id="sort-seg">
+            <button type="button" data-sort="level" aria-pressed="true">Livello</button>
+            <button type="button" data-sort="change" aria-pressed="false">Variazione</button>
+            <button type="button" data-sort="spike" aria-pressed="false">Impennate</button>
+            <button type="button" data-sort="area" aria-pressed="false">Area</button>
+            <button type="button" data-sort="name" aria-pressed="false">A–Z</button>
+          </div>
+        </div>
+        <div class="control" role="group" aria-label="Scala"><span class="label">Scala</span>
+          <div class="seg" id="scale-seg">
+            <button type="button" data-scale="shared" aria-pressed="true">Uguale per tutte</button>
+            <button type="button" data-scale="own" aria-pressed="false">Propria</button>
+          </div>
+        </div>
+        <div class="key" aria-hidden="true">
+          <span><i class="k-line"></i>città</span>
+          <span><i class="k-it"></i>Italia</span>
+          <span><i class="k-gold"></i>impennata</span>
+          <span><i class="k-fall"></i>calo netto</span>
+          <span><i class="k-covid"></i>2020–21</span>
+        </div>
+      </div>
+      <div id="sm"></div>
+    </div>
+  </section>
+
+  <!-- Carceri, rimpatri e percezione hanno ognuno la sua pagina in approfondimenti/: qui solo le tre schede, con una cifra che scrive vc.js. -->
+  <section class="block" id="approfondimenti" aria-labelledby="dd-band-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Approfondimenti</div>
+        <h2 id="dd-band-title">Oltre le denunce</h2>
+        <p class="dek">Tre domande che i reati denunciati, da soli, non bastano a chiarire: chi c’è in carcere, quanti rimpatri vengono davvero eseguiti, quanto la paura segue i reati. Ognuna ha la sua pagina. <a href="approfondimenti/">Tutti gli approfondimenti</a>.</p>
+      </header>
+      <div class="dd-cards">
+        <a class="dd-card" href="approfondimenti/carceri.html" data-dd="carceri">
+          <span class="kicker">Carceri</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Gli stranieri nelle carceri italiane</h3>
+          <p>Quanti sono, da quali paesi, per quali reati, e perché il confronto con i residenti va letto con cautela.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/rimpatri.html" data-dd="rimpatri">
+          <span class="kicker">Rimpatri</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Quanti rimpatri vengono ordinati, quanti eseguiti</h3>
+          <p>Paese per paese, gli ordini di lasciare l’Italia e i rimpatri davvero eseguiti, anno per anno dal 2008.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/percezione.html" data-dd="percezione">
+          <span class="kicker">Percezione e realtà</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Quanto ci sentiamo in pericolo, e quanto lo siamo</h3>
+          <p>La paura della criminalità accanto ai reati denunciati: in Italia, nelle grandi città e provincia per provincia.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="credit">
+      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a> · <a href="progetto/">Il progetto, metodologia e fonti</a></p>
+      <div class="cta">
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Offrimi un caffè</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+      </div>
+      <div id="colophon">Atlante della sicurezza · dati ISTAT</div>
+    </div>
+    <nav class="source-logos" aria-label="Fonti dei dati">
+      <span class="lbl">Fonti dei dati</span>
+      <a class="logo logo-istat" href="https://www.istat.it/" rel="noopener" aria-label="ISTAT, Istituto nazionale di statistica"></a>
+      <a class="logo logo-eurostat" href="https://ec.europa.eu/eurostat" rel="noopener" aria-label="Eurostat"></a>
+      <a class="logo logo-openpolis" href="https://www.openpolis.it/" rel="noopener" aria-label="Fondazione openpolis"></a>
+    </nav>
+  </div>
+</footer>
+
+<dialog class="cityd" id="city-dialog" aria-labelledby="city-name">
+  <div class="top">
+    <div>
+      <div class="kicker" id="city-kicker"></div>
+      <h2 id="city-name"></h2>
+    </div>
+    <button type="button" class="btn close" id="city-close">Chiudi</button>
+  </div>
+  <div class="body" id="city-body"></div>
+</dialog>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<!-- /vc:content -->
+<!-- barra delle proposte: esiste solo in questa pagina -->
+<div class="fx-bar">
+  <p class="fx-note" id="fx-note" aria-live="polite"></p>
+  <div class="fx-pick" role="group" aria-label="Filtro del video">
+    <button type="button" data-fx="oro"><kbd>1</kbd>Oro</button>
+    <button type="button" data-fx="retino"><kbd>2</kbd>Retino</button>
+    <button type="button" data-fx="isoipse"><kbd>3</kbd>Isoipse</button>
+    <button type="button" data-fx="sorveglianza"><kbd>4</kbd>Sorveglianza</button>
+    <i></i>
+    <button type="button" data-fx="originale"><kbd>0</kbd>Senza filtro</button>
+  </div>
+</div>
+<script>
+/* Apertura con video: il film, il tasto per fermarlo, la barra trasparente sopra il film, le curve di livello
+   (Isoipse) e la barra delle proposte. Il film è il 1280 sugli schermi larghi e il 640 fino a 900px; con
+   prefers-reduced-motion resta la locandina e il film parte solo dal tasto. Si ferma quando l'apertura
+   esce dallo schermo. Gli iPhone in risparmio energetico rifiutano di avviare anche un film muto ma lo lasciano
+   partire a un tocco: ogni tocco o tasto riprova finché non parte. */
+(function () {
+  var NOTES = {
+    oro: "1 · Oro: bicromia nel nero caldo e nell’oro della fascia delle impennate.",
+    retino: "2 · Retino: il film stampato a punti d’inchiostro sulla carta della pagina; la barra resta chiara.",
+    isoipse: "3 · Isoipse: la luce del film ridisegnata a curve di livello, fotogramma per fotogramma.",
+    sorveglianza: "4 · Sorveglianza: telecamera a circuito chiuso, bianco e nero freddo, righe, REC e ora vera.",
+    originale: "0 · Il montaggio senza filtro, per confronto."
+  };
+  var FX = Object.keys(NOTES);
+  var body = document.body;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var v = document.getElementById('vo-video');
+  var head = document.querySelector('.vohead');
+  var mast = document.querySelector('.masthead');
+  var pauseBtn = document.getElementById('vo-pause');
+  var inView = true, held = reduce;
+
+  /* ---- Isoipse: ogni fotogramma del film ridotto a 256×118, luminosità sfumata due volte, poi le curve di
+     livello con i quadrati in marcia (marching squares), una ogni decimo di luce. Disegnate sopra il film come
+     lo disegnerebbe object-fit: cover con object-position 50% 40%. Gira solo con Isoipse scelto e l'apertura
+     in vista, e ridisegna solo quando il film cambia fotogramma. */
+  var iso = (function () {
+    var cv = document.querySelector('.vo-iso'), ctx = cv.getContext('2d');
+    var W = 256, H = 118, N = W * H, LEVELS = 10;
+    var off = document.createElement('canvas'); off.width = W; off.height = H;
+    var octx = off.getContext('2d', { willReadFrequently: true });
+    var A = new Float32Array(N), B = new Float32Array(N);
+    // lati del quadrato: 0 sopra, 1 destra, 2 sotto, 3 sinistra; per ogni caso le coppie di lati da unire
+    var EDGES = [null, [3, 2], [2, 1], [3, 1], [0, 1], [3, 0, 2, 1], [0, 2], [3, 0], [3, 0], [0, 2], [0, 1, 3, 2], [0, 1], [3, 1], [2, 1], [3, 2], null];
+    var on = false, raf = 0, lastT = -1, dpr = 1, cw = 0, ch = 0, X = 0, Y = 0;
+    // finché il film non ha un fotogramma le curve si disegnano dalla locandina, così il film non compare mai senza filtro
+    var poster = new Image(), posterOk = false;
+    poster.onload = function () { posterOk = true; lastT = -1; };
+    poster.src = v.getAttribute('poster');
+    function size() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cw = head.clientWidth; ch = head.clientHeight;
+      cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
+    }
+    function blur() { // media su tre pixel, in orizzontale poi in verticale
+      var x, y, r;
+      for (y = 0; y < H; y++) { r = y * W; for (x = 0; x < W; x++) B[r + x] = (A[r + (x ? x - 1 : 0)] + A[r + x] + A[r + (x < W - 1 ? x + 1 : x)]) / 3; }
+      for (y = 0; y < H; y++) { var u = (y ? y - 1 : 0) * W, d = (y < H - 1 ? y + 1 : y) * W; r = y * W; for (x = 0; x < W; x++) A[r + x] = (B[u + x] + B[r + x] + B[d + x]) / 3; }
+    }
+    function edge(e, x, y, a, b, c, d, t) {
+      if (e === 0) { X = x + (t - a) / (b - a); Y = y; }
+      else if (e === 1) { X = x + 1; Y = y + (t - b) / (c - b); }
+      else if (e === 2) { X = x + (t - d) / (c - d); Y = y + 1; }
+      else { X = x; Y = y + (t - a) / (d - a); }
+    }
+    function draw(src) {
+      if (head.clientWidth !== cw || head.clientHeight !== ch) size();
+      octx.drawImage(src, 0, 0, W, H);
+      var px = octx.getImageData(0, 0, W, H).data, i;
+      for (i = 0; i < N; i++) A[i] = (px[i * 4] * 0.2126 + px[i * 4 + 1] * 0.7152 + px[i * 4 + 2] * 0.0722) / 255;
+      blur(); blur();
+      var s = Math.max(cw / W, ch / H), x0 = (cw - W * s) * 0.5, y0 = (ch - H * s) * 0.4;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#0e1110';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * x0, dpr * y0);
+      // un'ombra del film sotto le curve, appena percepibile, per riconoscere il luogo
+      ctx.globalAlpha = 0.13;
+      ctx.drawImage(off, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      for (var k = 1; k < LEVELS; k++) {
+        var t = k / LEVELS;
+        ctx.beginPath();
+        for (var y = 0; y < H - 1; y++) {
+          for (var x = 0; x < W - 1; x++) {
+            i = y * W + x;
+            var a = A[i], b = A[i + 1], c = A[i + W + 1], d = A[i + W];
+            var e = EDGES[(a > t ? 8 : 0) | (b > t ? 4 : 0) | (c > t ? 2 : 0) | (d > t ? 1 : 0)];
+            if (!e) continue;
+            for (var m = 0; m < e.length; m += 2) {
+              edge(e[m], x, y, a, b, c, d, t); ctx.moveTo(X + 0.5, Y + 0.5);
+              edge(e[m + 1], x, y, a, b, c, d, t); ctx.lineTo(X + 0.5, Y + 0.5);
+            }
+          }
+        }
+        // curva maestra ogni cinque, come nelle carte; le due più alte (la luce piena) in oro
+        if (k >= 8) { ctx.strokeStyle = 'rgba(227, 178, 60, 0.9)'; ctx.lineWidth = 1.3 / s; }
+        else if (k % 5 === 0) { ctx.strokeStyle = 'rgba(238, 240, 236, 0.85)'; ctx.lineWidth = 1.6 / s; }
+        else { ctx.strokeStyle = 'rgba(238, 240, 236, 0.4)'; ctx.lineWidth = 1 / s; }
+        ctx.stroke();
+      }
+    }
+    function loop() {
+      raf = 0;
+      if (!on) return;
+      if (v.readyState >= 2) { if (v.currentTime !== lastT) { lastT = v.currentTime; draw(v); } }
+      else if (posterOk && lastT !== -2) { lastT = -2; draw(poster); }
+      raf = requestAnimationFrame(loop);
+    }
+    return {
+      sync: function () {
+        var want = body.getAttribute('data-fx') === 'isoipse' && inView;
+        if (want && !on) { on = true; size(); ctx.fillStyle = '#0e1110'; ctx.fillRect(0, 0, cv.width, cv.height); lastT = -1; loop(); }
+        else if (!want && on) { on = false; cancelAnimationFrame(raf); raf = 0; }
+      },
+      resize: function () { if (on) { size(); lastT = -1; } },
+      // per misurare quanto costa un fotogramma dalla console: vhIso.draw()
+      draw: function () { size(); draw(v.readyState >= 2 ? v : poster); }
+    };
+  })();
+
+  window.vhIso = iso;
+
+  /* ---- il film */
+  v.src = 'video/hero-roma-' + (matchMedia('(max-width: 900px)').matches ? '640' : '1280') + '.mp4';
+  function play() {
+    if (!inView || held) return;
+    var p = v.play(); if (p && p.catch) p.catch(function () {});
+  }
+  function setHeld(h) {
+    held = h;
+    pauseBtn.setAttribute('aria-pressed', h);
+    pauseBtn.setAttribute('aria-label', h ? 'Fai ripartire il video' : 'Ferma il video');
+    if (h) v.pause(); else play();
+  }
+  setHeld(held);
+  pauseBtn.addEventListener('click', function () { setHeld(!held); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      inView = entries[0].isIntersecting;
+      if (inView) play(); else v.pause();
+      iso.sync();
+    }).observe(head);
+  }
+  // link, pulsanti e campi avviano il film col loro clic, senza ritardo
+  var gestures = ['touchend', 'click', 'keydown'];
+  function retry(e) {
+    if (e.type === 'touchend' && e.target.closest && e.target.closest('a, button, select, input')) return;
+    if (v.paused) play();
+  }
+  gestures.forEach(function (ev) { window.addEventListener(ev, retry, { passive: true }); });
+  v.addEventListener('playing', function () {
+    gestures.forEach(function (ev) { window.removeEventListener(ev, retry); });
+  }, { once: true });
+
+  /* ---- la barra: trasparente finché il film le passa sotto, smerigliata appena il film comincia a salire */
+  function film() {
+    var over = head.getBoundingClientRect().bottom > mast.offsetHeight + 1;
+    mast.classList.toggle('vo-film', over);
+    mast.classList.toggle('vo-drift', over && window.scrollY > 24);
+  }
+  addEventListener('scroll', film, { passive: true });
+  addEventListener('resize', function () { film(); iso.resize(); });
+  film();
+
+  /* ---- l'ora vera, per Sorveglianza */
+  var clock = document.getElementById('vo-clock');
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function tick() {
+    var d = new Date();
+    clock.textContent = pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear() + '  ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  tick(); setInterval(tick, 1000);
+
+  /* ---- la barra delle proposte: pulsanti, tasti 1–4 e 0, la scelta nell'indirizzo (?fx=) */
+  var buttons = [].slice.call(document.querySelectorAll('.fx-pick [data-fx]'));
+  var note = document.getElementById('fx-note');
+  function set(name) {
+    body.setAttribute('data-fx', name);
+    buttons.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-fx') === name); });
+    note.textContent = NOTES[name];
+    var u = new URL(location.href); u.searchParams.set('fx', name);
+    history.replaceState(history.state, '', u);
+    iso.sync();
+  }
+  buttons.forEach(function (b) { b.addEventListener('click', function () { set(b.getAttribute('data-fx')); }); });
+  addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable]')) return;
+    var k = '12340'.indexOf(e.key);
+    if (k >= 0 && e.key.length === 1) set(FX[k]);
+  });
+  set(body.getAttribute('data-fx'));
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="vc.js?v=43"></script>
+</body>
+</html>
