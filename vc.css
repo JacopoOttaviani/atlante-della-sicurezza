@@ -506,9 +506,10 @@ section.block.band, section.block.band + section.block { border-top: 0; }
 .mapbox .city { cursor: pointer; }
 .mapbox .city .pin { fill: currentColor; fill-opacity: 0.6; stroke: currentColor; stroke-width: 1px; stroke-linejoin: round; transition: fill-opacity 0.12s ease, stroke-width 0.12s ease; }
 .mapbox .city .hit { fill: transparent; stroke: none; }
-.mapbox .city.spike .pin { stroke: var(--gold); stroke-width: 1.75px; }
+/* impennata: il bordo d'oro è dipinto sotto il riempimento pieno, così fuori dalla guglia resta un orlo d'oro netto e dentro il colore non si sporca */
+.mapbox .city.spike .pin { fill-opacity: 1; stroke: var(--gold); stroke-width: 4px; paint-order: stroke; }
 .mapbox .city:hover .pin, .mapbox .city.hot .pin { stroke: var(--ink); stroke-width: 1.5px; fill-opacity: 0.95; }
-.mapbox .city.spike:hover .pin, .mapbox .city.spike.hot .pin { stroke: var(--gold-ink); stroke-width: 2.25px; }
+.mapbox .city.spike:hover .pin, .mapbox .city.spike.hot .pin { stroke: var(--gold-ink); stroke-width: 5px; fill-opacity: 1; }
 .mapbox .lbl { fill: var(--ink); font-size: 11px; font-weight: 600; font-family: var(--font-display); letter-spacing: 0.01em; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
 .mapbox .sizekey path { fill: var(--ink-2); fill-opacity: 0.25; stroke: var(--ink-2); stroke-width: 1px; stroke-linejoin: round; }
 .mapbox .sizekey text { fill: var(--ink-2); font-size: 10px; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
@@ -519,7 +520,8 @@ section.block.band, section.block.band + section.block { border-top: 0; }
 .legend .lg-bar { width: 260px; max-width: 100%; height: 10px; border-radius: 2px; }
 .legend .lg-ticks { display: flex; justify-content: space-between; gap: 8px; width: 260px; max-width: 100%; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .legend .lg-row { display: flex; align-items: center; gap: 8px; }
-.legend .pin-k { flex: none; width: 14px; height: 20px; overflow: visible; fill: var(--mid); fill-opacity: 0.6; stroke: var(--gold); stroke-width: 2px; stroke-linejoin: round; }
+.legend .pin-k { flex: none; width: 14px; height: 20px; overflow: visible; fill: var(--mid); stroke: var(--gold); stroke-width: 4px; paint-order: stroke; stroke-linejoin: round; }
+.legend .pin-k.none { stroke: none; fill-opacity: 0.35; }
 
 .rank-cols { display: grid; grid-template-columns: 1fr; gap: 26px; }
 .rank h3 { font-size: var(--step-0); margin: 0 0 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }

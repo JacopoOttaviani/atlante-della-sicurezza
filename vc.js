@@ -786,11 +786,13 @@
     const pw = Math.max(5, Math.round(w / 80));
     const pin = (x, y, l, half) => `M${x - half},${y}L${x},${y - l}L${x + half},${y}Z`;
     const g = svg.append("g").attr("class", "cities");
-    // da nord a sud, così le guglie più a sud coprono quelle dietro
-    rows.sort((a, b) => a._xy[1] - b._xy[1]).forEach((d, k) => {
+    // da nord a sud, così le guglie più a sud coprono quelle dietro; le impennate per ultime, così l'orlo d'oro resta in vista
+    const isSpike = (d) => !!(d.an[LAST] && d.an[LAST].flag === "spike");
+    const nSpike = rows.filter(isSpike).length;
+    rows.sort((a, b) => (isSpike(a) - isSpike(b)) || (a._xy[1] - b._xy[1])).forEach((d, k) => {
       d._len = Math.max(2, len(d.lvl));
       const [x, y] = d._xy;
-      const spike = d.an[LAST] && d.an[LAST].flag === "spike";
+      const spike = isSpike(d);
       // data-c e non data-city: il clic lo gestisce la guglia, non il gestore globale della pagina
       const c = g.append("g").attr("class", spike ? "city spike" : "city").attr("data-c", d.c.id).style("color", divColor(d.cmp)).style("--i", k)
         .on("mouseenter", () => hotCity(d.c.id, true))
@@ -836,7 +838,8 @@
     });
 
     // Legenda in HTML: la scala dei colori com'è davvero (continua fino a ±60%, grigia se non significativa),
-    // il significato dell'altezza e il bordo d'oro.
+    // il significato dell'altezza e il bordo d'oro con il conto delle città che ce l'hanno: per alcuni reati
+    // (tutti i delitti, omicidi, usura) nessun capoluogo è in impennata, e la legenda lo dice invece di promettere un bordo che non c'è.
     const mid = css("--mid"), fall = d3.interpolateLab(mid, css("--fall")), rise = d3.interpolateLab(mid, css("--rise"));
     const bar = `linear-gradient(to right, ${fall(1)} 0%, ${fall(0.35)} 40%, ${mid} 40%, ${mid} 60%, ${rise(0.35)} 60%, ${rise(1)} 100%)`;
     $("#map-legend").innerHTML = `
@@ -847,7 +850,10 @@
       </div>
       <div class="lg">
         <div class="lg-t">Altezza · denunce ogni 100.000 abitanti, ${m.levelNote}</div>
-        <div class="lg-row"><svg class="pin-k" viewBox="0 0 14 20" aria-hidden="true"><path d="M2,19L7,1L12,19Z"/></svg>bordo d’oro: impennata nel ${Y[LAST]}</div>
+      </div>
+      <div class="lg">
+        <div class="lg-t">Bordo d’oro · impennata nel ${Y[LAST]}</div>
+        <div class="lg-row"><svg class="pin-k${nSpike ? "" : " none"}" viewBox="0 0 14 20" aria-hidden="true"><path d="M2,19L7,1L12,19Z"/></svg>${nSpike ? `${nSpike} capoluogh${nSpike === 1 ? "o" : "i"} su ${rows.length}` : "nessun capoluogo, per questo reato"}</div>
       </div>`;
     reveal(el.parentNode);
   }
@@ -879,7 +885,8 @@
     const top = m.ranked.slice(0, 10);
     const bottom = m.ranked.slice().sort((a, b) => a.lvl - b.lvl || b.c.pop[LAST] - a.c.pop[LAST]).slice(0, 10);
     const maxL = top[0] ? top[0].lvl : 1;
-    $("#map-dek").textContent = `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${m.base}.${GLOSS[m.t] ? ` ${m.label}: ${GLOSS[m.t]}.` : ""}`;
+    const nSpikeLast = m.rows.filter((d) => d.an[LAST] && d.an[LAST].flag === "spike").length;
+    $("#map-dek").textContent = `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${m.base}${nSpikeLast ? `, il bordo d’oro segna ${nSpikeLast === 1 ? "l’unica città" : `le ${nSpikeLast} città`} con un’impennata nel ${Y[LAST]}` : `; nessun capoluogo ha avuto un’impennata nel ${Y[LAST]} per questo reato`}.${GLOSS[m.t] ? ` ${m.label}: ${GLOSS[m.t]}.` : ""}`;
     $("#rank-top-title").textContent = `Più denunce · ${m.levelNote}`;
     $("#rank-bottom-title").textContent = `Meno denunce · ${m.levelNote}`;
     const li = (d, pos) => {
