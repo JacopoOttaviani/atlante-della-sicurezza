@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=42">
+<link rel="stylesheet" href="vc.css?v=43">
 </head>
 <body>
 <!-- vc:content -->
@@ -209,6 +209,11 @@
         <div class="kicker">Il quadro nazionale</div>
         <h2 id="mix-title">Cosa sale e cosa scende</h2>
         <p class="dek" id="mix-dek">I reati non calano tutti insieme. Tocca un reato per vederlo in tutte le città.</p>
+        <!-- il periodo del confronto: vale solo per questa sezione (vc.js scrive l'ultimo anno nei bottoni) -->
+        <div class="seg mix-period" id="mix-base-seg" role="group" aria-label="Periodo del confronto">
+          <button type="button" data-mbase="2014" aria-pressed="false">Tra il 2014 e il 2024</button>
+          <button type="button" data-mbase="2019" aria-pressed="true">Tra il 2019 e il 2024</button>
+        </div>
       </header>
       <div class="mix-key" aria-hidden="true">
         <span><i class="k-up"></i>in aumento</span>
@@ -492,6 +497,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=40"></script>
+<script src="vc.js?v=41"></script>
 </body>
 </html>

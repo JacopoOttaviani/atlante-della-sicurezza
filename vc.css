@@ -635,6 +635,9 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .hero-key .lead { font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.06em; }
 .hero-key .k-gold { width: 14px; height: 10px; background: var(--gold); border-radius: 2px; }
 
+/* i due periodi di «Cosa sale e cosa scende», sotto il sommario della sezione */
+.seg.mix-period { margin-top: 14px; }
+
 /* ---------------------------------------------------------------- domande frequenti */
 /* In fondo alla pagina: una riga per domanda, con un + che diventa − quando la risposta è aperta. */
 .faq { max-width: 860px; border-top: 1px solid var(--rule); }

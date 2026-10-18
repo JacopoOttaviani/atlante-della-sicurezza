@@ -76,10 +76,10 @@
 
   let Y, LAST, TYPES, TYPE, CITIES, ITALY, TOPO, META;
   // Ogni sezione ha il suo stato e cambia solo sé stessa: reato e anno di confronto della mappa, reato della griglia,
-  // reato e anno della scheda aperta. L'apertura, «In breve» e «Cosa sale e cosa scende» guardano sempre tutti i
-  // delitti confrontati con il 2019 (REF).
+  // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
+  // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null };
   let CARCERI = null;
   let RIMP = null, WORLD = null;
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
@@ -713,14 +713,14 @@
   // ------------------------------------------------------------------ quadro nazionale per reato
 
   function renderMix() {
-    const iB = Y.indexOf(REF);
+    const base = state.mixBase, iB = Y.indexOf(base);
     const items = TYPES.filter((t) => t.id !== "TOT").map((t) => {
       const it = ITALY.rate[t.id];
       return { t, it, ch: it[LAST] / it[iB] - 1 };
     }).sort((a, b) => b.ch - a.ch);
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
     const up = items.filter((d) => d.ch > 0.03).length, down = items.filter((d) => d.ch < -0.03).length;
-    $("#mix-dek").innerHTML = `Rispetto al ${REF}, in Italia <strong>${up} reati su ${items.length}</strong> sono in aumento e <strong>${down}</strong> in calo; tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
+    $("#mix-dek").innerHTML = `Tra il ${base} e il ${Y[LAST]}, in Italia <strong>${up} reati su ${items.length}</strong> sono aumentati e <strong>${down}</strong> sono calati; tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
     // scala comune con tetto fisso: la barra si ferma, il numero dice il valore vero
     const cap = Math.min(1.5, Math.max(0.3, Math.ceil(d3.max(items, (d) => Math.abs(d.ch)) * 10) / 10));
     const pos = (v) => 50 + 50 * Math.max(-1, Math.min(1, v / cap));
@@ -735,8 +735,8 @@
       b.innerHTML = `<span class="ml">${esc(d.t.label)}</span>` +
         `<span class="mbar" aria-hidden="true"><i class="z"></i><i class="b ${cls} rv-grow" style="left:${left}%;width:${width}%"></i><i class="ref rv-fade" style="left:${pos(totCh)}%"></i></span>` +
         `<span class="mv ${cls}">${fmtPct(d.ch)}</span><svg aria-hidden="true"></svg>`;
-      b.setAttribute("aria-label", `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${REF}. Mostralo sulla mappa`);
-      b.addEventListener("click", () => showOnMap(d.t.id));
+      b.setAttribute("aria-label", `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${base}. Mostralo sulla mappa`);
+      b.addEventListener("click", () => showOnMap(d.t.id, base));
       grid.appendChild(b);
     });
     const w = grid.querySelector(".mrow svg").getBoundingClientRect().width || 72;
@@ -1896,12 +1896,14 @@
     if (TYPE[t]) state.mapType = t;
     if (base) state.mapBase = base;
     $("#map-type").value = state.mapType;
+    $("#base-seg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", +x.dataset.base === state.mapBase));
     renderMap();
     renderRanking();
   }
-  // un reato toccato nell'apertura o in «Cosa sale e cosa scende»: lo si vede sulla mappa, e la pagina scende lì
-  function showOnMap(t) {
-    setMap(t);
+  // un reato toccato nell'apertura o in «Cosa sale e cosa scende»: lo si vede sulla mappa, e la pagina scende lì;
+  // da «Cosa sale e cosa scende» la mappa prende anche il periodo che si stava guardando
+  function showOnMap(t, base) {
+    setMap(t, base);
     document.getElementById("mappa").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
   function setCardType(t) {
@@ -2345,6 +2347,9 @@
     heroCarousel();
     $("#base-label").textContent = `Confronta il ${Y[LAST]} con il`;
     seg("#base-seg", "base", (v) => setMap(null, +v));
+    // «Cosa sale e cosa scende»: due periodi, solo per questa sezione
+    $("#mix-base-seg").querySelectorAll("button").forEach((b) => { b.textContent = `Tra il ${b.dataset.mbase} e il ${Y[LAST]}`; });
+    seg("#mix-base-seg", "mbase", (v) => { state.mixBase = +v; renderMix(); });
     seg("#spike-year-seg", "year", (v) => { state.spikeYear = +v; state.spikeShown = 12; renderSpikes(); });
     seg("#spike-sort-seg", "ssort", (v) => { state.spikeSort = v; state.spikeShown = 12; renderSpikes(); });
     seg("#sort-seg", "sort", (v) => { state.sort = v; renderGrid(); });
