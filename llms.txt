@@ -25,6 +25,17 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [I minorenni denunciati e arrestati](https://atlantedellasicurezza.it/approfondimenti/minori.html): Quanti minorenni sono denunciati o arrestati in Italia, per quali reati e quanto pesano tra tutte le persone denunciate, dal 2004 a oggi: dati ufficiali ISTAT su fonte del Ministero dell’Interno.
 - [Il progetto](https://atlantedellasicurezza.it/progetto/): perché esiste l’atlante, l’autore, le domande frequenti, metodologia e fonti.
 
+## In English
+
+- [Atlante della sicurezza: reported crime in Italy, city by city, 2006–2024](https://atlantedellasicurezza.it/en/): Atlante della sicurezza: how many crimes are really reported in Italian cities, and how that is changing. Official ISTAT data for 2006–2024 on the 108 provincial capitals, with rankings, a map and spikes.
+- [Deep dives](https://atlantedellasicurezza.it/en/approfondimenti/): The deep dives of the Atlante della sicurezza: foreign nationals in prison, orders to leave Italy and the returns carried out country by country, perceived risk alongside reported crimes, the crimes that remain without a known offender, and minors reported and arrested.
+- [Foreign nationals in Italian prisons](https://atlantedellasicurezza.it/en/approfondimenti/carceri.html): How many foreign nationals are in Italian prisons, which countries they come from, for which crimes and with what legal status, alongside their share of the resident population: official ISTAT data, sourced from the Ministry of Justice.
+- [Returns: how many are ordered, how many carried out](https://atlantedellasicurezza.it/en/approfondimenti/rimpatri.html): How many citizens of non-EU countries Italy orders to leave and how many it actually returns, country by country since 2008: Eurostat data, sourced from the Ministry of the Interior.
+- [How unsafe we feel, and how unsafe we are](https://atlantedellasicurezza.it/en/approfondimenti/percezione.html): Fear of crime alongside reported crimes: the national series since 2006, the big cities and the Italian provinces, with official ISTAT and EU-SILC data.
+- [How many crimes remain without a known offender](https://atlantedellasicurezza.it/en/approfondimenti/autori-ignoti.html): How many reported crimes have a known offender, crime by crime, in the big cities and province by province: official ISTAT data, sourced from the Ministry of the Interior.
+- [Minors reported and arrested](https://atlantedellasicurezza.it/en/approfondimenti/minori.html): How many minors are reported or arrested in Italy, for which crimes and what share they make up of all the people reported, from 2004 to today: official ISTAT data, sourced from the Ministry of the Interior.
+- [About](https://atlantedellasicurezza.it/en/progetto/): Why the Atlante della sicurezza exists, who made it, frequently asked questions and how to read its numbers: methodology and official sources, ISTAT and Eurostat.
+
 ## Le città
 
 - [Agrigento](https://atlantedellasicurezza.it/citta/agrigento.html): 3.824 delitti denunciati ogni 100.000 abitanti nel 2024, 88° su 108

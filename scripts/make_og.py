@@ -5,7 +5,8 @@ Serve la cartella del progetto su una porta libera (la scheda legge data/), apre
 Chrome headless a scala 2 e la riduce a 1200×630 con Pillow. WhatsApp scarta le anteprime pesanti,
 quindi la qualità JPEG scende finché il file non sta sotto il limite.
 
-Uso:  python3 scripts/make_og.py [--theme light|dark] [--out img/og-image.jpg] [--max-kb 250]
+Uso:  python3 scripts/make_og.py [--theme light|dark] [--lang it|en] [--out img/og-image.jpg] [--max-kb 250]
+      (--lang en scrive la scheda dell'edizione inglese, img/og-image-en.jpg)
 """
 import argparse
 import os
@@ -30,10 +31,12 @@ def free_port():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--theme", default="dark", choices=["light", "dark"])
-    ap.add_argument("--out", default=str(ROOT / "img" / "og-image.jpg"))
+    ap.add_argument("--lang", default="it", choices=["it", "en"])
+    ap.add_argument("--out")
     ap.add_argument("--max-kb", type=int, default=250)
     ap.add_argument("--keep-png", help="salva anche il PNG a scala 2 qui")
     a = ap.parse_args()
+    a.out = a.out or str(ROOT / "img" / ("og-image-en.jpg" if a.lang == "en" else "og-image.jpg"))
 
     from PIL import Image  # Pillow: pip install pillow
 
@@ -43,7 +46,7 @@ def main():
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     try:
-        url = f"http://127.0.0.1:{port}/scripts/og-card.html?theme={a.theme}"
+        url = f"http://127.0.0.1:{port}/scripts/og-card.html?theme={a.theme}&lang={a.lang}"
         for _ in range(50):  # aspetta che il server risponda
             try:
                 urllib.request.urlopen(f"http://127.0.0.1:{port}/data/vc.json", timeout=1).read(10)

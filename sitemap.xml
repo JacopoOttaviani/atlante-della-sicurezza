@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://atlantedellasicurezza.it/</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/"/>
     <lastmod>2026-10-18</lastmod>
     <priority>1.0</priority>
   </url>
@@ -12,36 +15,57 @@
   </url>
   <url>
     <loc>https://atlantedellasicurezza.it/approfondimenti/</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/"/>
     <lastmod>2026-10-18</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlantedellasicurezza.it/approfondimenti/carceri.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/carceri.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/carceri.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/carceri.html"/>
     <lastmod>2026-10-18</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlantedellasicurezza.it/approfondimenti/rimpatri.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/rimpatri.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/rimpatri.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/rimpatri.html"/>
     <lastmod>2026-10-18</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlantedellasicurezza.it/approfondimenti/percezione.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/percezione.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/percezione.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/percezione.html"/>
     <lastmod>2026-10-18</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlantedellasicurezza.it/approfondimenti/autori-ignoti.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/autori-ignoti.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/autori-ignoti.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/autori-ignoti.html"/>
     <lastmod>2026-10-18</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlantedellasicurezza.it/approfondimenti/minori.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/minori.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/minori.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/minori.html"/>
     <lastmod>2026-10-18</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlantedellasicurezza.it/progetto/</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/progetto/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/progetto/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/progetto/"/>
     <lastmod>2026-10-18</lastmod>
     <priority>0.5</priority>
   </url>
@@ -584,5 +608,69 @@
     <loc>https://atlantedellasicurezza.it/citta/viterbo.html</loc>
     <lastmod>2026-10-18</lastmod>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/approfondimenti/</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/approfondimenti/carceri.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/carceri.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/carceri.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/carceri.html"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/approfondimenti/rimpatri.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/rimpatri.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/rimpatri.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/rimpatri.html"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/approfondimenti/percezione.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/percezione.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/percezione.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/percezione.html"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/approfondimenti/autori-ignoti.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/autori-ignoti.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/autori-ignoti.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/autori-ignoti.html"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/approfondimenti/minori.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/minori.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/minori.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/minori.html"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/progetto/</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/progetto/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/progetto/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/progetto/"/>
+    <lastmod>2026-10-18</lastmod>
+    <priority>0.5</priority>
   </url>
 </urlset>

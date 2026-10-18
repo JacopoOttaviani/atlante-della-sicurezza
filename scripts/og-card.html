@@ -74,6 +74,13 @@ h1 em { font-style: italic; color: var(--gold-ink); }
 (async function () {
   const q = new URLSearchParams(location.search);
   if (q.get("theme") === "dark") document.documentElement.dataset.theme = "dark";
+  // ?lang=en: la scheda dell'edizione inglese (img/og-image-en.jpg)
+  if (q.get("lang") === "en") {
+    document.documentElement.lang = "en";
+    document.querySelector(".kicker").textContent = "Official ISTAT data, 2006–2024";
+    document.querySelector("h1").innerHTML = "Fewer crimes are reported in Italy than fifteen years ago. <em>But not everywhere, and not all of them.</em>";
+    document.querySelector(".sub").textContent = "City by city, crime by crime, year by year: rankings, map and spikes for the 108 provincial capitals, and a profile for every Italian municipality.";
+  }
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
   const [data, topo] = await Promise.all([

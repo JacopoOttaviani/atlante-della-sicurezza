@@ -1020,6 +1020,11 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .masthead.searching .control-search .combo, .masthead.searching .control-search input { width: 100%; }
 .masthead.searching .bar-find .i-find { display: none; }
 .masthead.searching .bar-find .i-close { display: block; }
+/* La lingua: EN sulle pagine italiane, IT su quelle in en/, accanto alla lente a ogni larghezza; porta alla stessa
+   pagina nell'altra lingua (vc.js ci aggiunge la scheda aperta, #roma). Con la ricerca aperta si fa da parte. */
+.bar-lang { flex: none; align-self: center; display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 7px; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); color: var(--ink); font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; line-height: 1; text-decoration: none; }
+.bar-lang:hover, .bar-lang:focus-visible { background: var(--land); }
+.masthead.searching .bar-lang { display: none; }
 @media (max-width: 560px) {
   :root { --step-3: 1.85rem; --step-2: 1.3rem; --section: 44px; --bar-h: 48px; }
   .hero { padding-block: 28px 24px; }
@@ -1035,6 +1040,7 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   .masthead.searching #section-select { display: none; }
   .bar-find { width: 36px; height: 36px; border-radius: 6px; }
   .bar-find svg { width: 18px; height: 18px; }
+  .bar-lang { min-width: 36px; height: 36px; border-radius: 6px; font-size: 12.5px; }
   .finder { padding-block: 24px 26px; }
   .cityd .top { padding: 12px 14px 10px; }
   .cityd .body { padding: 14px 14px 20px; }

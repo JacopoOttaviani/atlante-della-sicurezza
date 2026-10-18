@@ -168,6 +168,10 @@ MASTHEAD = grab(r'<header class="masthead">.*?</header>')
 if MASTHEAD.count('<a href="./" aria-current="page">') != 1:
     raise SystemExit("approfondimenti/index.html: la voce Approfondimenti del menu è cambiata")
 MASTHEAD = MASTHEAD.replace('<a href="./" aria-current="page">', '<a href="../approfondimenti/">')
+# le pagine delle città esistono solo in italiano: il tasto EN porta alla home inglese
+MASTHEAD, n_lang = re.subn(r'(<a class="bar-lang" href=")[^"]*(")', r"\1../en/\2", MASTHEAD)
+if n_lang != 1:
+    raise SystemExit("approfondimenti/index.html: non trovo il tasto della lingua (bar-lang)")
 FOOTER = grab(r'<footer class="colophon">.*?</footer>')
 DIALOG = grab(r'<dialog class="cityd".*?</dialog>')
 TIP = grab(r'<div class="tip"[^>]*></div>')
@@ -573,6 +577,17 @@ def lastmod(rel):
     return date.today().isoformat() if dirty or not last else last
 
 
+def en_pages():
+    """Le pagine in inglese (en/), con la gemella italiana: (indirizzo inglese, file, indirizzo italiano)."""
+    out = []
+    for loc, f in [("", "index.html"), ("approfondimenti/", "approfondimenti/index.html")] + [(f, f) for f, _, _ in deep_pages()] + [
+        ("progetto/", "progetto/index.html"),
+    ]:
+        if (ROOT / "en" / f).exists():
+            out.append(("en/" + loc, "en/" + f, loc))
+    return out
+
+
 def sitemap():
     pages = [
         ("", "index.html", "1.0"),
@@ -581,11 +596,27 @@ def sitemap():
     ] + [(f, f, "0.7") for f, _, _ in deep_pages()] + [
         ("progetto/", "progetto/index.html", "0.5"),
     ] + [("citta/" + page_name(c), "citta/" + page_name(c), "0.6") for c in sorted(CITIES, key=lambda c: c["name"])]
+    # le pagine che esistono in due lingue portano entrambe le versioni (hreflang), come nelle loro <head>
+    twin = {}
+    for en_loc, en_f, it_loc in en_pages():
+        twin[it_loc] = twin[en_loc] = (it_loc, en_loc)
+    prio = {loc: p for loc, _, p in pages}
+    pages += [(en_loc, en_f, prio.get(it_loc, "0.5")) for en_loc, en_f, it_loc in en_pages()]
+
+    def alt(loc):
+        if loc not in twin:
+            return ""
+        it, en = twin[loc]
+        return (f'    <xhtml:link rel="alternate" hreflang="it" href="{SITE}{it}"/>\n'
+                f'    <xhtml:link rel="alternate" hreflang="en" href="{SITE}{en}"/>\n'
+                f'    <xhtml:link rel="alternate" hreflang="x-default" href="{SITE}{it}"/>\n')
+
     urls = "".join(
-        f"  <url>\n    <loc>{SITE}{loc}</loc>\n    <lastmod>{lastmod(f)}</lastmod>\n    <priority>{p}</priority>\n  </url>\n"
+        f"  <url>\n    <loc>{SITE}{loc}</loc>\n{alt(loc)}    <lastmod>{lastmod(f)}</lastmod>\n    <priority>{p}</priority>\n  </url>\n"
         for loc, f, p in pages
     )
-    return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
+    return (f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+            f'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n{urls}</urlset>\n')
 
 
 # ------------------------------------------------------------------ llms.txt
@@ -639,6 +670,14 @@ def llms():
         pass
 
     deep = "\n".join(f"- [{t}]({SITE}{f}): {d}" for f, t, d in deep_pages())
+    # l'edizione inglese: titolo e descrizione presi da ogni pagina in en/
+    en = []
+    for loc, f, _ in en_pages():
+        s = (ROOT / f).read_text(encoding="utf-8")
+        title = re.search(r"<title>(.*?)</title>", s).group(1).replace(" · Atlante della sicurezza", "")
+        desc = re.search(r'<meta name="description" content="([^"]*)"', s).group(1)
+        en.append(f"- [{html.unescape(title)}]({SITE}{loc}): {html.unescape(desc)}")
+    en = "\n".join(en) or "- (none yet)"
     cities = "\n".join(
         f"- [{c['name']}]({SITE}citta/{page_name(c)}): {nf0(rate(c, 'TOT', L))} delitti denunciati ogni 100.000 abitanti nel {LAST}, {RANK[c['id']]}° su {N_CITIES}"
         for c in sorted(CITIES, key=lambda c: c["name"])
@@ -661,6 +700,10 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [Approfondimenti]({SITE}approfondimenti/): i temi che le denunce da sole non chiariscono.
 {deep}
 - [Il progetto]({SITE}progetto/): perché esiste l’atlante, l’autore, le domande frequenti, metodologia e fonti.
+
+## In English
+
+{en}
 
 ## Le città
 
@@ -705,9 +748,18 @@ def main():
     for f in out.glob("*.html"):
         if f.name not in keep:  # una città che non c'è più
             f.unlink()
+    # le pagine in inglese (en/) caricano gli stessi vc.css e vc.js: prendono gli stessi ?v= degli approfondimenti
+    vers = dict(re.findall(r'(vc\.(?:css|js))\?v=(\d+)', SRC))
+    n_en = 0
+    for f in sorted((ROOT / "en").rglob("*.html")):
+        s = f.read_text(encoding="utf-8")
+        t = re.sub(r'(vc\.(css|js))\?v=\d+', lambda m: f"{m.group(1)}?v={vers[m.group(1)]}", s)
+        if t != s:
+            f.write_text(t, encoding="utf-8")
+        n_en += 1
     (ROOT / "sitemap.xml").write_text(sitemap(), encoding="utf-8")
     (ROOT / "llms.txt").write_text(llms(), encoding="utf-8")
-    print(f"citta/: {len(CITIES)} pagine e la classifica; sitemap.xml; llms.txt")
+    print(f"citta/: {len(CITIES)} pagine e la classifica; en/: ?v= su {n_en} pagine; sitemap.xml; llms.txt")
 
 
 if __name__ == "__main__":

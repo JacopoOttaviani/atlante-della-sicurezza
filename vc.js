@@ -5,11 +5,28 @@
   "use strict";
 
   const $ = (s, el = document) => el.querySelector(s);
-  const nf0 = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 0, useGrouping: "always" });
-  const nf1 = new Intl.NumberFormat("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: "always" });
-  const nf2 = new Intl.NumberFormat("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // La lingua della pagina: le pagine in en/ hanno <html lang="en"> e caricano questo stesso file.
+  // L(it, en) sceglie il testo; i numeri si scrivono all'inglese (1,234.5) e le etichette dei dati si traducono qui sotto.
+  const EN = /^en\b/i.test(document.documentElement.lang);
+  const L = (it, en) => (EN ? en : it);
+  const LOCALE = EN ? "en-GB" : "it-IT";
+  const nf0 = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0, useGrouping: "always" });
+  const nf1 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: "always" });
+  const nf2 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const COVID = new Set([2020, 2021]);
   const AREAS = ["Nord-ovest", "Nord-est", "Centro", "Sud", "Isole"];
+  // nei dati le aree restano in italiano (servono da chiave): areaName() le scrive nella lingua della pagina
+  const AREA_EN = { "Nord-ovest": "North-west", "Nord-est": "North-east", Centro: "Centre", Sud: "South", Isole: "Islands" };
+  const areaName = (a) => (EN ? AREA_EN[a] || a : a);
+  // i nomi dei reati in inglese, per id: start() li mette al posto di quelli di data/vc.json sulle pagine in en/
+  const TYPE_EN = {
+    TOT: "All crimes", THEFT: "Thefts (all)", BURGTHEF: "Home burglaries", PICKTHEF: "Pickpocketing", BAGTHEF: "Bag snatching",
+    SHOPTHEF: "Shoplifting", CARTHEF: "Car thefts", VEHITHEF: "Thefts from parked cars", ROBBER: "Robberies (all)",
+    STREETROB: "Street robberies", HOUSEROB: "Home robberies", SHOPROB: "Shop robberies", INTENHOM: "Intentional homicides",
+    ATTEMPHOM: "Attempted homicides", CULPINJU: "Assaults causing injury", BLOWS: "Assaults without injury", MENACE: "Threats",
+    RAPE: "Sexual violence", SWINCYB: "Fraud and online fraud", CYBERCRIM: "Cybercrime", EXTORT: "Extortion",
+    USURY: "Loan sharking", RECEIV: "Handling stolen goods", DAMAGE: "Criminal damage", DRUG: "Drug offences",
+  };
   // sottotipi: quando città e anno coincidono, l'impennata del sottotipo vale più di quella della voce madre
   const PARENT = { BURGTHEF: "THEFT", PICKTHEF: "THEFT", BAGTHEF: "THEFT", SHOPTHEF: "THEFT", CARTHEF: "THEFT", VEHITHEF: "THEFT", STREETROB: "ROBBER", HOUSEROB: "ROBBER", SHOPROB: "ROBBER" };
   // Icone dei reati, monocromatiche, dal set Lucide 1.49.0 (licenza ISC, lucide.dev): solo le forme, colore dal testo.
@@ -68,6 +85,32 @@
     DAMAGE: "distruggere o rovinare cose di altri, per esempio beni pubblici",
     DRUG: "produzione, spaccio e traffico di droga; i numeri dipendono molto da quanti controlli fanno le forze dell’ordine",
   };
+  if (EN) Object.assign(GLOSS, {
+    THEFT: "taking something that belongs to someone else, without violence against people",
+    BURGTHEF: "thefts inside a home, even when nobody is in",
+    PICKTHEF: "thefts from a pocket or a bag, without the victim noticing",
+    BAGTHEF: "snatching a bag, a necklace or a phone out of someone’s hand or off their body",
+    SHOPTHEF: "goods taken from a shop without paying",
+    CARTHEF: "theft of the whole car",
+    VEHITHEF: "theft of things left in a parked car, or of its parts",
+    ROBBER: "taking something from someone with violence or threats",
+    STREETROB: "robberies in the street or in other public places",
+    HOUSEROB: "robberies inside a home, with people present",
+    SHOPROB: "robberies in shops, bars and other businesses",
+    INTENHOM: "killing a person on purpose",
+    ATTEMPHOM: "trying to kill a person, without succeeding",
+    CULPINJU: "deliberately hurting a person, causing an injury or an illness",
+    BLOWS: "hitting a person without causing an injury",
+    MENACE: "threatening someone with unjust harm",
+    RAPE: "sexual acts imposed through violence, threats or abuse of authority; among the least reported crimes",
+    SWINCYB: "getting money or goods through deception: in person, on the phone or online",
+    CYBERCRIM: "breaking into computers, phones or accounts without permission, damaging them or spying on their communications",
+    EXTORT: "forcing someone to pay or hand something over through violence or threats, including protection money (pizzo)",
+    USURY: "lending money at illegally high interest",
+    RECEIV: "buying, receiving or hiding money or goods of illegal origin, stolen goods for example",
+    DAMAGE: "destroying or damaging other people’s property, public property for example",
+    DRUG: "producing, dealing and trafficking drugs; the numbers depend heavily on how many checks the police carry out",
+  });
   // città dove ogni giorno arrivano molti pendolari e turisti: il tasso sui residenti le fa sembrare più a rischio di quanto siano
   const TOURIST = ["Milano", "Firenze", "Bologna", "Rimini", "Venezia", "Roma", "Torino"];
   const TOURIST_GROUPS = ["Totale", "Furti", "Rapine"];
@@ -76,6 +119,8 @@
   // Gli approfondimenti stanno una cartella più in basso e usano questo stesso file: i dati si cercano accanto a vc.js,
   // non accanto alla pagina. Ogni pagina ha solo alcune sezioni, e has() dice se una c'è.
   const ROOT = (() => { try { return new URL(".", document.currentScript.src).href; } catch (e) { return ""; } })();
+  // le pagine nella lingua del lettore: i link a una pagina del sito si scrivono su PAGES, i dati si leggono da ROOT
+  const PAGES = ROOT + (EN ? "en/" : "");
   const has = (id) => !!document.getElementById(id);
 
   let Y, LAST, TYPES, TYPE, CITIES, ITALY, TOPO, META;
@@ -181,7 +226,7 @@
       itLvl: rare ? d3.mean(it.slice(LAST - 2)) : it[LAST],
       max: d3.max(rows, (r) => d3.max(r.s)),
       label: TYPE[t].label,
-      levelNote: rare ? "media 2022–2024" : "2024",
+      levelNote: rare ? L("media 2022–2024", "2022–2024 average") : "2024",
     };
     cache.set(key, m);
     return m;
@@ -196,9 +241,11 @@
   function chgHTML(cmp) {
     const s = sig(cmp) || "nd";
     const ndText = cmp && cmp.pct != null
-      ? `${cmp.win ? "Reato raro: " + cmp.win + ", " : ""}variazione calcolata sui tassi ufficiali, senza test statistico`
-      : "Variazione non calcolabile: nessun caso o nessun dato nell’anno di confronto";
-    const title = s === "flat" ? ' title="Variazione non significativa"' : s === "nd" ? ` title="${ndText}"` : "";
+      ? (EN
+        ? `${cmp.win ? "Rare crime: " + cmp.win + ", " : ""}change calculated from the official rates, without a statistical test`
+        : `${cmp.win ? "Reato raro: " + cmp.win + ", " : ""}variazione calcolata sui tassi ufficiali, senza test statistico`)
+      : L("Variazione non calcolabile: nessun caso o nessun dato nell’anno di confronto", "Change cannot be calculated: no cases or no data in the comparison year");
+    const title = s === "flat" ? L(' title="Variazione non significativa"', ' title="Change not significant"') : s === "nd" ? ` title="${ndText}"` : "";
     return `<span class="chg ${s}"${title}>${fmtPct(cmp && cmp.pct)}</span>`;
   }
   function divColor(cmp) {
@@ -515,7 +562,7 @@
     el.innerHTML = groups.map((g) => {
       const n = Math.round(g.v);
       const cells = d3.range(100).map((i) => `<rect class="rv-pop${i < n ? " on" : ""}" style="--i:${i}" x="${(i % 10) * 10 + 0.75}" y="${Math.floor(i / 10) * 10 + 0.75}" width="8.5" height="8.5" rx="1.5"/>`).join("");
-      return `<figure class="waffle"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(g.aria)}">${cells}</svg><figcaption><span class="wv">${nf1.format(g.v)}<small> ${g.unit || "stranieri"}</small></span><span class="wl">${g.label}</span></figcaption></figure>`;
+      return `<figure class="waffle"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(g.aria)}">${cells}</svg><figcaption><span class="wv">${nf1.format(g.v)}<small> ${g.unit || L("stranieri", "foreign nationals")}</small></span><span class="wl">${g.label}</span></figcaption></figure>`;
     }).join("");
     reveal(el, el.querySelectorAll(".waffle"));
   }
@@ -527,7 +574,13 @@
     const iPeak = d3.maxIndex(tot);
     const i19 = Y.indexOf(2019);
     const hom = ITALY.n.INTENHOM, fr = ITALY.n.SWINCYB;
-    const rows = [
+    const rows = EN ? [
+      [nf0.format(tot[LAST]), `crimes reported per 100,000 residents in Italy in ${Y[LAST]}: about ${nf0.format(Math.round(tot[LAST] / 1000))} for every 100 people in a year`],
+      [fmtPct(tot[LAST] / tot[iPeak] - 1), `compared with ${Y[iPeak]}, the year with the most reports per resident`],
+      [fmtPct(tot[LAST] / tot[i19] - 1), `compared with 2019: after the collapse of 2020, reports have risen again`],
+      [fmtPct(hom[LAST] / hom[0] - 1), `intentional homicides since ${Y[0]}: from ${nf0.format(hom[0])} to ${nf0.format(hom[LAST])} a year`],
+      [fmtPct(fr[LAST] / fr[0] - 1), `fraud and online fraud since ${Y[0]}: from ${nf0.format(Math.round(fr[0] / 1000) * 1000)} to ${nf0.format(Math.round(fr[LAST] / 1000) * 1000)} reports`],
+    ] : [
       [nf0.format(tot[LAST]), `delitti denunciati ogni 100.000 abitanti in Italia nel ${Y[LAST]}: circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno`],
       [fmtPct(tot[LAST] / tot[iPeak] - 1), `rispetto al ${Y[iPeak]}, l’anno con più denunce per abitante`],
       [fmtPct(tot[LAST] / tot[i19] - 1), `rispetto al 2019: dopo il crollo del 2020 le denunce sono tornate a salire`],
@@ -545,22 +598,30 @@
   const shortLabel = (t) => lower(t.label.replace(/ \(.*\)$/, ""));
   // numeri che si leggono con la vocale davanti (uno, otto, undici, ottanta…): "dell’8%", "l’11%", "all’83° posto"
   const vowelNum = (n) => n === 1 || n === 11 || /^8/.test(String(n));
-  const delPct = (p) => { const n = Math.round(Math.abs(p) * 100); return `${vowelNum(n) ? "dell’" : "del "}${nf0.format(n)}%`; };
-  const moved = (p, m, f) => (Math.round(p * 100) === 0 ? "rimasti uguali" : `${p > 0 ? m : f} ${delPct(p)}`);
+  const delPct = (p) => { const n = Math.round(Math.abs(p) * 100); return EN ? `by ${nf0.format(n)}%` : `${vowelNum(n) ? "dell’" : "del "}${nf0.format(n)}%`; };
+  const moved = (p, m, f) => (Math.round(p * 100) === 0 ? L("rimasti uguali", "stayed the same") : `${p > 0 ? m : f} ${delPct(p)}`);
+  // in inglese: 1st, 2nd, 3rd, 4th… 11th, 12th, 13th
+  const ordinal = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
 
   function renderBrief() {
     const host = $("#brief");
     if (!host) return;
     const tot = ITALY.rate.TOT, iB = Y.indexOf(REF), tm = model("TOT");
     const cards = [];
-    const card = (q, a, href, go) => cards.push(`<details class="faq-q rv-up"><summary><h3>${q}</h3></summary><div class="faq-a"><p>${a}</p><a class="go" href="${ROOT + href}">${go} <span aria-hidden="true">→</span></a></div></details>`);
+    const card = (q, a, href, go) => cards.push(`<details class="faq-q rv-up"><summary><h3>${q}</h3></summary><div class="faq-a"><p>${a}</p><a class="go" href="${PAGES + href}">${go} <span aria-hidden="true">→</span></a></div></details>`);
 
     // cosa sale e cosa scende, in Italia
     const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 })).filter((d) => isFinite(d.ch));
     const ups = ch.filter((d) => d.ch > 0.03).sort((a, b) => b.ch - a.ch).slice(0, 3);
     const downs = ch.filter((d) => d.ch < -0.03).sort((a, b) => a.ch - b.ch).slice(0, 3);
     const list = (l) => andList(l.map((d) => `${esc(shortLabel(d.t))} (${fmtPct(d.ch)})`));
-    card("Quali reati aumentano, e quali calano?",
+    if (EN) card("Which crimes are rising, and which are falling?",
+      `Between ${REF} and ${Y[LAST]}, crimes reported in Italy, taken together, have ${moved(tot[LAST] / tot[iB] - 1, "risen", "fallen")}. ` +
+      (ups.length ? `The biggest rises were in reports of ${list(ups)}. ` : "") +
+      (downs.length ? `The biggest falls were in reports of ${list(downs)}. ` : "") +
+      `More reports do not always mean more crime: sometimes they mean that victims are reporting more${ups.some((d) => d.t.id === "RAPE") ? ", as can happen with sexual violence" : ""}.`,
+      "#mix", `All ${TYPES.length - 1} crimes`);
+    else card("Quali reati aumentano, e quali calano?",
       `Dal ${REF} al ${Y[LAST]} i delitti denunciati in Italia, tutti insieme, sono ${moved(tot[LAST] / tot[iB] - 1, "aumentati", "diminuiti")}. ` +
       (ups.length ? `Sono cresciute soprattutto le denunce per ${list(ups)}. ` : "") +
       (downs.length ? `Sono calate quelle per ${list(downs)}. ` : "") +
@@ -571,7 +632,12 @@
     const top = tm.ranked.slice(0, 3);
     if (top.length) {
       const tour = top.some((r) => TOURIST.includes(r.c.name));
-      card("Le città in cima alle classifiche sono le più pericolose?",
+      if (EN) card("Are the cities at the top of the rankings the most dangerous?",
+        `Not necessarily. ${esc(andList(top.map((r) => r.c.name)))} have the most reports per resident: ${nf0.format(top[0].lvl)} per 100,000 in ${esc(top[0].c.name)}, ${nf0.format(tot[LAST])} in Italy as a whole. ` +
+        (tour ? "But commuters, students and tourists arrive there every day: the crimes they suffer, or commit, are counted there, while they themselves are not counted among the residents. " : "") +
+        "The rate tells you how much is reported in a city, not how much risk the people who live there face.",
+        "#mappa", `The ranking of the ${CITIES.length} provincial capitals`);
+      else card("Le città in cima alle classifiche sono le più pericolose?",
         `Non per forza. ${esc(andList(top.map((r) => r.c.name)))} hanno più denunce per abitante: ${nf0.format(top[0].lvl)} ogni 100.000 ${/^[Aa]/.test(top[0].c.name) ? "ad" : "a"} ${esc(top[0].c.name)}, ${nf0.format(tot[LAST])} in Italia. ` +
         (tour ? "Ma ogni giorno vi arrivano pendolari, studenti e turisti: i reati che subiscono, o commettono, si contano lì, mentre loro non sono contati tra i residenti. " : "") +
         "Il tasso dice quanto si denuncia in una città, non quanto rischia chi ci abita.",
@@ -586,7 +652,12 @@
       const pts = CITIES.filter((c) => c.perc && c.perc["2024"] != null);
       const most = pts.length ? pts.reduce((p, q) => (q.perc["2024"] > p.perc["2024"] ? q : p)) : null;
       const mr = most && tm.rows.find((r) => r.c.id === most.id);
-      card("Ci sentiamo in pericolo quanto lo siamo?",
+      if (EN) card("Do we feel as unsafe as we really are?",
+        `No: fear moves much more than crime does. Between ${ya} and ${yb} the share of households reporting crime or vandalism in their area fell from ${nf1.format(ITALY.silc[ya])}% to ${nf1.format(ITALY.silc[yb])}%, while reported crimes per resident ${moved(crime, "rose", "fell")}. ` +
+        (ylast > yb ? `In ${ylast} the share rose again to ${nf1.format(ITALY.silc[ylast])}%${Math.abs(after) < 0.05 ? ", with reports almost flat" : ""}. ` : "") +
+        (mr && mr.rank ? `${esc(most.name)} is the large city where the most households feel their area is at risk of crime (${nf1.format(most.perc["2024"])}%), but for reported crimes it ranks ${ordinal(mr.rank)} of ${tm.ranked.length}.` : ""),
+        "approfondimenti/percezione.html", "Perception and reality, the deep dive");
+      else card("Ci sentiamo in pericolo quanto lo siamo?",
         `No: la paura si muove molto più dei reati. Tra il ${ya} e il ${yb} le famiglie che segnalano criminalità o vandalismo nella propria zona sono scese dal ${nf1.format(ITALY.silc[ya])}% al ${nf1.format(ITALY.silc[yb])}%, mentre i delitti denunciati per abitante sono ${moved(crime, "cresciuti", "calati")}. ` +
         (ylast > yb ? `Nel ${ylast} la quota è risalita al ${nf1.format(ITALY.silc[ylast])}%${Math.abs(after) < 0.05 ? ", con le denunce quasi ferme" : ""}. ` : "") +
         (mr && mr.rank ? `${esc(most.name)} è la grande città dove più famiglie sentono a rischio la propria zona (${nf1.format(most.perc["2024"])}%), ma per denunce è ${vowelNum(mr.rank) ? "all’" : "al "}${mr.rank}° posto su ${tm.ranked.length}.` : ""),
@@ -599,7 +670,12 @@
       const share = (i) => (100 * C.serie.str[i]) / C.serie.tot[i];
       const ra = (C.residenti && C.residenti.anni) || {}, rk = [last, last - 1].find((y) => ra[String(y)]), res = rk ? ra[String(rk)] : null;
       const nonDef = (p) => (p.AWFJ + p.APP + p.REC + p.MWOD) / Object.values(p).reduce((a, b) => a + b, 0);
-      card("Gli stranieri commettono più reati degli italiani?",
+      if (EN) card("Do foreign nationals commit more crimes than Italians?",
+        `These figures are not enough to tell. At the end of ${last} foreign nationals made up ${nf1.format(share(L))}% of prisoners (${nf1.format(share(0))}% in ${Yc[0]})${res ? ` and ${nf1.format(res.quota)}% of residents` : ""}. ` +
+        "But the comparison is lopsided: prisoners also include people without a residence permit, who do not appear among residents; foreign nationals are younger on average, and young adults end up in prison more often in every country; " +
+        `and without a home or a steady job, people are more often kept in a cell awaiting trial: ${nf1.format(nonDef(C.posizione.str) * 100)}% of foreign prisoners have no final conviction, against ${nf1.format(nonDef(C.posizione.it) * 100)}% of Italians.`,
+        "approfondimenti/carceri.html", "Foreign nationals in prison, the deep dive");
+      else card("Gli stranieri commettono più reati degli italiani?",
         `Questi dati non bastano per dirlo. A fine ${last} gli stranieri erano il ${nf1.format(share(L))}% dei detenuti (nel ${Yc[0]} il ${nf1.format(share(0))}%)${res ? ` e il ${nf1.format(res.quota)}% dei residenti` : ""}. ` +
         "Ma il confronto è sbilanciato: tra i detenuti ci sono anche persone senza permesso di soggiorno, che tra i residenti non compaiono; gli stranieri sono in media più giovani, e i giovani adulti finiscono in carcere più spesso in ogni paese; " +
         `senza casa o lavoro stabile, poi, si resta più spesso in cella in attesa di giudizio: è senza condanna definitiva il ${nf1.format(nonDef(C.posizione.str) * 100)}% dei detenuti stranieri, contro il ${nf1.format(nonDef(C.posizione.it) * 100)}% degli italiani.`,
@@ -609,14 +685,22 @@
     // rimpatri
     if (RIMP) {
       const D = RIMP, L = D.meta.years.length - 1, R = D.totale.rimpatri[L], O = D.totale.ordini[L];
-      card("Quante persone vengono davvero rimpatriate?",
+      if (EN) card("How many people are actually returned?",
+        `About ${Math.round((100 * R) / O)} in every 100 of those ordered to leave. In ${D.meta.last} Italy ordered ${nf0.format(O)} citizens of non-EU countries to leave its territory, and returned ${nf0.format(R)}. ` +
+        "Orders and returns in the same year do not always concern the same people; the gap depends, among other things, on agreements with individual countries and on the places available in detention centres.",
+        "approfondimenti/rimpatri.html", "Orders and returns, country by country");
+      else card("Quante persone vengono davvero rimpatriate?",
         `Circa ${Math.round((100 * R) / O)} ogni 100 di quelle a cui viene ordinato di andarsene. Nel ${D.meta.last} l’Italia ha ordinato a ${nf0.format(O)} cittadini di paesi fuori dall’Unione europea di lasciare il territorio, e ne ha rimpatriati ${nf0.format(R)}. ` +
         "Ordini e rimpatri dello stesso anno non riguardano sempre le stesse persone; sul divario pesano, tra l’altro, gli accordi con i singoli paesi e i posti nei centri di trattenimento.",
         "approfondimenti/rimpatri.html", "Ordini e rimpatri paese per paese");
     }
 
     // che cosa contano i numeri
-    card("Questi numeri contano tutti i reati?",
+    if (EN) card("Do these numbers count every crime?",
+      "No, only those reported to the police. Many crimes are never reported, and how often people report varies from crime to crime: a car theft almost always, for the insurance; violence in the family far less often. " +
+      `To compare large and small cities, reports are counted per 100,000 residents: Italy’s ${nf0.format(tot[LAST])} in ${Y[LAST]} come to about ${nf0.format(Math.round(tot[LAST] / 1000))} for every 100 people in a year.`,
+      "progetto/#metodo", "How to read these numbers");
+    else card("Questi numeri contano tutti i reati?",
       "No, solo quelli denunciati alle forze di polizia. Molti reati non vengono mai denunciati, e quanto si denuncia cambia da reato a reato: un furto d’auto quasi sempre, per l’assicurazione; una violenza in famiglia molto meno. " +
       `Per confrontare città grandi e piccole si contano le denunce ogni 100.000 abitanti: i ${nf0.format(tot[LAST])} dell’Italia nel ${Y[LAST]} sono circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno.`,
       "progetto/#metodo", "Come leggere questi numeri");
@@ -638,24 +722,34 @@
     if (CARCERI) {
       const C = CARCERI, L = C.meta.years.length - 1, last = C.meta.last, ra = (C.residenti && C.residenti.anni) || {};
       const rk = [last, last - 1].find((y) => ra[String(y)]);
-      fill("carceri", `${nf1.format((100 * C.serie.str[L]) / C.serie.tot[L])}%`, `dei detenuti a fine ${last} è straniero${rk ? `; tra i residenti, il ${nf1.format(ra[String(rk)].quota)}%` : ""}`);
+      fill("carceri", `${nf1.format((100 * C.serie.str[L]) / C.serie.tot[L])}%`, EN
+        ? `of prisoners at the end of ${last} were foreign nationals${rk ? `; among residents, ${nf1.format(ra[String(rk)].quota)}%` : ""}`
+        : `dei detenuti a fine ${last} è straniero${rk ? `; tra i residenti, il ${nf1.format(ra[String(rk)].quota)}%` : ""}`);
     }
     if (RIMP) {
       const D = RIMP, L = D.meta.years.length - 1, R = D.totale.rimpatri[L], O = D.totale.ordini[L];
-      fill("rimpatri", `${nf0.format(Math.round((100 * R) / O))} su 100`, `ordini di lasciare l’Italia diventati rimpatri nel ${D.meta.last}: ${nf0.format(R)} su ${nf0.format(O)}`);
+      fill("rimpatri", EN ? `${nf0.format(Math.round((100 * R) / O))} in 100` : `${nf0.format(Math.round((100 * R) / O))} su 100`, EN
+        ? `orders to leave Italy that became returns in ${D.meta.last}: ${nf0.format(R)} of ${nf0.format(O)}`
+        : `ordini di lasciare l’Italia diventati rimpatri nel ${D.meta.last}: ${nf0.format(R)} su ${nf0.format(O)}`);
     }
     if (ITALY && ITALY.silc) {
       const sy = Object.keys(ITALY.silc).map(Number).filter((y) => Y.includes(y)), sv = sy.map((y) => ITALY.silc[y]), tot = ITALY.rate.TOT;
       const a = sy[d3.maxIndex(sv)], b = sy[d3.minIndex(sv)];
-      if (a < b) fill("percezione", fmtPct(ITALY.silc[b] / ITALY.silc[a] - 1), `famiglie che segnalano criminalità nella propria zona, dal ${a} al ${b}; i delitti denunciati per abitante, nello stesso periodo: ${fmtPct(tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1)}`);
+      if (a < b) fill("percezione", fmtPct(ITALY.silc[b] / ITALY.silc[a] - 1), EN
+        ? `households reporting crime in their area, from ${a} to ${b}; reported crimes per resident over the same period: ${fmtPct(tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1)}`
+        : `famiglie che segnalano criminalità nella propria zona, dal ${a} al ${b}; i delitti denunciati per abitante, nello stesso periodo: ${fmtPct(tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1)}`);
     }
     if (AUTORI) {
       const A = AUTORI, L = A.meta.years.length - 1, t = A.italia.TOT[L], f = A.italia.THEFT[L];
-      fill("autori", `${nf0.format(Math.round(100 - t))} su 100`, `delitti denunciati nel ${A.meta.last} rimasti senza un autore noto entro l’anno; tra i furti, ${nf0.format(Math.round(100 - f))} su 100`);
+      fill("autori", EN ? `${nf0.format(Math.round(100 - t))} in 100` : `${nf0.format(Math.round(100 - t))} su 100`, EN
+        ? `crimes reported in ${A.meta.last} still without a known offender by the end of the year; among thefts, ${nf0.format(Math.round(100 - f))} in 100`
+        : `delitti denunciati nel ${A.meta.last} rimasti senza un autore noto entro l’anno; tra i furti, ${nf0.format(Math.round(100 - f))} su 100`);
     }
     if (MINORI) {
       const M = MINORI, Ym = M.meta.years, L = Ym.length - 1, i0 = Ym.indexOf(M.meta.share_from);
-      fill("minori", `${nf1.format(minShare("STREETROB", L))}%`, `delle segnalazioni per rapina in strada nel ${M.meta.last} riguarda un minorenne; nel ${M.meta.share_from}, ${pctA("il", minShare("STREETROB", i0))}`);
+      fill("minori", `${nf1.format(minShare("STREETROB", L))}%`, EN
+        ? `of records of people reported or arrested for street robbery in ${M.meta.last} concern a minor; in ${M.meta.share_from}, ${nf1.format(minShare("STREETROB", i0))}%`
+        : `delle segnalazioni per rapina in strada nel ${M.meta.last} riguarda un minorenne; nel ${M.meta.share_from}, ${pctA("il", minShare("STREETROB", i0))}`);
     }
   }
 
@@ -664,8 +758,12 @@
     const it = m.it;
     const iB = Y.indexOf(REF);
     const ch = it[LAST] / it[iB] - 1;
-    $("#national-title").textContent = `${m.label}: ${fmtRate(it[LAST])} nel ${Y[LAST]}, ${fmtPct(ch)} rispetto al ${REF}`;
-    $("#national-sub").textContent = `${m.label === "Tutti i delitti" ? "Delitti denunciati" : "Denunce"} ogni 100.000 abitanti, Italia`;
+    $("#national-title").textContent = EN
+      ? `${m.label}: ${fmtRate(it[LAST])} in ${Y[LAST]}, ${fmtPct(ch)} compared with ${REF}`
+      : `${m.label}: ${fmtRate(it[LAST])} nel ${Y[LAST]}, ${fmtPct(ch)} rispetto al ${REF}`;
+    $("#national-sub").textContent = EN
+      ? `${m.t === "TOT" ? "Reported crimes" : "Reports"} per 100,000 residents, Italy`
+      : `${m.t === "TOT" ? "Delitti denunciati" : "Denunce"} ogni 100.000 abitanti, Italia`;
     const el = $("#national-chart");
     // il riquadro è alto quanto la colonna dei numeri: il grafico prende tutto lo spazio che gli resta
     const h = Math.min(560, Math.max(240, Math.round(el.getBoundingClientRect().height)));
@@ -676,7 +774,9 @@
         { year: REF, text: fmtRate(it[iB]), hollow: true, dy: REF >= Y[LAST] - 2 ? 20 : -10 },
         { year: Y[LAST], text: fmtRate(it[LAST]), strong: true, anchor: "end", dx: 0, dy: -12 },
       ],
-      hover: (i) => `<b>${Y[i]}</b>: ${fmtRate(it[i])} ogni 100.000 ab.<br>${nf0.format(ITALY.n.TOT[i])} denunce`,
+      hover: (i) => (EN
+        ? `<b>${Y[i]}</b>: ${fmtRate(it[i])} per 100,000 res.<br>${nf0.format(ITALY.n.TOT[i])} reported crimes`
+        : `<b>${Y[i]}</b>: ${fmtRate(it[i])} ogni 100.000 ab.<br>${nf0.format(ITALY.n.TOT[i])} denunce`),
     });
   }
 
@@ -692,9 +792,15 @@
     const rows = m.rows.filter((r) => r.lvl != null);
     const up = rows.filter((r) => sig(r.cmp) === "up"), down = rows.filter((r) => sig(r.cmp) === "down");
     const flat = rows.length - up.length - down.length;
+    if (EN) {
+      $("#cities-kicker").textContent = `Not everywhere · ${rows.length} provincial capitals`;
+      $("#cities-title").textContent = `${m.label}: since ${REF}, reports have risen in ${up.length} ${up.length === 1 ? "city" : "cities"} and fallen in ${down.length}`;
+      $("#cities-sub").textContent = `Each spire is a provincial capital, as tall as its reports per resident (${m.levelNote}); red if they have risen since ${REF}, blue if they have fallen; spikes in gold`;
+    } else {
     $("#cities-kicker").textContent = `Non ovunque · ${rows.length} capoluoghi`;
     $("#cities-title").textContent = `${m.label}: dal ${REF} le denunce salgono in ${up.length} città e calano in ${down.length}`;
     $("#cities-sub").textContent = `Ogni guglia un capoluogo, alta quanto le denunce per abitante (${m.levelNote}); rossa se dal ${REF} salgono, blu se calano; in oro le impennate`;
+    }
     const r0 = el.getBoundingClientRect();
     const w = Math.max(260, Math.round(r0.width)), h = Math.min(560, Math.max(240, Math.round(r0.height)));
     el.innerHTML = "";
@@ -713,7 +819,9 @@
     const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[4, 4 + sky], [mw - 4, h - 4]], land);
     const path = d3.geoPath(proj);
     const svg = d3.select(mapEl).append("svg").attr("viewBox", `0 0 ${mw} ${h}`).attr("role", "img")
-      .attr("aria-label", `Mappa dei capoluoghi: ${m.label}, denunce per abitante e variazione rispetto al ${REF}`);
+      .attr("aria-label", EN
+        ? `Map of provincial capitals: ${m.label}, reports per resident and change compared with ${REF}`
+        : `Mappa dei capoluoghi: ${m.label}, denunce per abitante e variazione rispetto al ${REF}`);
     const sameReg = (a, b) => a.properties.reg_istat_code === b.properties.reg_istat_code;
     const base = svg.append("g").attr("class", "base rv-fade");
     base.append("path").attr("class", "land").attr("d", path(land));
@@ -749,8 +857,11 @@
         `<span class="v ${sig(r.cmp)}${r.an[LAST] && r.an[LAST].flag === "spike" ? " spike" : ""}">${fmtPct(r.cmp.pct)}</span></li>`;
       const topUp = up.slice().sort((a, b) => b.cmp.pct - a.cmp.pct).slice(0, 3);
       const topDown = down.slice().sort((a, b) => a.cmp.pct - b.cmp.pct).slice(0, 3);
-      list.innerHTML =
-        (topUp.length ? `<h4>Salgono di più dal ${REF}</h4><ul>${topUp.map(li).join("")}</ul>` : "") +
+      list.innerHTML = EN
+        ? (topUp.length ? `<h4>Biggest rises since ${REF}</h4><ul>${topUp.map(li).join("")}</ul>` : "") +
+          (topDown.length ? `<h4>Biggest falls</h4><ul>${topDown.map(li).join("")}</ul>` : "") +
+          `<p class="tot">${up.length} ${up.length === 1 ? "city" : "cities"} rising, ${down.length} falling, ${flat} with differences too small to tell</p>`
+        : (topUp.length ? `<h4>Salgono di più dal ${REF}</h4><ul>${topUp.map(li).join("")}</ul>` : "") +
         (topDown.length ? `<h4>Calano di più</h4><ul>${topDown.map(li).join("")}</ul>` : "") +
         `<p class="tot">${up.length} città in aumento, ${down.length} in calo, ${flat} con differenze troppo piccole per dirlo</p>`;
       el.appendChild(list);
@@ -775,9 +886,15 @@
     const rows = items.slice(0, 5).concat(items.slice(-5));
     const short = (t) => t.label.replace(/ \(.*\)$/, "");
     const first = items[0], last = items[items.length - 1];
+    if (EN) {
+      $("#types-kicker").textContent = `Not all · ${items.length} crimes`;
+      $("#types-title").textContent = `${short(first.t)} ${fmtPct(first.ch)}, ${lower(short(last.t))} ${fmtPct(last.ch)}: crimes do not move together`;
+      $("#types-sub").textContent = `Change in reports per 100,000 residents in Italy, ${Y[LAST]} compared with ${REF}`;
+    } else {
     $("#types-kicker").textContent = `Non tutti · ${items.length} reati`;
     $("#types-title").textContent = `${short(first.t)} ${fmtPct(first.ch)}, ${lower(short(last.t))} ${fmtPct(last.ch)}: i reati non si muovono insieme`;
     $("#types-sub").textContent = `Variazione delle denunce ogni 100.000 abitanti in Italia, ${Y[LAST]} rispetto al ${REF}`;
+    }
     const r0 = el.getBoundingClientRect();
     const w = Math.max(260, Math.round(r0.width)), h = Math.min(560, Math.max(240, Math.round(r0.height)));
     const small = w < 420;
@@ -787,10 +904,12 @@
     const zero = Math.round(w * 0.5), half = Math.min(zero - 46, w - zero - 46);
     const x = d3.scaleLinear([-cap, cap], [zero - half, zero + half]);
     const svg = d3.select(el).classed("types", true).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("role", "img")
-      .attr("aria-label", `Variazione delle denunce per reato in Italia, ${Y[LAST]} rispetto al ${REF}`);
+      .attr("aria-label", EN
+        ? `Change in reports by crime in Italy, ${Y[LAST]} compared with ${REF}`
+        : `Variazione delle denunce per reato in Italia, ${Y[LAST]} rispetto al ${REF}`);
     svg.selectAll("*").remove();
     svg.append("line").attr("class", "ref").attr("x1", x(totCh)).attr("x2", x(totCh)).attr("y1", m.t - 4).attr("y2", h - m.b);
-    svg.append("text").attr("class", "lbl halo").attr("x", x(totCh) + 4).attr("y", m.t - 10).text(`tutti i delitti ${fmtPct(totCh)}`);
+    svg.append("text").attr("class", "lbl halo").attr("x", x(totCh) + 4).attr("y", m.t - 10).text(EN ? `all crimes ${fmtPct(totCh)}` : `tutti i delitti ${fmtPct(totCh)}`);
     svg.append("line").attr("class", "zero").attr("x1", zero).attr("x2", zero).attr("y1", m.t - 4).attr("y2", h - m.b);
     rows.forEach((d, k) => {
       const cy = m.t + rowH * (k + 0.5), bh = Math.min(18, rowH * 0.62), up = d.ch >= 0;
@@ -804,7 +923,9 @@
       g.append("text").attr("class", "val rv-fade").attr("x", up ? x1 + 5 : x0 - 5).attr("y", cy + 4)
         .attr("text-anchor", up ? "start" : "end").style("fill", color).style("font-size", small ? "11px" : null).text(fmtPct(d.ch));
       g.append("rect").attr("x", 0).attr("y", cy - rowH / 2).attr("width", w).attr("height", rowH).style("fill", "transparent").style("cursor", "pointer")
-        .on("mousemove", (ev) => showTip(`<b>${esc(d.t.label)}</b><br>${fmtRate(d.lvl)} denunce ogni 100.000 ab. nel ${Y[LAST]}<br>${fmtPct(d.ch)} rispetto al ${REF}<br><span class="small">Clic: questo reato sulla mappa delle città</span>`, ev))
+        .on("mousemove", (ev) => showTip(EN
+          ? `<b>${esc(d.t.label)}</b><br>${fmtRate(d.lvl)} reports per 100,000 res. in ${Y[LAST]}<br>${fmtPct(d.ch)} compared with ${REF}<br><span class="small">Click: this crime on the city map</span>`
+          : `<b>${esc(d.t.label)}</b><br>${fmtRate(d.lvl)} denunce ogni 100.000 ab. nel ${Y[LAST]}<br>${fmtPct(d.ch)} rispetto al ${REF}<br><span class="small">Clic: questo reato sulla mappa delle città</span>`, ev))
         .on("mouseleave", hideTip)
         .on("click", () => { hideTip(); showOnMap(d.t.id); });
     });
@@ -878,7 +999,9 @@
     }).sort((a, b) => b.ch - a.ch);
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
     const up = items.filter((d) => d.ch > 0.03).length, down = items.filter((d) => d.ch < -0.03).length;
-    $("#mix-dek").innerHTML = `Tra il ${base} e il ${Y[LAST]}, in Italia <strong>${up} reati su ${items.length}</strong> sono aumentati e <strong>${down}</strong> sono calati; tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
+    $("#mix-dek").innerHTML = EN
+      ? `Between ${base} and ${Y[LAST]}, <strong>${up} of ${items.length} crimes</strong> rose in Italy and <strong>${down}</strong> fell; all crimes combined, ${fmtPct(totCh)}. Crimes do not move together: tap a crime to see it on the map of provincial capitals.`
+      : `Tra il ${base} e il ${Y[LAST]}, in Italia <strong>${up} reati su ${items.length}</strong> sono aumentati e <strong>${down}</strong> sono calati; tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
     // scala comune con tetto fisso: la barra si ferma, il numero dice il valore vero
     const cap = Math.min(1.5, Math.max(0.3, Math.ceil(d3.max(items, (d) => Math.abs(d.ch)) * 10) / 10));
     const pos = (v) => 50 + 50 * Math.max(-1, Math.min(1, v / cap));
@@ -893,7 +1016,9 @@
       b.innerHTML = `<span class="ml">${esc(d.t.label)}</span>` +
         `<span class="mbar" aria-hidden="true"><i class="z"></i><i class="b ${cls} rv-grow" style="left:${left}%;width:${width}%"></i><i class="ref rv-fade" style="left:${pos(totCh)}%"></i></span>` +
         `<span class="mv ${cls}">${fmtPct(d.ch)}</span><svg aria-hidden="true"></svg>`;
-      b.setAttribute("aria-label", `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${base}. Mostralo sulla mappa`);
+      b.setAttribute("aria-label", EN
+        ? `${d.t.label}: ${fmtRate(d.it[LAST])} per 100,000 residents in ${Y[LAST]}, ${fmtPct(d.ch)} compared with ${base}. Show it on the map`
+        : `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${base}. Mostralo sulla mappa`);
       b.addEventListener("click", () => showOnMap(d.t.id, base));
       grid.appendChild(b);
     });
@@ -902,7 +1027,7 @@
       const d = items[k];
       drawSpark(b.querySelector("svg"), {
         w, h: 32, pad: { t: 4, r: 3, b: 3, l: 1 }, values: d.it, yMax: d3.max(d.it) * 1.08,
-        hover: (i) => `<b>${esc(d.t.label)}</b><br>${Y[i]}: ${fmtRate(d.it[i])} ogni 100.000 ab.`,
+        hover: (i) => `<b>${esc(d.t.label)}</b><br>${Y[i]}: ${fmtRate(d.it[i])} ${L("ogni 100.000 ab.", "per 100,000 res.")}`,
       });
     });
     reveal(grid, grid.querySelectorAll(".mrow"));
@@ -925,7 +1050,7 @@
     const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[6, 6 + sky], [w - 6, h - 6]], land);
     const path = d3.geoPath(proj);
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", `Mappa dei capoluoghi: ${m.label}`);
+      .attr("role", "img").attr("aria-label", EN ? `Map of provincial capitals: ${m.label}` : `Mappa dei capoluoghi: ${m.label}`);
     svg.selectAll("*").remove();
 
     const sameReg = (a, b) => a.properties.reg_istat_code === b.properties.reg_istat_code;
@@ -1000,7 +1125,19 @@
     // (tutti i delitti, omicidi, usura) nessun capoluogo è in impennata, e la legenda lo dice invece di promettere un bordo che non c'è.
     const mid = css("--mid"), fall = d3.interpolateLab(mid, css("--fall")), rise = d3.interpolateLab(mid, css("--rise"));
     const bar = `linear-gradient(to right, ${fall(1)} 0%, ${fall(0.35)} 40%, ${mid} 40%, ${mid} 60%, ${rise(0.35)} 60%, ${rise(1)} 100%)`;
-    $("#map-legend").innerHTML = `
+    $("#map-legend").innerHTML = EN ? `
+      <div class="lg">
+        <div class="lg-t">Colour · change from ${m.base} to ${Y[LAST]}</div>
+        <div class="lg-bar" style="background:${bar}"></div>
+        <div class="lg-ticks"><span>−60% or more</span><span>not significant</span><span>+60% or more</span></div>
+      </div>
+      <div class="lg">
+        <div class="lg-t">Height · reports per 100,000 residents, ${m.levelNote}</div>
+      </div>
+      <div class="lg">
+        <div class="lg-t">Gold edge · spike in ${Y[LAST]}</div>
+        <div class="lg-row"><svg class="pin-k${nSpike ? "" : " none"}" viewBox="0 0 14 20" aria-hidden="true"><path d="M2,19L7,1L12,19Z"/></svg>${nSpike ? `${nSpike} of ${rows.length} provincial capitals` : "no provincial capital, for this crime"}</div>
+      </div>` : `
       <div class="lg">
         <div class="lg-t">Colore · variazione ${Y[LAST]} su ${m.base}</div>
         <div class="lg-bar" style="background:${bar}"></div>
@@ -1030,10 +1167,14 @@
   }
 
   function cityTip(d, m) {
-    const sp = d.an[LAST] && d.an[LAST].flag === "spike" ? `<br>Impennata nel ${Y[LAST]}: ${fmtPct(d.an[LAST].rr - 1)} sulla media precedente` : "";
+    const sp = d.an[LAST] && d.an[LAST].flag === "spike"
+      ? (EN ? `<br>Spike in ${Y[LAST]}: ${fmtPct(d.an[LAST].rr - 1)} on the previous average` : `<br>Impennata nel ${Y[LAST]}: ${fmtPct(d.an[LAST].rr - 1)} sulla media precedente`)
+      : "";
     const s = sig(d.cmp);
-    const note = s === "flat" ? " (non significativa)" : "";
-    return `<b>${esc(d.c.name)}</b> · ${esc(d.c.region)}<br>${esc(m.label)}: ${fmtRate(d.lvl)} ogni 100.000 ab. (${m.levelNote})<br>${d.rank}° su ${m.ranked.length} · rispetto al ${m.base}: ${fmtPct(d.cmp && d.cmp.pct)}${note}${sp}`;
+    const note = s === "flat" ? L(" (non significativa)", " (not significant)") : "";
+    return EN
+      ? `<b>${esc(d.c.name)}</b> · ${esc(d.c.region)}<br>${esc(m.label)}: ${fmtRate(d.lvl)} per 100,000 res. (${m.levelNote})<br>${ordinal(d.rank)} of ${m.ranked.length} · compared with ${m.base}: ${fmtPct(d.cmp && d.cmp.pct)}${note}${sp}`
+      : `<b>${esc(d.c.name)}</b> · ${esc(d.c.region)}<br>${esc(m.label)}: ${fmtRate(d.lvl)} ogni 100.000 ab. (${m.levelNote})<br>${d.rank}° su ${m.ranked.length} · rispetto al ${m.base}: ${fmtPct(d.cmp && d.cmp.pct)}${note}${sp}`;
   }
 
   // ------------------------------------------------------------------ classifica
@@ -1044,12 +1185,14 @@
     const bottom = m.ranked.slice().sort((a, b) => a.lvl - b.lvl || b.c.pop[LAST] - a.c.pop[LAST]).slice(0, 10);
     const maxL = top[0] ? top[0].lvl : 1;
     const nSpikeLast = m.rows.filter((d) => d.an[LAST] && d.an[LAST].flag === "spike").length;
-    $("#map-dek").textContent = `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${m.base}${nSpikeLast ? `, il bordo d’oro segna ${nSpikeLast === 1 ? "l’unica città" : `le ${nSpikeLast} città`} con un’impennata nel ${Y[LAST]}` : `; nessun capoluogo ha avuto un’impennata nel ${Y[LAST]} per questo reato`}.${GLOSS[m.t] ? ` ${m.label}: ${GLOSS[m.t]}.` : ""}`;
-    $("#rank-top-title").textContent = `Più denunce · ${m.levelNote}`;
-    $("#rank-bottom-title").textContent = `Meno denunce · ${m.levelNote}`;
+    $("#map-dek").textContent = EN
+      ? `These are the cities that rankings call “most dangerous” and “safest”. Here we count reports of ${lower(m.label)} per 100,000 residents (${m.levelNote}): a figure that runs higher where commuters and tourists arrive every day. On the map, the height of the spire shows how much is reported, and the colour whether reports have risen or fallen compared with ${m.base}${nSpikeLast ? `; the gold edge marks ${nSpikeLast === 1 ? "the only city" : `the ${nSpikeLast} cities`} with a spike in ${Y[LAST]}` : `; no provincial capital had a spike in ${Y[LAST]} for this crime`}.${GLOSS[m.t] ? ` ${m.label}: ${GLOSS[m.t]}.` : ""}`
+      : `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${m.base}${nSpikeLast ? `, il bordo d’oro segna ${nSpikeLast === 1 ? "l’unica città" : `le ${nSpikeLast} città`} con un’impennata nel ${Y[LAST]}` : `; nessun capoluogo ha avuto un’impennata nel ${Y[LAST]} per questo reato`}.${GLOSS[m.t] ? ` ${m.label}: ${GLOSS[m.t]}.` : ""}`;
+    $("#rank-top-title").textContent = `${L("Più denunce", "Most reports")} · ${m.levelNote}`;
+    $("#rank-bottom-title").textContent = `${L("Meno denunce", "Fewest reports")} · ${m.levelNote}`;
     const li = (d, pos) => {
-      const few = d.nl < (m.rare ? 10 : 20) ? ` <span class="few">${nf0.format(d.nl)} casi</span>` : "";
-      return `<li data-c="${d.c.id}"><span class="pos">${pos}</span><span class="dotc ${sig(d.cmp)}" title="Rispetto al ${m.base}: ${fmtPct(d.cmp && d.cmp.pct)}"></span><button type="button" data-city="${d.c.id}" title="${esc(d.c.name)}">${esc(d.c.name)}</button>` +
+      const few = d.nl < (m.rare ? 10 : 20) ? ` <span class="few">${nf0.format(d.nl)} ${EN ? (d.nl === 1 ? "case" : "cases") : "casi"}</span>` : "";
+      return `<li data-c="${d.c.id}"><span class="pos">${pos}</span><span class="dotc ${sig(d.cmp)}" title="${L("Rispetto al", "Compared with")} ${m.base}: ${fmtPct(d.cmp && d.cmp.pct)}"></span><button type="button" data-city="${d.c.id}" title="${esc(d.c.name)}">${esc(d.c.name)}</button>` +
         `<span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * d.lvl) / maxL}%"></i><b class="rv-fade" style="left:${Math.min(100, (100 * m.itLvl) / maxL)}%"></b></span>` +
         `<span class="val">${fmtRate(d.lvl)}${few}</span></li>`;
     };
@@ -1058,16 +1201,22 @@
     reveal($(".rank-cols"), document.querySelectorAll(".rank-cols li"));
     const zeros = m.ranked.filter((d) => d.lvl === 0).length;
     const topTourist = top.filter((d) => TOURIST.includes(d.c.name)).map((d) => d.c.name);
-    let note = `La linea sottile su ogni barra è la media italiana: ${fmtRate(m.itLvl)}. `;
-    if (topTourist.length && TOURIST_GROUPS.includes(TYPE[m.t].group) && !TOURIST_NOT.includes(m.t)) note += `${topTourist.slice(0, 3).join(", ")} ${topTourist.length > 1 ? "sono" : "è"} in alto anche perché ogni giorno ${topTourist.length > 1 ? "accolgono" : "accoglie"} pendolari e turisti che non entrano nel conto dei residenti. `;
-    if (zeros) note += `${zeros} capoluoghi non hanno avuto nessun caso ${m.rare ? "tra il 2022 e il 2024" : "nel 2024"}, a pari merito in fondo alla classifica. `;
-    if (m.rare) note += "Con pochi casi l’anno, una sola differenza sposta molto il tasso: per questo usiamo la media di tre anni.";
+    let note = EN ? `The thin line on each bar is the Italian average: ${fmtRate(m.itLvl)}. ` : `La linea sottile su ogni barra è la media italiana: ${fmtRate(m.itLvl)}. `;
+    if (topTourist.length && TOURIST_GROUPS.includes(TYPE[m.t].group) && !TOURIST_NOT.includes(m.t)) note += EN
+      ? `${andList(topTourist.slice(0, 3))} ${topTourist.length > 1 ? "rank" : "ranks"} high partly because every day ${topTourist.length > 1 ? "they take" : "it takes"} in commuters and tourists who are not counted among residents. `
+      : `${topTourist.slice(0, 3).join(", ")} ${topTourist.length > 1 ? "sono" : "è"} in alto anche perché ogni giorno ${topTourist.length > 1 ? "accolgono" : "accoglie"} pendolari e turisti che non entrano nel conto dei residenti. `;
+    if (zeros) note += EN
+      ? `${zeros} provincial ${zeros === 1 ? "capital" : "capitals"} had no cases ${m.rare ? "between 2022 and 2024" : "in 2024"}, ${zeros === 1 ? "at" : "tied at"} the bottom of the ranking. `
+      : `${zeros} capoluoghi non hanno avuto nessun caso ${m.rare ? "tra il 2022 e il 2024" : "nel 2024"}, a pari merito in fondo alla classifica. `;
+    if (m.rare) note += L("Con pochi casi l’anno, una sola differenza sposta molto il tasso: per questo usiamo la media di tre anni.", "With few cases a year, a single case more or less moves the rate a lot: that is why we use a three-year average.");
     $("#rank-note").textContent = note;
 
     const iB = m.base;
     const rowsHTML = m.ranked.map((d) => `<tr><td class="num">${d.rank}</td><td><a href="#${slug(d.c.name)}" data-city="${d.c.id}">${esc(d.c.name)}</a></td><td>${esc(d.c.region)}</td>` +
       `<td class="num">${fmtRate(d.lvl)}</td><td class="num">${nf0.format(d.nl)}</td><td class="num">${chgHTML(d.cmp)}</td><td class="num">${d.spikes.length || ""}</td></tr>`).join("");
-    $("#rank-table").innerHTML = `<thead><tr><th class="num">#</th><th>Città</th><th>Regione</th><th class="num">Ogni 100.000 ab. (${m.levelNote})</th><th class="num">Casi (${m.levelNote})</th><th class="num">Var. su ${iB}</th><th class="num">Impennate dal 2008</th></tr></thead><tbody>${rowsHTML}</tbody>`;
+    $("#rank-table").innerHTML = EN
+      ? `<thead><tr><th class="num">#</th><th>City</th><th>Region</th><th class="num">Per 100,000 res. (${m.levelNote})</th><th class="num">Cases (${m.levelNote})</th><th class="num">Change since ${iB}</th><th class="num">Spikes since 2008</th></tr></thead><tbody>${rowsHTML}</tbody>`
+      : `<thead><tr><th class="num">#</th><th>Città</th><th>Regione</th><th class="num">Ogni 100.000 ab. (${m.levelNote})</th><th class="num">Casi (${m.levelNote})</th><th class="num">Var. su ${iB}</th><th class="num">Impennate dal 2008</th></tr></thead><tbody>${rowsHTML}</tbody>`;
   }
 
   // ------------------------------------------------------------------ impennate
@@ -1099,12 +1248,14 @@
   }
 
   function cardHTML(d, kind) {
-    const yrs = d.a.baseYears.join(", ").replace(/, (\d+)$/, " e $1");
+    const yrs = d.a.baseYears.join(", ").replace(/, (\d+)$/, L(" e $1", " and $1"));
     return `<button type="button" class="card ${kind} rv-up" data-city="${d.r.c.id}" data-type="${d.t.id}">
       <span class="what">${esc(d.t.label)}</span>
       <span class="city">${esc(d.r.c.name)}</span>
       <span class="row"><span class="big">${fmtPct(d.a.rr - 1)}</span><span class="small">${esc(d.r.c.region)}</span></span>
-      <span class="why">${nf0.format(d.a.n)} casi nel ${d.a.y} (${d.a.n >= d.a.avg ? "+" : "−"}${nf0.format(Math.abs(Math.round(d.a.n - d.a.avg)))}), contro una media di ${nf0.format(Math.round(d.a.avg))} nel ${yrs}.</span>
+      <span class="why">${EN
+        ? `${nf0.format(d.a.n)} ${d.a.n === 1 ? "case" : "cases"} in ${d.a.y} (${d.a.n >= d.a.avg ? "+" : "−"}${nf0.format(Math.abs(Math.round(d.a.n - d.a.avg)))}), compared with an average of ${nf0.format(Math.round(d.a.avg))} in ${yrs}.`
+        : `${nf0.format(d.a.n)} casi nel ${d.a.y} (${d.a.n >= d.a.avg ? "+" : "−"}${nf0.format(Math.abs(Math.round(d.a.n - d.a.avg)))}), contro una media di ${nf0.format(Math.round(d.a.avg))} nel ${yrs}.`}</span>
       <svg aria-hidden="true"></svg></button>`;
   }
 
@@ -1112,9 +1263,11 @@
     computeSpikes();
     const shown = spikeList.slice(0, state.spikeShown);
     const nCities = new Set(spikeList.map((d) => d.r.c.id)).size;
-    $("#spike-count").textContent = `${spikeList.length} impennate in ${nCities} città · ${fallList.length} cali netti`;
+    $("#spike-count").textContent = EN
+      ? `${spikeList.length} ${spikeList.length === 1 ? "spike" : "spikes"} in ${nCities} ${nCities === 1 ? "city" : "cities"} · ${fallList.length} sharp ${fallList.length === 1 ? "fall" : "falls"}`
+      : `${spikeList.length} impennate in ${nCities} città · ${fallList.length} cali netti`;
     const wrap = $("#spike-cards");
-    wrap.innerHTML = shown.map((d) => cardHTML(d, "spike")).join("") || `<p class="note">Nessuna impennata nel ${state.spikeYear}.</p>`;
+    wrap.innerHTML = shown.map((d) => cardHTML(d, "spike")).join("") || (EN ? `<p class="note">No spikes in ${state.spikeYear}.</p>` : `<p class="note">Nessuna impennata nel ${state.spikeYear}.</p>`);
     $("#spike-more").hidden = spikeList.length <= state.spikeShown;
     const falls = fallList.slice(0, 6);
     $("#fall-cards").innerHTML = falls.map((d) => cardHTML(d, "fall")).join("");
@@ -1126,7 +1279,9 @@
         const d = list[k];
         const vals = d.r.s;
         const an = d.r.an.map((a) => (a && a.y === d.a.y ? a : null));
-        drawSpark(s, { w, h: 44, values: vals, yMax: d3.max(vals) * 1.1, an, hover: (i) => `${esc(d.r.c.name)} · ${esc(d.t.label)}<br><b>${Y[i]}</b>: ${nf0.format(d.r.c.n[d.t.id][i] ?? 0)} casi, ${fmtRate(vals[i])} ogni 100.000 ab.` });
+        drawSpark(s, { w, h: 44, values: vals, yMax: d3.max(vals) * 1.1, an, hover: (i) => (EN
+          ? `${esc(d.r.c.name)} · ${esc(d.t.label)}<br><b>${Y[i]}</b>: ${nf0.format(d.r.c.n[d.t.id][i] ?? 0)} ${(d.r.c.n[d.t.id][i] ?? 0) === 1 ? "case" : "cases"}, ${fmtRate(vals[i])} per 100,000 res.`
+          : `${esc(d.r.c.name)} · ${esc(d.t.label)}<br><b>${Y[i]}</b>: ${nf0.format(d.r.c.n[d.t.id][i] ?? 0)} casi, ${fmtRate(vals[i])} ogni 100.000 ab.`) });
       });
     });
     reveal(wrap, wrap.querySelectorAll(".card"));
@@ -1149,7 +1304,9 @@
   function renderGrid() {
     const m = model(state.gridType);
     const nSp = m.rows.filter((r) => r.spikes.length).length;
-    $("#grid-dek").textContent = `${m.label}, ogni 100.000 abitanti, dal 2006 al 2024. I punti d’oro sono le impennate: ${nSp} capoluoghi ne hanno avuta almeno una dal 2008. Con la scala uguale per tutte si confrontano i livelli; con la scala propria si vede meglio la forma di ogni curva.`;
+    $("#grid-dek").textContent = EN
+      ? `${m.label}, per 100,000 residents, 2006 to 2024. The gold dots are spikes: ${nSp} ${nSp === 1 ? "provincial capital has" : "provincial capitals have"} had at least one since 2008. With the same scale for all, you can compare levels; with each city’s own scale, the shape of each curve is easier to see.`
+      : `${m.label}, ogni 100.000 abitanti, dal 2006 al 2024. I punti d’oro sono le impennate: ${nSp} capoluoghi ne hanno avuta almeno una dal 2008. Con la scala uguale per tutte si confrontano i livelli; con la scala propria si vede meglio la forma di ogni curva.`;
     const host = $("#sm");
     host.innerHTML = "";
     const groups = state.sort === "area"
@@ -1159,7 +1316,7 @@
     groups.forEach((gp) => {
       const g = document.createElement("div");
       g.className = "sm-group";
-      if (gp.title) g.innerHTML = `<h3>${gp.title}</h3>`;
+      if (gp.title) g.innerHTML = `<h3>${areaName(gp.title)}</h3>`;
       const grid = document.createElement("div");
       grid.className = "sm-grid";
       gp.rows.forEach((r) => {
@@ -1168,8 +1325,10 @@
         const hot = r.an[LAST] && r.an[LAST].flag === "spike";
         b.className = "sm" + (hot ? " hot" : "");
         b.dataset.city = r.c.id;
-        b.setAttribute("aria-label", `${r.c.name}: ${fmtRate(r.lvl)} ogni 100.000 abitanti, ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${m.base}. Apri la scheda.`);
-        const badge = r.spikes.length ? `<span class="badge" title="Impennate dal 2008">${r.spikes.length}</span>` : "";
+        b.setAttribute("aria-label", EN
+          ? `${r.c.name}: ${fmtRate(r.lvl)} per 100,000 residents, ${fmtPct(r.cmp && r.cmp.pct)} compared with ${m.base}. Open the profile.`
+          : `${r.c.name}: ${fmtRate(r.lvl)} ogni 100.000 abitanti, ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${m.base}. Apri la scheda.`);
+        const badge = r.spikes.length ? `<span class="badge" title="${L("Impennate dal 2008", "Spikes since 2008")}">${r.spikes.length}</span>` : "";
         b.innerHTML = `<span class="h"><span class="n">${esc(r.c.name)}</span><span class="small">${fmtRate(r.lvl)}</span></span><svg aria-hidden="true"></svg><span class="x"><span>${esc(r.c.region)}</span><span>${badge} ${chgHTML(r.cmp)}</span></span>`;
         grid.appendChild(b);
         panels.push([b, r]);
@@ -1185,8 +1344,10 @@
         w, h: 64, values: r.s, italy: m.it, yMax, an: r.an,
         hover: (i) => {
           const a = r.an[i];
-          const flag = a && a.flag === "spike" ? `<br>Impennata: ${fmtPct(a.rr - 1)} sulla media precedente` : a && a.flag === "fall" ? `<br>Calo netto: ${fmtPct(a.rr - 1)}` : "";
-          return `<b>${esc(r.c.name)}</b> · ${Y[i]}<br>${fmtRate(r.s[i])} ogni 100.000 ab. (Italia ${fmtRate(m.it[i])})<br>${nf0.format(r.c.n[m.t][i])} casi${flag}`;
+          const flag = a && a.flag === "spike" ? (EN ? `<br>Spike: ${fmtPct(a.rr - 1)} on the previous average` : `<br>Impennata: ${fmtPct(a.rr - 1)} sulla media precedente`) : a && a.flag === "fall" ? `<br>${L("Calo netto", "Sharp fall")}: ${fmtPct(a.rr - 1)}` : "";
+          return EN
+            ? `<b>${esc(r.c.name)}</b> · ${Y[i]}<br>${fmtRate(r.s[i])} per 100,000 res. (Italy ${fmtRate(m.it[i])})<br>${nf0.format(r.c.n[m.t][i])} ${r.c.n[m.t][i] === 1 ? "case" : "cases"}${flag}`
+            : `<b>${esc(r.c.name)}</b> · ${Y[i]}<br>${fmtRate(r.s[i])} ogni 100.000 ab. (Italia ${fmtRate(m.it[i])})<br>${nf0.format(r.c.n[m.t][i])} casi${flag}`;
         },
       });
     });
@@ -1207,14 +1368,14 @@
     lineChart($("#perc-crime"), {
       years: allYears, values: crimeVals, xDomain: [x0, x1], xTicks, yMax: d3.max(tot) * 1.1, height: 170, mr: 20,
       marks: [{ year: 2015, text: nf0.format(tot[Y.indexOf(2015)]) }, { year: 2023, text: nf0.format(tot[Y.indexOf(2023)]), dy: 18 }, { year: Y[LAST], text: nf0.format(tot[LAST]), strong: true, anchor: "end" }],
-      hover: (i) => `<b>${allYears[i]}</b>: ${nf0.format(crimeVals[i])} delitti ogni 100.000 ab.`,
+      hover: (i) => `<b>${allYears[i]}</b>: ${nf0.format(crimeVals[i])} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")}`,
     });
     const iMax = d3.maxIndex(silcV), iMin = d3.minIndex(silcV);
     lineChart($("#perc-silc"), {
       years: allYears, values: silcVals, xDomain: [x0, x1], xTicks, yMax: d3.max(silcV) * 1.2, height: 170, mr: 20,
       yFmt: (v) => v + "%",
       marks: [{ year: silcY[iMax], text: nf1.format(silcV[iMax]) + "%" }, { year: silcY[iMin], text: nf1.format(silcV[iMin]) + "%", dy: 18 }, { year: silcY[silcY.length - 1], text: nf1.format(silcV[silcV.length - 1]) + "%", strong: true, anchor: "end" }],
-      hover: (i) => `<b>${allYears[i]}</b>: ${nf1.format(silcVals[i])}% delle famiglie`,
+      hover: (i) => `<b>${allYears[i]}</b>: ${nf1.format(silcVals[i])}% ${L("delle famiglie", "of households")}`,
     });
 
     const a = silcY[iMax], b = silcY[iMin];
@@ -1223,7 +1384,7 @@
     const lastS = silcY[silcY.length - 1];
     const percUp = silcV[silcV.length - 1] / silcV[iMin] - 1;
     const crimeUp = tot[LAST] / tot[Y.indexOf(b)] - 1;
-    $("#perc-dek").innerHTML = `Tra il ${a} e il ${b} la quota di famiglie che segnalavano criminalità o vandalismo nella propria zona è passata dal ${nf1.format(silcV[iMax])}% al ${nf1.format(silcV[iMin])}%: <strong>${fmtPct(percAB)}</strong>. Nello stesso periodo i delitti denunciati per abitante sono cambiati di ${fmtPct(crimeAB)}. Dal ${b} al ${lastS} la quota è risalita al ${nf1.format(silcV[silcV.length - 1])}%: <strong>${fmtPct(percUp)}</strong>, contro ${fmtPct(crimeUp)} dei delitti denunciati dal ${b} al ${Y[LAST]}. La percezione si muove molto più dei reati.`;
+    $("#perc-dek").innerHTML = EN ? `Between ${a} and ${b} the share of households reporting crime or vandalism in their area went from ${nf1.format(silcV[iMax])}% to ${nf1.format(silcV[iMin])}%: <strong>${fmtPct(percAB)}</strong>. Over the same period reported crimes per resident changed by ${fmtPct(crimeAB)}. From ${b} to ${lastS} the share rose again to ${nf1.format(silcV[silcV.length - 1])}%: <strong>${fmtPct(percUp)}</strong>, against ${fmtPct(crimeUp)} for reported crimes from ${b} to ${Y[LAST]}. Perception moves much more than crime does.` : `Tra il ${a} e il ${b} la quota di famiglie che segnalavano criminalità o vandalismo nella propria zona è passata dal ${nf1.format(silcV[iMax])}% al ${nf1.format(silcV[iMin])}%: <strong>${fmtPct(percAB)}</strong>. Nello stesso periodo i delitti denunciati per abitante sono cambiati di ${fmtPct(crimeAB)}. Dal ${b} al ${lastS} la quota è risalita al ${nf1.format(silcV[silcV.length - 1])}%: <strong>${fmtPct(percUp)}</strong>, contro ${fmtPct(crimeUp)} dei delitti denunciati dal ${b} al ${Y[LAST]}. La percezione si muove molto più dei reati.`;
 
     // dispersione: grandi città
     const pts = CITIES.filter((c) => c.perc && c.perc["2024"] != null).map((c) => ({ c, x: (c.n.TOT[LAST] / c.pop[LAST]) * 1e5, y: c.perc["2024"] }));
@@ -1231,7 +1392,7 @@
     const w = Math.max(280, el.clientWidth), h = Math.round(Math.min(480, w * 0.78));
     const mg = { t: 12, r: 16, b: 44, l: 44 };
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", "Grafico a dispersione: tasso di delitti e rischio percepito nelle grandi città");
+      .attr("role", "img").attr("aria-label", L("Grafico a dispersione: tasso di delitti e rischio percepito nelle grandi città", "Scatter chart: crime rate and perceived risk in the large cities"));
     svg.selectAll("*").remove();
     const x = d3.scaleLinear([0, d3.max(pts, (d) => d.x) * 1.08], [mg.l, w - mg.r]).nice();
     const y = d3.scaleLinear([0, d3.max(pts, (d) => d.y) * 1.1], [h - mg.b, mg.t]).nice();
@@ -1240,7 +1401,7 @@
     const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - mg.b})`).call(d3.axisBottom(x).ticks(5).tickSize(-(h - mg.t - mg.b)).tickFormat((v) => nf0.format(v)));
     xa.select(".domain").remove();
     svg.selectAll(".axis .tick line").style("stroke", "var(--grid)");
-    svg.append("text").attr("class", "lbl").attr("x", w - mg.r).attr("y", h - 6).attr("text-anchor", "end").text("delitti ogni 100.000 abitanti →");
+    svg.append("text").attr("class", "lbl").attr("x", w - mg.r).attr("y", h - 6).attr("text-anchor", "end").text(L("delitti ogni 100.000 abitanti →", "crimes per 100,000 residents →"));
     const itX = tot[LAST], itY = ITALY.perc["2024"];
     svg.append("circle").attr("class", "rv-pop").style("--t0", "0.5s").attr("cx", x(itX)).attr("cy", y(itY)).attr("r", 6).style("fill", "none").style("stroke", "var(--ink)").style("stroke-width", 1.5);
     const labelled = new Set();
@@ -1263,18 +1424,18 @@
       }
       return false;
     };
-    place(x(itX), y(itY), "Italia");
+    place(x(itX), y(itY), L("Italia", "Italy"));
     pts.forEach((d, k) => {
       svg.append("circle").attr("class", "rv-pop").style("--i", k).attr("cx", x(d.x)).attr("cy", y(d.y)).attr("r", 5).style("fill", "var(--ink-2)").style("stroke", "var(--surface)").style("stroke-width", 2)
         .style("cursor", "pointer")
-        .on("mousemove", (ev) => showTip(`<b>${esc(d.c.name)}</b><br>${nf0.format(d.x)} delitti ogni 100.000 ab. (2024)<br>${nf1.format(d.y)}% famiglie che sentono a rischio la zona`, ev))
+        .on("mousemove", (ev) => showTip(`<b>${esc(d.c.name)}</b><br>${nf0.format(d.x)} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")} (2024)<br>${nf1.format(d.y)}% ${L("famiglie che sentono a rischio la zona", "of households that feel their area is at risk")}`, ev))
         .on("mouseleave", hideTip)
         .on("click", () => openCity(d.c));
     });
     pts.filter((d) => labelled.has(d.c.id)).forEach((d) => place(x(d.x), y(d.y), d.c.name));
     const r = pearson(pts.map((d) => d.x), pts.map((d) => d.y));
     const hiP = pts.slice().sort((p, q) => q.y - p.y)[0], loC = pts.slice().sort((p, q) => p.x - q.x)[0];
-    $("#perc-note").textContent = `Nelle ${pts.length} grandi città misurate dall’ISTAT, il legame tra delitti denunciati e paura è ${Math.abs(r) < 0.3 ? "debole" : Math.abs(r) < 0.6 ? "moderato" : "forte"} (correlazione ${nf2.format(r)}). ${hiP.c.name} è la città dove più famiglie si sentono a rischio (${nf1.format(hiP.y)}%), con ${nf0.format(hiP.x)} delitti ogni 100.000 abitanti. Il dato sulla percezione viene dall’indagine ISTAT Aspetti della vita quotidiana.`;
+    $("#perc-note").textContent = EN ? `In the ${pts.length} large cities measured by ISTAT, the link between reported crimes and fear is ${Math.abs(r) < 0.3 ? "weak" : Math.abs(r) < 0.6 ? "moderate" : "strong"} (correlation ${nf2.format(r)}). ${hiP.c.name} is the city where the most households feel at risk (${nf1.format(hiP.y)}%), with ${nf0.format(hiP.x)} crimes per 100,000 residents. The perception figure comes from the ISTAT survey Aspetti della vita quotidiana (Aspects of daily life).` : `Nelle ${pts.length} grandi città misurate dall’ISTAT, il legame tra delitti denunciati e paura è ${Math.abs(r) < 0.3 ? "debole" : Math.abs(r) < 0.6 ? "moderato" : "forte"} (correlazione ${nf2.format(r)}). ${hiP.c.name} è la città dove più famiglie si sentono a rischio (${nf1.format(hiP.y)}%), con ${nf0.format(hiP.x)} delitti ogni 100.000 abitanti. Il dato sulla percezione viene dall’indagine ISTAT Aspetti della vita quotidiana.`;
     reveal(el);
     if (has("perc-index")) renderPercIndex();
     if (has("perc-slope")) renderPercSlope();
@@ -1289,16 +1450,16 @@
     const crime = yrs.map((y) => (Y.includes(y) ? (100 * tot[Y.indexOf(y)]) / tot[Y.indexOf(y0)] : null));
     const silc = yrs.map((y) => (ITALY.silc[y] != null ? (100 * ITALY.silc[y]) / ITALY.silc[y0] : null));
     const all = crime.concat(silc).filter((v) => v != null);
-    $("#perc-index-sub").textContent = `Le due serie fatte 100 nel ${y0}: una curva che scende a 50 si è dimezzata, una che sale a 150 è cresciuta della metà.`;
+    $("#perc-index-sub").textContent = EN ? `Both series are set to 100 in ${y0}: a line that falls to 50 has halved, one that rises to 150 has grown by half.` : `Le due serie fatte 100 nel ${y0}: una curva che scende a 50 si è dimezzata, una che sale a 150 è cresciuta della metà.`;
     seriesChart($("#perc-index"), {
-      years: yrs, label: `Famiglie che segnalano criminalità nella zona e delitti denunciati per abitante, ${y0} = 100`,
+      years: yrs, label: EN ? `Households reporting crime in their area and reported crimes per resident, ${y0} = 100` : `Famiglie che segnalano criminalità nella zona e delitti denunciati per abitante, ${y0} = 100`,
       yMin: 0, yMax: Math.max(140, d3.max(all) * 1.08), ref: 100, covid: true, height: 280,
       series: [
-        { name: "famiglie che segnalano criminalità", values: silc, color: "var(--ink)", width: 2.5, label: false },
-        { name: "delitti denunciati", values: crime, color: "var(--muted)", width: 2, label: false },
+        { name: L("famiglie che segnalano criminalità", "households reporting crime"), values: silc, color: "var(--ink)", width: 2.5, label: false },
+        { name: L("delitti denunciati", "reported crimes"), values: crime, color: "var(--muted)", width: 2, label: false },
       ],
-      tip: (i) => `<b>${yrs[i]}</b>` + (silc[i] != null ? `<br>famiglie che segnalano criminalità: ${nf1.format(ITALY.silc[yrs[i]])}% (indice ${nf0.format(silc[i])})` : "") +
-        (crime[i] != null ? `<br>delitti denunciati: ${nf0.format(tot[Y.indexOf(yrs[i])])} ogni 100.000 ab. (indice ${nf0.format(crime[i])})` : ""),
+      tip: (i) => `<b>${yrs[i]}</b>` + (silc[i] != null ? `<br>${L("famiglie che segnalano criminalità", "households reporting crime")}: ${nf1.format(ITALY.silc[yrs[i]])}% (${L("indice", "index")} ${nf0.format(silc[i])})` : "") +
+        (crime[i] != null ? `<br>${L("delitti denunciati", "reported crimes")}: ${nf0.format(tot[Y.indexOf(yrs[i])])} ${L("ogni 100.000 ab.", "per 100,000 res.")} (${L("indice", "index")} ${nf0.format(crime[i])})` : ""),
     });
   }
 
@@ -1314,11 +1475,11 @@
     const w = Math.max(300, el.clientWidth), rowH = 18, m = { t: 30, b: 8 }, h = m.t + n * rowH + m.b;
     const lw = Math.min(150, Math.round(w * 0.34)), x0 = lw, x1 = w - lw, yy = (r) => m.t + (r - 0.5) * rowH;
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", `Le ${n} grandi città ordinate per delitti denunciati e per rischio percepito nel ${py}`);
+      .attr("role", "img").attr("aria-label", EN ? `The ${n} large cities ranked by reported crimes and by perceived risk in ${py}` : `Le ${n} grandi città ordinate per delitti denunciati e per rischio percepito nel ${py}`);
     svg.selectAll("*").remove();
-    svg.append("text").attr("class", "lbl-strong").attr("x", x0).attr("y", 12).attr("text-anchor", "middle").text("denunce");
-    svg.append("text").attr("class", "lbl-strong").attr("x", x1).attr("y", 12).attr("text-anchor", "middle").text("paura");
-    const tipOf = (d) => `<b>${esc(d.c.name)}</b> · ${py}<br>${d.rx}ª su ${n} per delitti denunciati: ${nf0.format(d.x)} ogni 100.000 abitanti<br>${d.ry}ª per famiglie che sentono a rischio la zona: ${nf1.format(d.y)}%`;
+    svg.append("text").attr("class", "lbl-strong").attr("x", x0).attr("y", 12).attr("text-anchor", "middle").text(L("denunce", "reports"));
+    svg.append("text").attr("class", "lbl-strong").attr("x", x1).attr("y", 12).attr("text-anchor", "middle").text(L("paura", "fear"));
+    const tipOf = (d) => EN ? `<b>${esc(d.c.name)}</b> · ${py}<br>${ordinal(d.rx)} of ${n} for reported crimes: ${nf0.format(d.x)} per 100,000 residents<br>${ordinal(d.ry)} for households that feel their area is at risk: ${nf1.format(d.y)}%` : `<b>${esc(d.c.name)}</b> · ${py}<br>${d.rx}ª su ${n} per delitti denunciati: ${nf0.format(d.x)} ogni 100.000 abitanti<br>${d.ry}ª per famiglie che sentono a rischio la zona: ${nf1.format(d.y)}%`;
     pts.slice().sort((a, b) => hi.has(a.c.id) - hi.has(b.c.id)).forEach((d, k) => {
       const g = svg.append("g").attr("class", "sl rv-fade" + (hi.has(d.c.id) ? " hi" : "")).style("--i", k).style("cursor", "pointer")
         .on("mouseenter", function () { this.classList.add("on"); this.parentNode.appendChild(this); })
@@ -1334,7 +1495,7 @@
     });
     reveal(el);
     const up = pts.filter((d) => d.ry < d.rx).sort((a, b) => (b.rx - b.ry) - (a.rx - a.ry))[0], down = pts.filter((d) => d.ry > d.rx).sort((a, b) => (b.ry - b.rx) - (a.ry - a.rx))[0];
-    if (up && down) $("#perc-slope-note").textContent = `Nel ${py} ${up.c.name} è ${up.rx}ª per denunce e ${up.ry}ª per paura; ${down.c.name}, al contrario, è ${down.rx}ª per denunce e ${down.ry}ª per paura. Tocca una città per aprirne la scheda.`;
+    if (up && down) $("#perc-slope-note").textContent = EN ? `In ${py}, ${up.c.name} is ${ordinal(up.rx)} for reports and ${ordinal(up.ry)} for fear; ${down.c.name}, by contrast, is ${ordinal(down.rx)} for reports and ${ordinal(down.ry)} for fear. Tap a city to open its profile.` : `Nel ${py} ${up.c.name} è ${up.rx}ª per denunce e ${up.ry}ª per paura; ${down.c.name}, al contrario, è ${down.rx}ª per denunce e ${down.ry}ª per paura. Tocca una città per aprirne la scheda.`;
   }
 
   // Le province: la quota di famiglie che sentono a rischio la propria zona e i delitti denunciati ogni 100.000 abitanti,
@@ -1347,7 +1508,7 @@
       PROVP = await r.json();
       renderPercProv();
     } catch (e) {
-      $("#perc-prov-note").textContent = `I dati delle province non si sono caricati (${e.message}).`;
+      $("#perc-prov-note").textContent = EN ? `The province data did not load (${e.message}).` : `I dati delle province non si sono caricati (${e.message}).`;
       console.error(e);
     }
   }
@@ -1358,11 +1519,11 @@
     const pts = Object.entries(P.prov).map(([id, p]) => ({ id, p, x: d3.mean(iy, (i) => p.rate.TOT[i]), y: d3.mean(yrs, (y) => (p.perc ? p.perc[y] : undefined)) }))
       .filter((d) => d.x != null && d.y != null);
     const span = yrs.length > 1 ? `${yrs[0]}–${yrs[yrs.length - 1]}` : yrs[0];
-    $("#perc-prov-sub").textContent = `Le ${pts.length} province, media ${span}. Asse orizzontale: delitti denunciati ogni 100.000 abitanti. Asse verticale: famiglie che giudicano molto o abbastanza a rischio di criminalità la zona in cui vivono. Il cerchio vuoto è l’Italia.`;
+    $("#perc-prov-sub").textContent = EN ? `The ${pts.length} provinces, ${span} average. Horizontal axis: reported crimes per 100,000 residents. Vertical axis: households that consider the area they live in very or quite at risk of crime. The empty circle is Italy.` : `Le ${pts.length} province, media ${span}. Asse orizzontale: delitti denunciati ogni 100.000 abitanti. Asse verticale: famiglie che giudicano molto o abbastanza a rischio di criminalità la zona in cui vivono. Il cerchio vuoto è l’Italia.`;
     const el = $("#perc-prov");
     const w = Math.max(280, el.clientWidth), h = Math.round(Math.min(520, Math.max(300, w * 0.66))), mg = { t: 12, r: 16, b: 44, l: 44 };
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", "Grafico a dispersione: delitti denunciati e rischio percepito nelle province");
+      .attr("role", "img").attr("aria-label", L("Grafico a dispersione: delitti denunciati e rischio percepito nelle province", "Scatter chart: reported crimes and perceived risk in the provinces"));
     svg.selectAll("*").remove();
     const x = d3.scaleLinear([0, d3.max(pts, (d) => d.x) * 1.05], [mg.l, w - mg.r]).nice();
     const y = d3.scaleLinear([0, d3.max(pts, (d) => d.y) * 1.1], [h - mg.b, mg.t]).nice();
@@ -1371,7 +1532,7 @@
     const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - mg.b})`).call(d3.axisBottom(x).ticks(w < 480 ? 4 : 6).tickSize(-(h - mg.t - mg.b)).tickFormat((v) => nf0.format(v)));
     xa.select(".domain").remove();
     svg.selectAll(".axis .tick line").style("stroke", "var(--grid)");
-    svg.append("text").attr("class", "lbl").attr("x", w - mg.r).attr("y", h - 6).attr("text-anchor", "end").text("delitti ogni 100.000 abitanti →");
+    svg.append("text").attr("class", "lbl").attr("x", w - mg.r).attr("y", h - 6).attr("text-anchor", "end").text(L("delitti ogni 100.000 abitanti →", "crimes per 100,000 residents →"));
     // l'Italia, con le stesse medie
     const itX = d3.mean(yrs.filter((yy) => Y.includes(+yy)), (yy) => ITALY.rate.TOT[Y.indexOf(+yy)]), itY = d3.mean(yrs, (yy) => ITALY.perc[yy]);
     const boxes = pts.map((d) => [x(d.x) - 5, y(d.y) - 5, x(d.x) + 5, y(d.y) + 5]);
@@ -1388,13 +1549,13 @@
     };
     pts.forEach((d, k) => {
       svg.append("circle").attr("class", "rv-pop").style("--i", k).attr("cx", x(d.x)).attr("cy", y(d.y)).attr("r", 4).style("fill", "var(--ink-2)").style("fill-opacity", 0.75).style("stroke", "var(--surface)").style("stroke-width", 1.5)
-        .on("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf0.format(d.x)} delitti ogni 100.000 ab.<br>${nf1.format(d.y)}% famiglie che sentono a rischio la zona<br><span class="small">media ${span}</span>`, ev))
+        .on("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf0.format(d.x)} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")}<br>${nf1.format(d.y)}% ${L("famiglie che sentono a rischio la zona", "of households that feel their area is at risk")}<br><span class="small">${EN ? `${span} average` : `media ${span}`}</span>`, ev))
         .on("mouseleave", hideTip);
     });
     if (itX != null && itY != null) {
       svg.append("circle").attr("class", "rv-pop").style("--t0", "0.5s").attr("cx", x(itX)).attr("cy", y(itY)).attr("r", 6).style("fill", "none").style("stroke", "var(--ink)").style("stroke-width", 1.5);
       boxes.push([x(itX) - 7, y(itY) - 7, x(itX) + 7, y(itY) + 7]);
-      place(x(itX), y(itY), "Italia");
+      place(x(itX), y(itY), L("Italia", "Italy"));
     }
     const lab = new Map();
     const add = (list) => list.forEach((d) => lab.set(d.id, d));
@@ -1407,7 +1568,8 @@
     reveal(el);
     const r = pearson(pts.map((d) => d.x), pts.map((d) => d.y));
     const hiY = pts.slice().sort((a, b) => b.y - a.y)[0], hiX = pts.slice().sort((a, b) => b.x - a.x)[0];
-    $("#perc-prov-note").textContent = `Nelle ${pts.length} province il legame tra delitti denunciati e paura è ${Math.abs(r) < 0.3 ? "debole" : Math.abs(r) < 0.6 ? "moderato" : "forte"} (correlazione ${nf2.format(r)}). ` +
+    $("#perc-prov-note").textContent = EN ? `In the ${pts.length} provinces the link between reported crimes and fear is ${Math.abs(r) < 0.3 ? "weak" : Math.abs(r) < 0.6 ? "moderate" : "strong"} (correlation ${nf2.format(r)}). ` +
+      `The province where the most households feel their area is at risk is ${hiY.p.name.split("/")[0]} (${nf1.format(hiY.y)}%), with ${nf0.format(hiY.x)} crimes per 100,000 residents; the one with the most reports is ${hiX.p.name.split("/")[0]} (${nf0.format(hiX.x)}), where ${nf1.format(hiX.y)}% of households feel at risk.` : `Nelle ${pts.length} province il legame tra delitti denunciati e paura è ${Math.abs(r) < 0.3 ? "debole" : Math.abs(r) < 0.6 ? "moderato" : "forte"} (correlazione ${nf2.format(r)}). ` +
       `La provincia dove più famiglie sentono a rischio la propria zona è ${hiY.p.name.split("/")[0]} (${nf1.format(hiY.y)}%), con ${nf0.format(hiY.x)} delitti ogni 100.000 abitanti; quella con più denunce è ${hiX.p.name.split("/")[0]} (${nf0.format(hiX.x)}), dove si sente a rischio il ${nf1.format(hiX.y)}% delle famiglie.`;
   }
 
@@ -1424,7 +1586,7 @@
   const cityById = (id) => CITIES.find((c) => c.id === id);
   const normQ = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const placeSlug = (e) => slug(e.name) + "-" + e.sigla.toLowerCase();
-  const andList = (a) => (a.length > 1 ? a.slice(0, -1).join(", ") + " e " + a[a.length - 1] : a[0] || "");
+  const andList = (a) => (a.length > 1 ? a.slice(0, -1).join(", ") + L(" e ", " and ") + a[a.length - 1] : a[0] || "");
 
   function showCard() {
     if (!dlg.open) {
@@ -1482,7 +1644,7 @@
   function drawCard(series, an, rows, hoverRow) {
     requestAnimationFrame(() => {
       const el = $("#place-chart");
-      if (el) multiLine(el, { series, an, label: `${TYPE[state.cardType].label} ogni 100.000 abitanti, ${Y[0]}–${Y[LAST]}` });
+      if (el) multiLine(el, { series, an, label: EN ? `${TYPE[state.cardType].label} per 100,000 residents, ${Y[0]}–${Y[LAST]}` : `${TYPE[state.cardType].label} ogni 100.000 abitanti, ${Y[0]}–${Y[LAST]}` });
       const svgs = $("#city-grid").querySelectorAll("svg");
       const w = svgs.length ? svgs[0].getBoundingClientRect().width || 140 : 0;
       svgs.forEach((s, k) => {
@@ -1497,7 +1659,7 @@
 
   const chartBlock = (label, keys) => `
       <div class="place-chart">
-        <h3 class="subhead">${esc(label)} dal ${Y[0]} al ${Y[LAST]}</h3>
+        <h3 class="subhead">${esc(label)} ${EN ? `from ${Y[0]} to ${Y[LAST]}` : `dal ${Y[0]} al ${Y[LAST]}`}</h3>
         <div class="key" aria-hidden="true">${keys}<span><i class="k-covid"></i>2020–21</span></div>
         <div class="chart" id="place-chart"></div>
       </div>`;
@@ -1524,14 +1686,14 @@
       return `<div class="mover ${dir}"><h4>${title}</h4><ol>${items}</ol></div>`;
     };
     const how = tested
-      ? "Solo le variazioni abbastanza grandi da non dipendere dal caso. Furti e rapine nel loro insieme lasciano il posto ai sottotipi."
-      : "Variazioni sui tassi ufficiali della provincia, senza test statistico. Furti e rapine nel loro insieme lasciano il posto ai sottotipi.";
+      ? L("Solo le variazioni abbastanza grandi da non dipendere dal caso. Furti e rapine nel loro insieme lasciano il posto ai sottotipi.", "Only changes large enough not to be down to chance. Thefts and robberies as a whole make way for their subtypes.")
+      : L("Variazioni sui tassi ufficiali della provincia, senza test statistico. Furti e rapine nel loro insieme lasciano il posto ai sottotipi.", "Changes in the province’s official rates, with no statistical test. Thefts and robberies as a whole make way for their subtypes.");
     return `<div class="movers">
-        <h3>Cosa è salito e cosa è sceso di più</h3>
-        <p class="small">${Y[LAST]} rispetto al ${state.cardBase}. ${how} Tocca un reato per vederlo nel grafico.</p>
+        <h3>${L("Cosa è salito e cosa è sceso di più", "What rose and what fell the most")}</h3>
+        <p class="small">${Y[LAST]} ${L("rispetto al", "compared with")} ${state.cardBase}. ${how} ${L("Tocca un reato per vederlo nel grafico.", "Tap a crime to see it in the chart.")}</p>
         <div class="movers-cols">
-          ${col("up", "Saliti di più", tested ? "Nessun aumento che superi la soglia statistica." : "Nessun reato in aumento.")}
-          ${col("down", "Scesi di più", tested ? "Nessun calo che superi la soglia statistica." : "Nessun reato in calo.")}
+          ${col("up", L("Saliti di più", "Biggest rises"), tested ? L("Nessun aumento che superi la soglia statistica.", "No rise above the statistical threshold.") : L("Nessun reato in aumento.", "No crime type is rising."))}
+          ${col("down", L("Scesi di più", "Biggest falls"), tested ? L("Nessun calo che superi la soglia statistica.", "No fall above the statistical threshold.") : L("Nessun reato in calo.", "No crime type is falling."))}
         </div>
       </div>`;
   }
@@ -1541,8 +1703,8 @@
     TYPES.forEach((t) => { const row = pick(t.id); if (row && row.an) row.an.forEach((a) => { if (a && a.flag === "spike" && a.y >= 2022) list.push({ t, a }); }); });
     list.sort((p, q) => q.a.y - p.a.y || q.a.low - p.a.low);
     return list.length
-      ? `Impennate dal 2022: ${list.slice(0, 6).map((d) => `${esc(lower(d.t.label))} nel ${d.a.y} (${fmtPct(d.a.rr - 1)})`).join("; ")}${list.length > 6 ? `; e altre ${list.length - 6}` : ""}.`
-      : "Nessuna impennata dal 2022 per i reati considerati.";
+      ? EN ? `Spikes since 2022: ${list.slice(0, 6).map((d) => `${esc(lower(d.t.label))} in ${d.a.y} (${fmtPct(d.a.rr - 1)})`).join("; ")}${list.length > 6 ? `; and ${list.length - 6} more` : ""}.` : `Impennate dal 2022: ${list.slice(0, 6).map((d) => `${esc(lower(d.t.label))} nel ${d.a.y} (${fmtPct(d.a.rr - 1)})`).join("; ")}${list.length > 6 ? `; e altre ${list.length - 6}` : ""}.`
+      : L("Nessuna impennata dal 2022 per i reati considerati.", "No spikes since 2022 for the crimes covered.");
   }
 
   // Mappa di posizione: la sagoma dell'Italia, ricavata una volta dai confini provinciali già caricati, e un punto.
@@ -1567,7 +1729,7 @@
       LOC = { proj, d: path(land), box: [x0 - 8, y0 - 8, x1 - x0 + 16, y1 - y0 + 16].map((v) => v.toFixed(1)).join(" ") };
     }
     const [x, y] = LOC.proj([lon, lat]).map((v) => v.toFixed(1));
-    return `<figure class="loc"><svg viewBox="${LOC.box}" role="img" aria-label="${esc(name)} sulla carta d’Italia"><path class="loc-land" d="${LOC.d}"/><circle class="loc-ring" cx="${x}" cy="${y}" r="9"/><circle class="loc-dot" cx="${x}" cy="${y}" r="4"/></svg></figure>`;
+    return `<figure class="loc"><svg viewBox="${LOC.box}" role="img" aria-label="${esc(name)} ${L("sulla carta d’Italia", "on a map of Italy")}"><path class="loc-land" d="${LOC.d}"/><circle class="loc-ring" cx="${x}" cy="${y}" r="9"/><circle class="loc-dot" cx="${x}" cy="${y}" r="4"/></svg></figure>`;
   }
 
   // In testa alla scheda, in parole semplici: quanto si denuncia, rispetto all'Italia, in che posizione e come è cambiato.
@@ -1575,14 +1737,19 @@
   function timesItaly(r) {
     if (r >= 1.4) {
       const h = Math.round(r * 2) / 2;
+      if (EN) {
+        const WE = { 1.5: "one and a half times", 2: "twice", 2.5: "two and a half times", 3: "three times", 3.5: "three and a half times", 4: "four times", 4.5: "four and a half times", 5: "five times" };
+        return `${Math.abs(r - h) <= 0.08 ? "about" : r < h ? "almost" : "more than"} ${WE[h] || nf1.format(h) + " times"} the Italian average`;
+      }
       const W = { 1.5: "una volta e mezza", 2: "due volte", 2.5: "due volte e mezza", 3: "tre volte", 3.5: "tre volte e mezza", 4: "quattro volte", 4.5: "quattro volte e mezza", 5: "cinque volte" };
       return `${Math.abs(r - h) <= 0.08 ? "circa" : r < h ? "quasi" : "più di"} ${W[h] || nf1.format(h) + " volte"} la media italiana`;
     }
     const p = Math.round(Math.abs(r - 1) * 100);
+    if (EN) return p < 5 ? "in line with the Italian average" : `${nf0.format(p)}% ${r > 1 ? "above" : "below"} the Italian average`;
     return p < 5 ? "in linea con la media italiana" : `${vowelNum(p) ? "l’" : "il "}${nf0.format(p)}% ${r > 1 ? "sopra" : "sotto"} la media italiana`;
   }
   function perPeople(v) {
-    for (const s of [100, 1000, 10000]) { const x = (v * s) / 1e5; if (x >= 1.5) return `circa ${nf0.format(Math.round(x))} ogni ${nf0.format(s)} residenti`; }
+    for (const s of [100, 1000, 10000]) { const x = (v * s) / 1e5; if (x >= 1.5) return EN ? `about ${nf0.format(Math.round(x))} for every ${nf0.format(s)} residents` : `circa ${nf0.format(Math.round(x))} ogni ${nf0.format(s)} residenti`; }
     return "";
   }
   // o: { t, where ("a Firenze"), lvl, it, rank, n, unit ("capoluoghi"/"province"), cmp, tourist }
@@ -1590,31 +1757,31 @@
     if (o.lvl == null) return "";
     const m = model(o.t, state.cardBase), pp = perPeople(o.lvl);
     const gl = GLOSS[o.t] ? `<span class="gl"><b>${esc(m.label)}</b>: ${GLOSS[o.t]}.</span>` : "";
-    if (o.lvl === 0) return `<p class="verdict">${esc(m.label)} ${o.where}, ${m.levelNote}: nessuna denuncia. In Italia ${fmtRate(o.it)} ogni 100.000 abitanti${m.rare ? " all’anno" : ""}.${gl}</p>`;
+    if (o.lvl === 0) return EN ? `<p class="verdict">${esc(m.label)} ${o.where}, ${m.levelNote}: no reports. In Italy, ${fmtRate(o.it)} per 100,000 residents${m.rare ? " a year" : ""}.${gl}</p>` : `<p class="verdict">${esc(m.label)} ${o.where}, ${m.levelNote}: nessuna denuncia. In Italia ${fmtRate(o.it)} ogni 100.000 abitanti${m.rare ? " all’anno" : ""}.${gl}</p>`;
     let s = o.t === "TOT"
-      ? `Nel ${Y[LAST]} ${o.where} sono stati denunciati ${fmtRate(o.lvl)} delitti ogni 100.000 abitanti${pp ? `: in un anno, ${pp}` : ""}. `
-      : `${esc(m.label)} ${o.where}, ${m.levelNote}: ${fmtRate(o.lvl)} denunce ogni 100.000 abitanti${m.rare ? " all’anno" : ""}${pp ? `, ${pp}${m.rare ? "" : " in un anno"}` : ""}. `;
-    const of = (o.unit === "province" ? "delle " : "dei ") + o.n + " " + o.unit;
-    const pos = !o.rank ? "" : o.rank === 1 ? `il valore più alto ${of}` : o.rank === o.n ? `il valore più basso ${of}` : o.rank <= 10 ? `uno dei dieci valori più alti ${of} (${o.rank}°)` : o.rank > o.n - 10 ? `uno dei dieci valori più bassi ${of} (${o.rank}°)` : `${vowelNum(o.rank) ? "all’" : "al "}${o.rank}° posto su ${o.n} ${o.unit}`;
-    if (o.it) s += `È ${timesItaly(o.lvl / o.it)} (${fmtRate(o.it)})${pos ? " e " + pos : ""}${o.tourist && o.lvl / o.it >= 1.15 ? ", anche perché ogni giorno arrivano pendolari, studenti e turisti che non sono contati tra i residenti" : ""}. `;
+      ? EN ? `In ${Y[LAST]}, ${fmtRate(o.lvl)} crimes per 100,000 residents were reported ${o.where}${pp ? `: ${pp} in a year` : ""}. ` : `Nel ${Y[LAST]} ${o.where} sono stati denunciati ${fmtRate(o.lvl)} delitti ogni 100.000 abitanti${pp ? `: in un anno, ${pp}` : ""}. `
+      : EN ? `${esc(m.label)} ${o.where}, ${m.levelNote}: ${fmtRate(o.lvl)} reports per 100,000 residents${m.rare ? " a year" : ""}${pp ? `, ${pp}${m.rare ? "" : " in a year"}` : ""}. ` : `${esc(m.label)} ${o.where}, ${m.levelNote}: ${fmtRate(o.lvl)} denunce ogni 100.000 abitanti${m.rare ? " all’anno" : ""}${pp ? `, ${pp}${m.rare ? "" : " in un anno"}` : ""}. `;
+    const of = EN ? `of the ${o.n} ${o.unit === "province" ? "provinces" : "provincial capitals"}` : (o.unit === "province" ? "delle " : "dei ") + o.n + " " + o.unit;
+    const pos = EN ? (!o.rank ? "" : o.rank === 1 ? `the highest ${of}` : o.rank === o.n ? `the lowest ${of}` : o.rank <= 10 ? `one of the ten highest ${of} (${ordinal(o.rank)})` : o.rank > o.n - 10 ? `one of the ten lowest ${of} (${ordinal(o.rank)})` : `${ordinal(o.rank)} out of ${o.n} ${o.unit === "province" ? "provinces" : "provincial capitals"}`) : !o.rank ? "" : o.rank === 1 ? `il valore più alto ${of}` : o.rank === o.n ? `il valore più basso ${of}` : o.rank <= 10 ? `uno dei dieci valori più alti ${of} (${o.rank}°)` : o.rank > o.n - 10 ? `uno dei dieci valori più bassi ${of} (${o.rank}°)` : `${vowelNum(o.rank) ? "all’" : "al "}${o.rank}° posto su ${o.n} ${o.unit}`;
+    if (o.it) s += EN ? `That is ${timesItaly(o.lvl / o.it)} (${fmtRate(o.it)})${pos ? " and " + pos : ""}${o.tourist && o.lvl / o.it >= 1.15 ? ", partly because every day it draws commuters, students and tourists who are not counted as residents" : ""}. ` : `È ${timesItaly(o.lvl / o.it)} (${fmtRate(o.it)})${pos ? " e " + pos : ""}${o.tourist && o.lvl / o.it >= 1.15 ? ", anche perché ogni giorno arrivano pendolari, studenti e turisti che non sono contati tra i residenti" : ""}. `;
     const c = o.cmp;
     if (c && c.pct != null && isFinite(c.pct)) {
       // reati rari nelle province senza conteggi: c.win è "media 2022–2024 su 2017–2019"
-      const win = c.win ? c.win.replace(/^media /, "").split(" su ") : null;
-      const since = win ? `Tra il ${win[1]} e il ${win[0]}, in media,` : `Rispetto al ${state.cardBase}${state.cardBase === 2019 ? ", prima del Covid," : ""}`;
-      s += Math.round(c.pct * 100) === 0 ? `${since} le denunce per abitante sono rimaste le stesse.`
+      const win = c.win ? (c.winY ? [`${c.winY[0]}–${c.winY[1]}`, `${c.winY[2]}–${c.winY[3]}`] : c.win.replace(/^media /, "").split(" su ")) : null;
+      const since = EN ? (win ? `On average, between ${win[1]} and ${win[0]},` : `Compared with ${state.cardBase}${state.cardBase === 2019 ? ", before Covid," : ","}`) : win ? `Tra il ${win[1]} e il ${win[0]}, in media,` : `Rispetto al ${state.cardBase}${state.cardBase === 2019 ? ", prima del Covid," : ""}`;
+      s += Math.round(c.pct * 100) === 0 ? `${since} ${L("le denunce per abitante sono rimaste le stesse.", "reports per resident have stayed the same.")}`
         : sig(c) === "flat" ? (Math.abs(c.pct) < 0.1
-          ? `${since} le denunce per abitante sono più o meno le stesse (${fmtPct(c.pct)}): una differenza così piccola può dipendere dal caso.`
-          : `${since} le denunce per abitante sono ${c.pct > 0 ? "aumentate" : "diminuite"} ${delPct(c.pct)}, ma è una differenza che può dipendere dal caso.`)
-        : `${since} le denunce per abitante sono ${c.pct > 0 ? "aumentate" : "diminuite"} ${delPct(c.pct)}.`;
+          ? EN ? `${since} reports per resident are more or less the same (${fmtPct(c.pct)}): a difference this small may be down to chance.` : `${since} le denunce per abitante sono più o meno le stesse (${fmtPct(c.pct)}): una differenza così piccola può dipendere dal caso.`
+          : EN ? `${since} reports per resident have ${c.pct > 0 ? "risen" : "fallen"} ${delPct(c.pct)}, but the difference may be down to chance.` : `${since} le denunce per abitante sono ${c.pct > 0 ? "aumentate" : "diminuite"} ${delPct(c.pct)}, ma è una differenza che può dipendere dal caso.`)
+        : EN ? `${since} reports per resident have ${c.pct > 0 ? "risen" : "fallen"} ${delPct(c.pct)}.` : `${since} le denunce per abitante sono ${c.pct > 0 ? "aumentate" : "diminuite"} ${delPct(c.pct)}.`;
     }
     return `<p class="verdict">${s}${gl}</p>`;
   }
 
   function percFact(perc, where) {
     if (!perc || perc["2024"] == null) return "";
-    const before = perc["2022"] != null ? `; ${nf1.format(perc["2022"])}% nel 2022` : "";
-    return `<div class="fact"><div class="fv">${nf1.format(perc["2024"])}%</div><div class="fl">famiglie ${where} che sentono molto o abbastanza a rischio criminalità la propria zona (2024${before}; Italia ${nf1.format(ITALY.perc["2024"])}%)</div></div>`;
+    const before = perc["2022"] != null ? EN ? `; ${nf1.format(perc["2022"])}% in 2022` : `; ${nf1.format(perc["2022"])}% nel 2022` : "";
+    return `<div class="fact"><div class="fv">${nf1.format(perc["2024"])}%</div><div class="fl">${EN ? `households ${where} that feel their area is very or quite at risk of crime (2024${before}; Italy ${nf1.format(ITALY.perc["2024"])}%)` : `famiglie ${where} che sentono molto o abbastanza a rischio criminalità la propria zona (2024${before}; Italia ${nf1.format(ITALY.perc["2024"])}%)`}</div></div>`;
   }
 
   function renderCity() {
@@ -1622,53 +1789,53 @@
     if (!c) return;
     const m = model(state.cardType, state.cardBase);
     const r = m.rows.find((d) => d.c.id === c.id);
-    $("#city-kicker").textContent = `Capoluogo · ${c.region} · ${c.area} · ${nf0.format(c.pop[LAST])} residenti`;
+    $("#city-kicker").textContent = EN ? `Provincial capital · ${c.region} · ${areaName(c.area)} · ${nf0.format(c.pop[LAST])} residents` : `Capoluogo · ${c.region} · ${c.area} · ${nf0.format(c.pop[LAST])} residenti`;
     $("#city-name").textContent = c.name;
     const s = sig(r.cmp);
-    const sigText = s === "flat" ? "variazione non significativa" : s === "up" ? "aumento significativo" : s === "down" ? "calo significativo" : "";
+    const sigText = s === "flat" ? L("variazione non significativa", "not a significant change") : s === "up" ? L("aumento significativo", "significant rise") : s === "down" ? L("calo significativo", "significant fall") : "";
     const tm = model("TOT", state.cardBase), tr = tm.rows.find((d) => d.c.id === c.id);
     // la provincia intorno, quando data/province.json è caricato
     const pid = CITY_PROV[c.id], P = PROV && pid ? PROV[pid] : null;
     const pm = P ? provModel(state.cardType) : null, pr = pm ? pm.byId.get(pid) : null;
-    const provFact = pr ? `<div class="fact"><div class="fv">${fmtRate(pr.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti in tutta la provincia di ${esc(P.name)} (${m.levelNote}) · ${pr.rank}° su ${pm.ranked.length} province</div></div>` : "";
+    const provFact = pr ? `<div class="fact"><div class="fv">${fmtRate(pr.lvl)}</div><div class="fl">${EN ? `${esc(lower(m.label))} per 100,000 residents in the whole province of ${esc(P.name)} (${m.levelNote}) · ${ordinal(pr.rank)} of ${pm.ranked.length} provinces` : `${esc(lower(m.label))} ogni 100.000 abitanti in tutta la provincia di ${esc(P.name)} (${m.levelNote}) · ${pr.rank}° su ${pm.ranked.length} province`}</div></div>` : "";
     const rows = TYPES.map((t) => ({ t, row: model(t.id, state.cardBase).rows.find((d) => d.c.id === c.id) }));
     const iB = Y.indexOf(state.cardBase);
-    const movers = moversHTML(rows, (t) => `${nf0.format(c.n[t.id][LAST] ?? 0)} casi nel ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} nel ${state.cardBase}`, true);
+    const movers = moversHTML(rows, (t) => EN ? `${nf0.format(c.n[t.id][LAST] ?? 0)} cases in ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} in ${state.cardBase}` : `${nf0.format(c.n[t.id][LAST] ?? 0)} casi nel ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} nel ${state.cardBase}`, true);
     const q = QUART[c.id] || null; // quartieri, se la città li ha e sono arrivati
-    const verdict = verdictHTML({ t: state.cardType, where: (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.cardType].group) && !TOURIST_NOT.includes(state.cardType) });
+    const verdict = verdictHTML({ t: state.cardType, where: EN ? "in " + esc(c.name) : (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.cardType].group) && !TOURIST_NOT.includes(state.cardType) });
     $("#city-body").innerHTML = `
       ${verdict}
       <div class="card-head">
       <div class="facts">
-        <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti (${m.levelNote}) · ${r.rank ? r.rank + "° su " + m.ranked.length : ""} · Italia ${fmtRate(m.itLvl)}</div></div>
-        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))}: ${Y[LAST]} rispetto al ${state.cardBase}${sigText ? " · " + sigText : ""}</div></div>
-        ${state.cardType !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">tutti i delitti ogni 100.000 abitanti nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}</div></div>` : ""}
+        <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ${L("ogni 100.000 abitanti", "per 100,000 residents")} (${m.levelNote}) · ${r.rank ? (EN ? ordinal(r.rank) + " of " : r.rank + "° su ") + m.ranked.length : ""} · ${L("Italia", "Italy")} ${fmtRate(m.itLvl)}</div></div>
+        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))}: ${Y[LAST]} ${L("rispetto al", "compared with")} ${state.cardBase}${sigText ? " · " + sigText : ""}</div></div>
+        ${state.cardType !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">${EN ? `all crimes per 100,000 residents in ${Y[LAST]} · ${ordinal(tr.rank)} of ${tm.ranked.length}` : `tutti i delitti ogni 100.000 abitanti nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}`}</div></div>` : ""}
         ${provFact}
-        ${percFact(c.perc, "di " + esc(c.name))}
+        ${percFact(c.perc, EN ? "in " + esc(c.name) : "di " + esc(c.name))}
       </div>
       ${locMap(c.lon, c.lat, c.name)}
       </div>
       ${movers}
-      ${chartBlock(m.label + " a " + c.name, `<span><i class="k-city"></i>${esc(c.name)}</span>${P ? `<span><i class="k-prov"></i>provincia di ${esc(P.name)}</span>` : ""}<span><i class="k-it"></i>Italia</span><span><i class="k-gold"></i>impennata</span>`)}
+      ${chartBlock(m.label + L(" a ", " in ") + c.name, `<span><i class="k-city"></i>${esc(c.name)}</span>${P ? `<span><i class="k-prov"></i>${L("provincia di", "province of")} ${esc(P.name)}</span>` : ""}<span><i class="k-it"></i>${L("Italia", "Italy")}</span><span><i class="k-gold"></i>${L("impennata", "spike")}</span>`)}
       <p class="note">${spikeNote((t) => model(t, state.cardBase).rows.find((d) => d.c.id === c.id))}</p>
       ${q ? quartHTML(q) : ""}
-      <h3 class="subhead">Tutti i reati a ${esc(c.name)}</h3>
-      <p class="small">Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.</p>
+      <h3 class="subhead">${L("Tutti i reati a", "Every crime type in")} ${esc(c.name)}</h3>
+      <p class="small">${L("Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.", "Each panel has its own scale. Grey line: Italy. Tap a crime to see it in this profile.")}</p>
       <div class="sm-grid" id="city-grid"></div>
-      <h3 class="subhead">${esc(m.label)}: i numeri anno per anno</h3>
-      <div class="tablewrap"><table><thead><tr><th>Anno</th><th class="num">Casi</th><th class="num">Ogni 100.000 ab.</th>${P ? `<th class="num">Provincia</th>` : ""}<th class="num">Italia</th><th>Nota</th></tr></thead><tbody>
+      <h3 class="subhead">${esc(m.label)}: ${L("i numeri anno per anno", "year by year")}</h3>
+      <div class="tablewrap"><table><thead><tr><th>${L("Anno", "Year")}</th><th class="num">${L("Casi", "Cases")}</th><th class="num">${L("Ogni 100.000 ab.", "Per 100,000 res.")}</th>${P ? `<th class="num">${L("Provincia", "Province")}</th>` : ""}<th class="num">${L("Italia", "Italy")}</th><th>${L("Nota", "Note")}</th></tr></thead><tbody>
         ${Y.map((yr, i) => {
           const a = r.an[i];
-          const note = COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `Impennata (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `Calo netto (${fmtPct(a.rr - 1)})` : "";
+          const note = COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `${L("Impennata", "Spike")} (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `${L("Calo netto", "Sharp fall")} (${fmtPct(a.rr - 1)})` : "";
           return `<tr><td>${yr}</td><td class="num">${c.n[state.cardType][i] == null ? "–" : nf0.format(c.n[state.cardType][i])}</td><td class="num">${fmtRate(r.s[i])}</td>${P ? `<td class="num">${fmtRate(pr.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
-      <p class="small src">Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria (conteggi per comune capoluogo e tassi per provincia); popolazione residente ISTAT; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana.</p>`;
+      <p class="small src">${L("Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria (conteggi per comune capoluogo e tassi per provincia); popolazione residente ISTAT; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana.", "Sources: ISTAT, crimes reported by the police to the judicial authorities (counts for each provincial capital and rates for each province); ISTAT resident population; perceived risk from the ISTAT survey Aspetti della vita quotidiana (Aspects of daily life).")}</p>`;
     $("#city-grid").innerHTML = gridHTML(rows);
     const series = [{ name: c.name, values: r.s, color: "var(--ink)", width: 2.25 }];
-    if (pr) series.push({ name: `Provincia di ${P.name}`, values: pr.s, color: "var(--ink-2)", width: 1.75, dash: "5 4" });
-    series.push({ name: "Italia", values: m.it, color: "var(--muted)", width: 1.5 });
-    drawCard(series, r.an, rows, (t, row, i) => `<b>${esc(t.label)}</b> · ${Y[i]}<br>${nf0.format(c.n[t.id][i] ?? 0)} casi, ${fmtRate(row.s[i])} ogni 100.000 ab. (Italia ${fmtRate(ITALY.rate[t.id][i])})`);
+    if (pr) series.push({ name: EN ? `Province of ${P.name}` : `Provincia di ${P.name}`, values: pr.s, color: "var(--ink-2)", width: 1.75, dash: "5 4" });
+    series.push({ name: L("Italia", "Italy"), values: m.it, color: "var(--muted)", width: 1.5 });
+    drawCard(series, r.an, rows, (t, row, i) => `<b>${esc(t.label)}</b> · ${Y[i]}<br>${nf0.format(c.n[t.id][i] ?? 0)} ${L("casi", "cases")}, ${fmtRate(row.s[i])} ${L("ogni 100.000 ab.", "per 100,000 res.")} (${L("Italia", "Italy")} ${fmtRate(ITALY.rate[t.id][i])})`);
     if (q) requestAnimationFrame(() => renderQuart(q));
   }
 
@@ -1680,15 +1847,21 @@
   let QINDEX = new Set();
   const QUART = {};
   const QLAYERS = [
-    { id: "crime", label: "Reati", crime: true },
-    { id: "pop", label: "Residenti", title: (y) => `Residenti al 31 dicembre ${y}`, fmt: (v) => nf0.format(v) },
-    { id: "dens", label: "Densità", title: (y) => `Residenti per km² nel ${y}`, fmt: (v) => nf0.format(v) },
-    { id: "str", label: "Stranieri", title: (y) => `Residenti stranieri ogni 100 residenti nel ${y}`, fmt: (v) => nf1.format(v) + "%", pct: true },
-    { id: "old", label: "65 e più", title: (y) => `Residenti di 65 anni e più ogni 100 residenti nel ${y}`, fmt: (v) => nf1.format(v) + "%", pct: true },
-    { id: "degr", label: "Edifici degradati", title: () => "Edifici degradati, abbandonati o dismessi censiti nel 2014–2017", fmt: (v) => nf0.format(v) },
+    { id: "crime", label: L("Reati", "Crimes"), crime: true },
+    { id: "pop", label: L("Residenti", "Residents"), title: (y) => EN ? `Residents on 31 December ${y}` : `Residenti al 31 dicembre ${y}`, fmt: (v) => nf0.format(v) },
+    { id: "dens", label: L("Densità", "Density"), title: (y) => EN ? `Residents per km² in ${y}` : `Residenti per km² nel ${y}`, fmt: (v) => nf0.format(v) },
+    { id: "str", label: L("Stranieri", "Foreign residents"), title: (y) => EN ? `Foreign residents per 100 residents in ${y}` : `Residenti stranieri ogni 100 residenti nel ${y}`, fmt: (v) => nf1.format(v) + "%", pct: true },
+    { id: "old", label: L("65 e più", "65 and over"), title: (y) => EN ? `Residents aged 65 and over per 100 residents in ${y}` : `Residenti di 65 anni e più ogni 100 residenti nel ${y}`, fmt: (v) => nf1.format(v) + "%", pct: true },
+    { id: "degr", label: L("Edifici degradati", "Run-down buildings"), title: () => L("Edifici degradati, abbandonati o dismessi censiti nel 2014–2017", "Run-down, abandoned or disused buildings recorded in 2014–2017"), fmt: (v) => nf0.format(v) },
   ];
   const QL = Object.fromEntries(QLAYERS.map((l) => [l.id, l]));
   const QFEW = 1000; // sotto questi residenti nessun tasso: il quartiere è un parco o un'area industriale
+  // sulle pagine in inglese, i testi in italiano di data/quartieri/<id>.json che la scheda mostra (meta.unit.long, meta.gap)
+  const QTEXT_EN = {
+    "Nuclei di identità locale (NIL), i quartieri del Piano di governo del territorio Milano 2030": "Local identity units (NIL), the neighbourhoods defined by the Milano 2030 town plan (PGT)",
+    "L'ISTAT e il Ministero dell'Interno pubblicano i delitti denunciati solo per l'intero comune: nessuna fonte ufficiale li pubblica per quartiere.": "ISTAT and the Ministry of the Interior publish reported crimes only for the municipality as a whole: no official source publishes them by neighbourhood.",
+  };
+  const qtx = (s) => (EN && QTEXT_EN[s]) || s;
 
   function loadQuart(id) {
     if (QUART[id] !== undefined) return Promise.resolve(QUART[id]);
@@ -1750,7 +1923,7 @@
       : layer.id === "dens" ? totPop / totKm2
       : layer.id === "str" || layer.id === "old" ? (100 * d3.sum(q.areas, (a) => a[layer.id][L])) / totPop
       : null;
-    const title = layer.crime ? `${TYPE[t].label} ogni 100.000 residenti (${cm.levelNote})` : layer.title(yrs[L]);
+    const title = layer.crime ? (EN ? `${TYPE[t].label} per 100,000 residents (${cm.levelNote})` : `${TYPE[t].label} ogni 100.000 residenti (${cm.levelNote})`) : layer.title(yrs[L]);
     const out = { rows, ranked, byId: new Map(rows.map((r) => [r.a.id, r])), yrs, L, iB, layer, ref, title, rare, t, cm, crow, fmt: layer.crime ? fmtRate : layer.fmt };
     qcache.set(key, out);
     return out;
@@ -1760,17 +1933,17 @@
     const M = q.d.meta;
     const btns = QLAYERS.filter((l) => !l.crime || q.crime).map((l) => `<button type="button" data-ql="${l.id}" aria-pressed="${l.id === state.qLayer}">${esc(l.label)}</button>`).join("");
     return `<section class="quart" aria-labelledby="quart-title">
-      <h3 class="subhead" id="quart-title">${esc(M.name)} quartiere per quartiere</h3>
-      <p class="small quart-dek">${esc(M.unit.long)}: ${q.areas.length} quartieri. Confini, residenti e pendolari dal portale open data del Comune di ${esc(M.name)}. I residenti sono quelli dell’anagrafe comunale, un po’ più dei residenti ISTAT usati nel resto dell’atlante. Tocca un quartiere, sulla mappa o nella classifica, per la sua scheda.</p>
+      <h3 class="subhead" id="quart-title">${esc(M.name)} ${L("quartiere per quartiere", "neighbourhood by neighbourhood")}</h3>
+      <p class="small quart-dek">${EN ? `${esc(qtx(M.unit.long))}: ${q.areas.length} neighbourhoods. Boundaries, residents and commuters come from the open data portal of the city of ${esc(M.name)}. Residents are those on the city’s own population register, slightly more than the ISTAT residents used in the rest of the atlas. Tap a neighbourhood, on the map or in the ranking, for its profile.` : `${esc(M.unit.long)}: ${q.areas.length} quartieri. Confini, residenti e pendolari dal portale open data del Comune di ${esc(M.name)}. I residenti sono quelli dell’anagrafe comunale, un po’ più dei residenti ISTAT usati nel resto dell’atlante. Tocca un quartiere, sulla mappa o nella classifica, per la sua scheda.`}</p>
       <div class="prov-note quart-note" id="quart-note"></div>
-      <div class="chips"><span class="small">Strato</span><div class="seg" id="quart-seg">${btns}</div></div>
+      <div class="chips"><span class="small">${L("Strato", "Layer")}</span><div class="seg" id="quart-seg">${btns}</div></div>
       <div class="quart-grid">
         <div class="quart-mapbox" id="quart-mapbox"><div id="quart-map"></div><div class="legend" id="quart-legend"></div></div>
         <div>
           <div class="rank-cols quart-ranks"><div class="rank"><h3 id="quart-top-title"></h3><ol id="quart-top"></ol></div><div class="rank"><h3 id="quart-bottom-title"></h3><ol id="quart-bottom"></ol></div></div>
           <p class="note" id="quart-rank-note"></p>
           <div id="quart-sel"></div>
-          <details class="full"><summary>Tutti i ${q.areas.length} quartieri (tabella)</summary><div class="tablewrap"><table id="quart-table"></table></div></details>
+          <details class="full"><summary>${EN ? `All ${q.areas.length} neighbourhoods (table)` : `Tutti i ${q.areas.length} quartieri (tabella)`}</summary><div class="tablewrap"><table id="quart-table"></table></div></details>
         </div>
       </div>
     </section>`;
@@ -1781,7 +1954,7 @@
     const m = quartModel(q), M = q.d.meta;
     const note = $("#quart-note");
     note.hidden = !!q.crime;
-    if (!q.crime) note.innerHTML = `<p>${esc(M.gap)} Qui ci sono i dati che il Comune di ${esc(M.name)} pubblica sui suoi quartieri: residenti, densità, stranieri, età ed edifici degradati.</p>`;
+    if (!q.crime) note.innerHTML = EN ? `<p>${esc(qtx(M.gap))} Here are the figures the city of ${esc(M.name)} publishes on its neighbourhoods: residents, density, foreign residents, age and run-down buildings.</p>` : `<p>${esc(M.gap)} Qui ci sono i dati che il Comune di ${esc(M.name)} pubblica sui suoi quartieri: residenti, densità, stranieri, età ed edifici degradati.</p>`;
     $("#quart-seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.ql === state.qLayer));
     const sec = $(".quart");
     if (!sec._wired) {
@@ -1797,13 +1970,14 @@
 
   function quartTip(q, m, r) {
     const a = r.a;
-    const head = `<b>${esc(a.name)}</b> · Municipio ${a.mun}<br>`;
+    const head = `<b>${esc(a.name)}</b> · ${L("Municipio", "District")} ${a.mun}<br>`;
     if (m.layer.crime) {
-      const s = sig(r.cmp), note = s === "flat" ? " (non significativa)" : "";
-      return head + `${esc(TYPE[m.t].label)}: ${r.few ? "meno di 1.000 residenti, nessun tasso" : `${fmtRate(r.lvl)} ogni 100.000 residenti`} (${nf0.format(r.nl)} casi, ${m.cm.levelNote})` +
-        (r.rank ? `<br>${r.rank}° su ${m.ranked.length} · rispetto al ${state.cardBase}: ${fmtPct(r.cmp && r.cmp.pct)}${note}` : "") + `<br>${nf0.format(r.pop)} residenti`;
+      const s = sig(r.cmp), note = s === "flat" ? L(" (non significativa)", " (not significant)") : "";
+      return head + (EN ? `${esc(TYPE[m.t].label)}: ${r.few ? "fewer than 1,000 residents, no rate" : `${fmtRate(r.lvl)} per 100,000 residents`} (${nf0.format(r.nl)} cases, ${m.cm.levelNote})` +
+        (r.rank ? `<br>${ordinal(r.rank)} of ${m.ranked.length} · compared with ${state.cardBase}: ${fmtPct(r.cmp && r.cmp.pct)}${note}` : "") + `<br>${nf0.format(r.pop)} residents` : `${esc(TYPE[m.t].label)}: ${r.few ? "meno di 1.000 residenti, nessun tasso" : `${fmtRate(r.lvl)} ogni 100.000 residenti`} (${nf0.format(r.nl)} casi, ${m.cm.levelNote})` +
+        (r.rank ? `<br>${r.rank}° su ${m.ranked.length} · rispetto al ${state.cardBase}: ${fmtPct(r.cmp && r.cmp.pct)}${note}` : "") + `<br>${nf0.format(r.pop)} residenti`);
     }
-    return head + `${esc(m.title)}: ${r.lvl == null ? "meno di 1.000 residenti" : m.fmt(r.lvl)}` + (m.layer.id === "pop" ? "" : `<br>${nf0.format(r.pop)} residenti`);
+    return head + `${esc(m.title)}: ${r.lvl == null ? L("meno di 1.000 residenti", "fewer than 1,000 residents") : m.fmt(r.lvl)}` + (m.layer.id === "pop" ? "" : `<br>${nf0.format(r.pop)} ${L("residenti", "residents")}`);
   }
 
   function hotQuart(id, on) {
@@ -1829,7 +2003,7 @@
     const proj = d3.geoMercator().fitExtent([[4, 4], [w - 4, h - 4]], fc);
     const path = d3.geoPath(proj);
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("class", "qmap").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", `Mappa dei quartieri di ${q.d.meta.name}: ${m.title}`);
+      .attr("role", "img").attr("aria-label", EN ? `Map of the neighbourhoods of ${q.d.meta.name}: ${m.title}` : `Mappa dei quartieri di ${q.d.meta.name}: ${m.title}`);
     svg.selectAll("*").remove();
     const pat = svg.append("defs").append("pattern").attr("id", "qhatch").attr("width", 6).attr("height", 6).attr("patternUnits", "userSpaceOnUse").attr("patternTransform", "rotate(45)");
     pat.append("rect").attr("width", 6).attr("height", 6).style("fill", "var(--land)");
@@ -1864,27 +2038,27 @@
     });
     const bar = `linear-gradient(to right, ${col(0)}, ${col(hi * 0.25)}, ${col(hi * 0.5)}, ${col(hi * 0.75)}, ${col(hi)})`;
     $("#quart-legend").innerHTML = `
-      <div class="lg"><div class="lg-t">${esc(m.title)}</div><div class="lg-bar" style="background:${bar}"></div><div class="lg-ticks"><span>0</span><span>${m.fmt(hi / 2)}</span><span>${m.fmt(hi)}${top > hi ? " o più" : ""}</span></div></div>
-      <div class="lg"><div class="lg-t">Confini</div><div class="lg-row"><i class="k-mun"></i>municipi</div>${m.rows.some((r) => r.lvl == null) ? `<div class="lg-row"><i class="k-hatch"></i>meno di ${nf0.format(QFEW)} residenti: nessun ${layer.crime || layer.pct ? "tasso" : "valore"}</div>` : ""}</div>`;
+      <div class="lg"><div class="lg-t">${esc(m.title)}</div><div class="lg-bar" style="background:${bar}"></div><div class="lg-ticks"><span>0</span><span>${m.fmt(hi / 2)}</span><span>${m.fmt(hi)}${top > hi ? L(" o più", " or more") : ""}</span></div></div>
+      <div class="lg"><div class="lg-t">${L("Confini", "Boundaries")}</div><div class="lg-row"><i class="k-mun"></i>${L("municipi", "districts")}</div>${m.rows.some((r) => r.lvl == null) ? `<div class="lg-row"><i class="k-hatch"></i>${EN ? `fewer than ${nf0.format(QFEW)} residents: no ${layer.crime || layer.pct ? "rate" : "value"}` : `meno di ${nf0.format(QFEW)} residenti: nessun ${layer.crime || layer.pct ? "tasso" : "valore"}`}</div>` : ""}</div>`;
   }
 
   function renderQuartRank(q, m) {
     const top = m.ranked.slice(0, 10);
     const bottom = m.ranked.slice().sort((a, b) => a.lvl - b.lvl || b.pop - a.pop).slice(0, 10);
     const maxL = top[0] ? top[0].lvl : 1;
-    $("#quart-top-title").textContent = m.layer.crime ? "Più denunce" : "Più alto";
-    $("#quart-bottom-title").textContent = m.layer.crime ? "Meno denunce" : "Più basso";
+    $("#quart-top-title").textContent = m.layer.crime ? L("Più denunce", "Most reports") : L("Più alto", "Highest");
+    $("#quart-bottom-title").textContent = m.layer.crime ? L("Meno denunce", "Fewest reports") : L("Più basso", "Lowest");
     // il punto: per i reati vale il test statistico, per i residenti basta il segno della variazione (oltre il 3%)
     const dot = (r) => (!r.cmp ? "none" : m.layer.crime ? sig(r.cmp) : r.cmp.pct > 0.03 ? "up" : r.cmp.pct < -0.03 ? "down" : "flat");
-    const li = (r) => `<li data-q="${r.a.id}"${r.a.id === state.qSel ? ' class="sel"' : ""}><span class="pos">${r.rank}</span><span class="dotc ${dot(r)}"${r.cmp ? ` title="Rispetto al ${state.cardBase}: ${fmtPct(r.cmp.pct)}"` : ""}></span><button type="button" data-q="${r.a.id}" title="${esc(r.a.name)}">${esc(r.a.short)}</button>` +
+    const li = (r) => `<li data-q="${r.a.id}"${r.a.id === state.qSel ? ' class="sel"' : ""}><span class="pos">${r.rank}</span><span class="dotc ${dot(r)}"${r.cmp ? ` title="${L("Rispetto al", "Compared with")} ${state.cardBase}: ${fmtPct(r.cmp.pct)}"` : ""}></span><button type="button" data-q="${r.a.id}" title="${esc(r.a.name)}">${esc(r.a.short)}</button>` +
       `<span class="bar" aria-hidden="true"><i style="width:${(100 * r.lvl) / maxL}%"></i>${m.ref != null ? `<b style="left:${Math.min(100, (100 * m.ref) / maxL)}%"></b>` : ""}</span><span class="val">${m.fmt(r.lvl)}</span></li>`;
     $("#quart-top").innerHTML = top.map(li).join("");
     $("#quart-bottom").innerHTML = bottom.map(li).join("");
     const few = m.rows.length - m.ranked.length;
-    let note = m.ref != null ? `La linea sottile su ogni barra è il valore di tutta ${esc(q.d.meta.name)}: ${m.fmt(m.ref)}. ` : "";
-    if (m.layer.crime) note += `Il punto colorato dice se il quartiere è salito o sceso rispetto al ${state.cardBase}. `;
-    else if (m.layer.id === "pop") note += `Il punto colorato dice se i residenti sono cresciuti o calati di oltre il 3% rispetto al ${state.cardBase}. `;
-    if (few) note += `${few} quartieri con meno di ${nf0.format(QFEW)} residenti, parchi o aree industriali, restano fuori dalla classifica.`;
+    let note = m.ref != null ? EN ? `The thin line on each bar is the value for ${esc(q.d.meta.name)} as a whole: ${m.fmt(m.ref)}. ` : `La linea sottile su ogni barra è il valore di tutta ${esc(q.d.meta.name)}: ${m.fmt(m.ref)}. ` : "";
+    if (m.layer.crime) note += EN ? `The coloured dot shows whether the neighbourhood has gone up or down compared with ${state.cardBase}. ` : `Il punto colorato dice se il quartiere è salito o sceso rispetto al ${state.cardBase}. `;
+    else if (m.layer.id === "pop") note += EN ? `The coloured dot shows whether residents have grown or fallen by more than 3% compared with ${state.cardBase}. ` : `Il punto colorato dice se i residenti sono cresciuti o calati di oltre il 3% rispetto al ${state.cardBase}. `;
+    if (few) note += EN ? `${few} ${few === 1 ? "neighbourhood" : "neighbourhoods"} with fewer than ${nf0.format(QFEW)} residents, parks or industrial areas, ${few === 1 ? "is" : "are"} left out of the ranking.` : `${few} quartieri con meno di ${nf0.format(QFEW)} residenti, parchi o aree industriali, restano fuori dalla classifica.`;
     $("#quart-rank-note").innerHTML = note;
   }
 
@@ -1898,27 +2072,30 @@
     const pct = (num, den) => (den ? nf1.format((100 * num) / den) + "%" : "–");
     let body;
     if (crime) {
-      const s = sig(r.cmp), sigText = s === "flat" ? ", variazione non significativa" : s === "up" ? ", aumento significativo" : s === "down" ? ", calo significativo" : "";
+      const s = sig(r.cmp), sigText = s === "flat" ? (EN ? ", not a significant change" : ", variazione non significativa") : s === "up" ? (EN ? ", significant rise" : ", aumento significativo") : s === "down" ? (EN ? ", significant fall" : ", calo significativo") : "";
       const spikes = (r.an || []).filter((x) => x && x.flag === "spike").map((x) => x.y);
-      const txt = r.few ? `Meno di ${nf0.format(QFEW)} residenti: ${nf0.format(r.n[L] ?? 0)} casi nel ${yrs[L]}, ma nessun tasso ha senso.`
-        : `${nf0.format(r.n[L] ?? 0)} casi di ${esc(lower(TYPE[m.t].label))} nel ${yrs[L]}: ${fmtRate(r.s[L])} ogni 100.000 residenti, contro ${fmtRate(m.crow ? m.crow.s[LAST] : null)} in tutta ${esc(name)} · ${r.rank}° su ${m.ranked.length} quartieri · ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${state.cardBase}${sigText}.${spikes.length ? ` Impennate: ${spikes.join(", ")}.` : ""}`;
-      body = `<p class="chart-title">${esc(TYPE[m.t].label)} ogni 100.000 residenti, ${yrs[0]}–${yrs[L]}</p>
+      const txt = r.few ? (EN ? `Fewer than ${nf0.format(QFEW)} residents: ${nf0.format(r.n[L] ?? 0)} cases in ${yrs[L]}, but no rate would be meaningful.` : `Meno di ${nf0.format(QFEW)} residenti: ${nf0.format(r.n[L] ?? 0)} casi nel ${yrs[L]}, ma nessun tasso ha senso.`)
+        : EN ? `${nf0.format(r.n[L] ?? 0)} cases of ${esc(lower(TYPE[m.t].label))} in ${yrs[L]}: ${fmtRate(r.s[L])} per 100,000 residents, against ${fmtRate(m.crow ? m.crow.s[LAST] : null)} for ${esc(name)} as a whole · ${ordinal(r.rank)} of ${m.ranked.length} neighbourhoods · ${fmtPct(r.cmp && r.cmp.pct)} compared with ${state.cardBase}${sigText}.${spikes.length ? ` Spikes: ${spikes.join(", ")}.` : ""}` : `${nf0.format(r.n[L] ?? 0)} casi di ${esc(lower(TYPE[m.t].label))} nel ${yrs[L]}: ${fmtRate(r.s[L])} ogni 100.000 residenti, contro ${fmtRate(m.crow ? m.crow.s[LAST] : null)} in tutta ${esc(name)} · ${r.rank}° su ${m.ranked.length} quartieri · ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${state.cardBase}${sigText}.${spikes.length ? ` Impennate: ${spikes.join(", ")}.` : ""}`;
+      body = EN ? `<p class="chart-title">${esc(TYPE[m.t].label)} per 100,000 residents, ${yrs[0]}–${yrs[L]}</p>
+        <div class="key" aria-hidden="true"><span><i class="k-city"></i>neighbourhood</span><span><i class="k-it"></i>${esc(name)}</span><span><i class="k-gold"></i>spike</span><span><i class="k-covid"></i>2020–21</span></div>
+        <svg id="quart-spark" aria-hidden="true"></svg><p class="small qsel-note">${txt}</p>` : `<p class="chart-title">${esc(TYPE[m.t].label)} ogni 100.000 residenti, ${yrs[0]}–${yrs[L]}</p>
         <div class="key" aria-hidden="true"><span><i class="k-city"></i>quartiere</span><span><i class="k-it"></i>${esc(name)}</span><span><i class="k-gold"></i>impennata</span><span><i class="k-covid"></i>2020–21</span></div>
         <svg id="quart-spark" aria-hidden="true"></svg><p class="small qsel-note">${txt}</p>`;
     } else {
       const ch = a.pop[m.iB] ? fmtPct(a.pop[L] / a.pop[m.iB] - 1) : "–";
-      body = `<p class="chart-title">Residenti dal ${yrs[0]} al ${yrs[L]}</p><svg id="quart-spark" aria-hidden="true"></svg>
+      body = EN ? `<p class="chart-title">Residents from ${yrs[0]} to ${yrs[L]}</p><svg id="quart-spark" aria-hidden="true"></svg>
+        <p class="small qsel-note">${nf0.format(a.pop[L])} residents in ${yrs[L]}, ${ch} compared with ${state.cardBase}; foreign residents ${pct(a.str[L], a.pop[L])}, aged 65 and over ${pct(a.old[L], a.pop[L])}, single-person households ${pct(a.single[L], a.fam[L])}.</p>` : `<p class="chart-title">Residenti dal ${yrs[0]} al ${yrs[L]}</p><svg id="quart-spark" aria-hidden="true"></svg>
         <p class="small qsel-note">${nf0.format(a.pop[L])} residenti nel ${yrs[L]}, ${ch} rispetto al ${state.cardBase}; stranieri ${pct(a.str[L], a.pop[L])}, 65 anni e più ${pct(a.old[L], a.pop[L])}, famiglie di una sola persona ${pct(a.single[L], a.fam[L])}.</p>`;
     }
     el.innerHTML = `<div class="qsel">
-      <div class="kicker">Quartiere · Municipio ${a.mun} · ${nf2.format(a.km2)} km²</div>
+      <div class="kicker">${EN ? "Neighbourhood · District" : "Quartiere · Municipio"} ${a.mun} · ${nf2.format(a.km2)} km²</div>
       <h4>${esc(a.name)}</h4>
       <div class="facts">
-        <div class="fact"><div class="fv">${nf0.format(a.pop[L])}</div><div class="fl">residenti nel ${yrs[L]} · ${a.km2 ? nf0.format(a.pop[L] / a.km2) : "–"} per km²</div></div>
-        <div class="fact"><div class="fv">${pct(a.str[L], a.pop[L])}</div><div class="fl">stranieri</div></div>
-        <div class="fact"><div class="fv">${pct(a.old[L], a.pop[L])}</div><div class="fl">65 anni e più</div></div>
-        <div class="fact"><div class="fv">${nf0.format(a.com)}</div><div class="fl">pendolari in entrata al giorno per lavoro o studio (censimento 2011)</div></div>
-        <div class="fact"><div class="fv">${nf0.format(a.degr)}</div><div class="fl">edifici degradati censiti nel 2014–17</div></div>
+        <div class="fact"><div class="fv">${nf0.format(a.pop[L])}</div><div class="fl">${EN ? `residents in ${yrs[L]}` : `residenti nel ${yrs[L]}`} · ${a.km2 ? nf0.format(a.pop[L] / a.km2) : "–"} per km²</div></div>
+        <div class="fact"><div class="fv">${pct(a.str[L], a.pop[L])}</div><div class="fl">${EN ? "foreign residents" : "stranieri"}</div></div>
+        <div class="fact"><div class="fv">${pct(a.old[L], a.pop[L])}</div><div class="fl">${EN ? "aged 65 and over" : "65 anni e più"}</div></div>
+        <div class="fact"><div class="fv">${nf0.format(a.com)}</div><div class="fl">${EN ? "commuters coming in each day for work or study (2011 census)" : "pendolari in entrata al giorno per lavoro o studio (censimento 2011)"}</div></div>
+        <div class="fact"><div class="fv">${nf0.format(a.degr)}</div><div class="fl">${EN ? "run-down buildings recorded in 2014–17" : "edifici degradati censiti nel 2014–17"}</div></div>
       </div>
       ${body}
     </div>`;
@@ -1931,10 +2108,10 @@
       const vals = padded(r.s), city = m.crow ? m.crow.s : [];
       const an = padded(r.an.map((x) => (x ? { ...x, i: x.i + pad } : null)));
       drawSpark(svg, { w, h: 56, values: vals, italy: city, an, yMax: Math.max(d3.max(vals, (v) => v || 0) || 0, d3.max(city, (v) => v || 0) || 0) * 1.08,
-        hover: (i) => `<b>${Y[i]}</b><br>${nf0.format(r.n[i - pad] ?? 0)} casi, ${fmtRate(vals[i])} ogni 100.000 residenti (${esc(name)} ${fmtRate(city[i])})` });
+        hover: (i) => EN ? `<b>${Y[i]}</b><br>${nf0.format(r.n[i - pad] ?? 0)} cases, ${fmtRate(vals[i])} per 100,000 residents (${esc(name)} ${fmtRate(city[i])})` : `<b>${Y[i]}</b><br>${nf0.format(r.n[i - pad] ?? 0)} casi, ${fmtRate(vals[i])} ogni 100.000 residenti (${esc(name)} ${fmtRate(city[i])})` });
     } else {
       const vals = padded(a.pop);
-      drawSpark(svg, { w, h: 56, values: vals, yMax: (d3.max(vals, (v) => v || 0) || 1) * 1.08, hover: (i) => `<b>${Y[i]}</b>: ${nf0.format(vals[i])} residenti` });
+      drawSpark(svg, { w, h: 56, values: vals, yMax: (d3.max(vals, (v) => v || 0) || 1) * 1.08, hover: (i) => EN ? `<b>${Y[i]}</b>: ${nf0.format(vals[i])} residents` : `<b>${Y[i]}</b>: ${nf0.format(vals[i])} residenti` });
     }
   }
 
@@ -1942,9 +2119,9 @@
     const crime = m.layer.crime, L = m.L;
     const rows = m.ranked.concat(m.rows.filter((r) => r.lvl == null));
     const head = crime
-      ? `<th class="num">Casi (${m.cm.levelNote})</th><th class="num">Ogni 100.000 res.</th><th class="num">Var. su ${state.cardBase}</th>`
+      ? (EN ? `<th class="num">Cases (${m.cm.levelNote})</th><th class="num">Per 100,000 res.</th><th class="num">Change vs ${state.cardBase}</th>` : `<th class="num">Casi (${m.cm.levelNote})</th><th class="num">Ogni 100.000 res.</th><th class="num">Var. su ${state.cardBase}</th>`)
       : `<th class="num" title="${esc(m.title)}">${esc(m.layer.label)}${m.layer.pct ? " %" : ""}</th>`;
-    $("#quart-table").innerHTML = `<thead><tr><th class="num">#</th><th>Quartiere</th><th class="num">Municipio</th><th class="num">Residenti ${m.yrs[L]}</th>${head}</tr></thead><tbody>` +
+    $("#quart-table").innerHTML = `<thead><tr><th class="num">#</th><th>${EN ? "Neighbourhood" : "Quartiere"}</th><th class="num">${EN ? "District" : "Municipio"}</th><th class="num">${EN ? "Residents" : "Residenti"} ${m.yrs[L]}</th>${head}</tr></thead><tbody>` +
       rows.map((r) => `<tr><td class="num">${r.rank || ""}</td><td><button type="button" class="link" data-q="${r.a.id}">${esc(r.a.name)}</button></td><td class="num">${r.a.mun}</td><td class="num">${nf0.format(r.pop)}</td>` +
         (crime ? `<td class="num">${nf0.format(r.nl ?? 0)}</td><td class="num">${r.lvl == null ? "–" : fmtRate(r.lvl)}</td><td class="num">${r.cmp ? chgHTML(r.cmp) : "–"}</td>` : `<td class="num">${r.lvl == null ? "–" : m.fmt(r.lvl)}</td>`) + "</tr>").join("") +
       `</tbody>`;
@@ -1970,7 +2147,7 @@
         // reati rari senza conteggi: un anno contro un anno è rumore, si confrontano due medie triennali
         const before = s.slice(iB - 2, iB + 1);
         if (!win.some((v) => v == null) && !before.some((v) => v == null) && d3.sum(before) > 0) {
-          cmp = { pct: d3.sum(win) / d3.sum(before) - 1, z: null, win: `media ${Y[LAST - 2]}–${Y[LAST]} su ${Y[iB - 2]}–${Y[iB]}` };
+          cmp = { pct: d3.sum(win) / d3.sum(before) - 1, z: null, win: EN ? `${Y[LAST - 2]}–${Y[LAST]} average vs ${Y[iB - 2]}–${Y[iB]}` : `media ${Y[LAST - 2]}–${Y[LAST]} su ${Y[iB - 2]}–${Y[iB]}`, winY: [Y[LAST - 2], Y[LAST], Y[iB - 2], Y[iB]] };
         }
       }
       return { id, p, s, lvl, cmp, an: counts ? anomalies(p, t) : null };
@@ -1994,65 +2171,67 @@
     const unit = (UNITS && UNITS[e.sigla]) || P.name;
     const first = Y[P.rate.TOT.findIndex((v) => v != null)];
     const counts = PROV_META.counts;
-    $("#city-kicker").textContent = `Comune · ${unit} (${e.sigla}) · ${P.region}`;
+    $("#city-kicker").textContent = EN ? `Municipality · ${unit} (${e.sigla}) · ${P.region}` : `Comune · ${unit} (${e.sigla}) · ${P.region}`;
     $("#city-name").textContent = e.alt ? `${e.name} / ${e.alt}` : e.name;
     const s = sig(r.cmp);
-    const sigText = s === "flat" ? " · variazione non significativa" : s === "up" ? " · aumento significativo" : s === "down" ? " · calo significativo" : "";
-    const capWord = caps.length > 1 ? `compresi i capoluoghi ${esc(andList(caps.map((c) => c.name)))}` : `compreso il capoluogo, ${esc(cap.name)}`;
+    const sigText = s === "flat" ? L(" · variazione non significativa", " · not a significant change") : s === "up" ? L(" · aumento significativo", " · significant rise") : s === "down" ? L(" · calo significativo", " · significant fall") : "";
+    const capWord = caps.length > 1 ? EN ? `including the provincial capitals ${esc(andList(caps.map((c) => c.name)))}` : `compresi i capoluoghi ${esc(andList(caps.map((c) => c.name)))}` : EN ? `including the provincial capital, ${esc(cap.name)}` : `compreso il capoluogo, ${esc(cap.name)}`;
     const extra = [];
-    if (P.region === "Sardegna" && normQ(unit) !== normQ(P.name)) extra.push(`In Sardegna l’ISTAT conta i reati secondo le quattro province storiche. Secondo l’elenco ufficiale dei comuni, tra il 1995 e il 2005 ${esc(e.name)} era in provincia di ${esc(P.name)}: per questo la scheda usa i dati di quella provincia.`);
-    if (first > Y[0]) extra.push(`La provincia di ${esc(P.name)} ha dati dal ${first}: prima i suoi comuni erano contati nelle province da cui provengono.`);
+    if (P.region === "Sardegna" && normQ(unit) !== normQ(P.name)) extra.push(EN ? `In Sardegna ISTAT counts crimes by the four historical provinces. According to the official list of municipalities, between 1995 and 2005 ${esc(e.name)} was in the province of ${esc(P.name)}: that is why this profile uses that province’s data.` : `In Sardegna l’ISTAT conta i reati secondo le quattro province storiche. Secondo l’elenco ufficiale dei comuni, tra il 1995 e il 2005 ${esc(e.name)} era in provincia di ${esc(P.name)}: per questo la scheda usa i dati di quella provincia.`);
+    if (first > Y[0]) extra.push(EN ? `The province of ${esc(P.name)} has data from ${first}: before then its municipalities were counted in the provinces they came from.` : `La provincia di ${esc(P.name)} ha dati dal ${first}: prima i suoi comuni erano contati nelle province da cui provengono.`);
     const rows = TYPES.map((tt) => ({ t: tt, row: provModel(tt.id).byId.get(e.prov) }));
     const iB = Y.indexOf(state.cardBase);
     const movers = moversHTML(rows, (tt, row) => {
-      if (counts) return `${nf0.format(P.n[tt.id][LAST] ?? 0)} casi in provincia nel ${Y[LAST]}, ${nf0.format(P.n[tt.id][iB] ?? 0)} nel ${state.cardBase}`;
-      if (row.cmp.win) return `Media ${Y[LAST - 2]}–${Y[LAST]}: ${fmtRate(d3.mean(row.s.slice(LAST - 2)))} ogni 100.000 ab., contro ${fmtRate(d3.mean(row.s.slice(iB - 2, iB + 1)))} nel ${Y[iB - 2]}–${Y[iB]} (reato raro)`;
-      return `${fmtRate(row.s[LAST])} ogni 100.000 ab. nel ${Y[LAST]}, ${fmtRate(row.s[iB])} nel ${state.cardBase}`;
+      if (counts) return EN ? `${nf0.format(P.n[tt.id][LAST] ?? 0)} cases in the province in ${Y[LAST]}, ${nf0.format(P.n[tt.id][iB] ?? 0)} in ${state.cardBase}` : `${nf0.format(P.n[tt.id][LAST] ?? 0)} casi in provincia nel ${Y[LAST]}, ${nf0.format(P.n[tt.id][iB] ?? 0)} nel ${state.cardBase}`;
+      if (row.cmp.win) return EN ? `${Y[LAST - 2]}–${Y[LAST]} average: ${fmtRate(d3.mean(row.s.slice(LAST - 2)))} per 100,000 res., against ${fmtRate(d3.mean(row.s.slice(iB - 2, iB + 1)))} in ${Y[iB - 2]}–${Y[iB]} (rare crime)` : `Media ${Y[LAST - 2]}–${Y[LAST]}: ${fmtRate(d3.mean(row.s.slice(LAST - 2)))} ogni 100.000 ab., contro ${fmtRate(d3.mean(row.s.slice(iB - 2, iB + 1)))} nel ${Y[iB - 2]}–${Y[iB]} (reato raro)`;
+      return EN ? `${fmtRate(row.s[LAST])} per 100,000 res. in ${Y[LAST]}, ${fmtRate(row.s[iB])} in ${state.cardBase}` : `${fmtRate(row.s[LAST])} ogni 100.000 ab. nel ${Y[LAST]}, ${fmtRate(row.s[iB])} nel ${state.cardBase}`;
     }, counts);
     $("#city-body").innerHTML = `
       <div class="card-head">
       <div class="prov-note">
-        <p><strong>L’ISTAT pubblica i reati denunciati comune per comune solo per i 108 capoluoghi.</strong> Per ${esc(e.name)} il dato ufficiale più vicino è quello di tutta la provincia di ${esc(P.name)}: ${nf0.format(P.comuni)} comuni, ${capWord}. I numeri di questa scheda descrivono quindi la provincia, non il solo comune di ${esc(e.name)}.</p>
+        <p>${EN ? `<strong>ISTAT publishes reported crimes municipality by municipality only for the 108 provincial capitals.</strong> For ${esc(e.name)} the closest official figure is the one for the whole province of ${esc(P.name)}: ${nf0.format(P.comuni)} municipalities, ${capWord}. The numbers in this profile therefore describe the province, not just the municipality of ${esc(e.name)}.` : `<strong>L’ISTAT pubblica i reati denunciati comune per comune solo per i 108 capoluoghi.</strong> Per ${esc(e.name)} il dato ufficiale più vicino è quello di tutta la provincia di ${esc(P.name)}: ${nf0.format(P.comuni)} comuni, ${capWord}. I numeri di questa scheda descrivono quindi la provincia, non il solo comune di ${esc(e.name)}.`}</p>
         ${extra.map((x) => `<p>${x}</p>`).join("")}
-        <div class="btns">${caps.map((c) => `<button type="button" class="btn" data-open-city="${c.id}">Apri la scheda di ${esc(c.name)}</button>`).join("")}</div>
+        <div class="btns">${caps.map((c) => `<button type="button" class="btn" data-open-city="${c.id}">${EN ? `Open the ${esc(c.name)} profile` : `Apri la scheda di ${esc(c.name)}`}</button>`).join("")}</div>
       </div>
       ${locMap(e.lon, e.lat, e.name)}
       </div>
-      ${verdictHTML({ t, where: `in provincia di ${esc(P.name)}`, lvl: r.lvl, it: m.itLvl, rank: r.rank, n: pm.ranked.length, unit: "province", cmp: r.cmp })}
+      ${verdictHTML({ t, where: EN ? `in the province of ${esc(P.name)}` : `in provincia di ${esc(P.name)}`, lvl: r.lvl, it: m.itLvl, rank: r.rank, n: pm.ranked.length, unit: "province", cmp: r.cmp })}
       <div class="facts">
-        <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti in provincia (${m.levelNote}) · ${r.rank}° su ${pm.ranked.length} province · Italia ${fmtRate(m.itLvl)}</div></div>
-        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))} in provincia: ${r.cmp && r.cmp.win ? r.cmp.win + " (reato raro)" : !r.cmp && m.rare && !counts ? "reato raro, troppo pochi anni per un confronto" : `${Y[LAST]} rispetto al ${state.cardBase}`}${sigText}</div></div>
-        ${t !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">tutti i delitti ogni 100.000 abitanti in provincia nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}</div></div>` : ""}
-        ${capRow ? `<div class="fact"><div class="fv">${fmtRate(capRow.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti nel solo comune di ${esc(cap.name)}, il capoluogo (${m.levelNote})</div></div>` : ""}
-        ${percFact(P.perc, "della provincia")}
+        <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ${EN ? `per 100,000 residents in the province (${m.levelNote}) · ${ordinal(r.rank)} of ${pm.ranked.length} provinces · Italy ${fmtRate(m.itLvl)}` : `ogni 100.000 abitanti in provincia (${m.levelNote}) · ${r.rank}° su ${pm.ranked.length} province · Italia ${fmtRate(m.itLvl)}`}</div></div>
+        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))} ${L("in provincia", "in the province")}: ${r.cmp && r.cmp.win ? r.cmp.win + L(" (reato raro)", " (rare crime)") : !r.cmp && m.rare && !counts ? L("reato raro, troppo pochi anni per un confronto", "rare crime, too few years for a comparison") : `${Y[LAST]} ${L("rispetto al", "compared with")} ${state.cardBase}`}${sigText}</div></div>
+        ${t !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">${EN ? `all crimes per 100,000 residents in the province in ${Y[LAST]} · ${ordinal(tr.rank)} of ${tm.ranked.length}` : `tutti i delitti ogni 100.000 abitanti in provincia nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}`}</div></div>` : ""}
+        ${capRow ? `<div class="fact"><div class="fv">${fmtRate(capRow.lvl)}</div><div class="fl">${esc(lower(m.label))} ${EN ? `per 100,000 residents in the municipality of ${esc(cap.name)} alone, the provincial capital (${m.levelNote})` : `ogni 100.000 abitanti nel solo comune di ${esc(cap.name)}, il capoluogo (${m.levelNote})`}</div></div>` : ""}
+        ${percFact(P.perc, L("della provincia", "in the province"))}
       </div>
       ${movers}
-      ${chartBlock(m.label + " in provincia di " + P.name, `<span><i class="k-city"></i>provincia di ${esc(P.name)}</span>${capRow ? `<span><i class="k-prov"></i>${esc(cap.name)}, capoluogo</span>` : ""}<span><i class="k-it"></i>Italia</span>${counts ? `<span><i class="k-gold"></i>impennata</span>` : ""}`)}
+      ${chartBlock(m.label + L(" in provincia di ", " in the province of ") + P.name, `<span><i class="k-city"></i>${L("provincia di", "province of")} ${esc(P.name)}</span>${capRow ? `<span><i class="k-prov"></i>${esc(cap.name)}, ${L("capoluogo", "provincial capital")}</span>` : ""}<span><i class="k-it"></i>${L("Italia", "Italy")}</span>${counts ? `<span><i class="k-gold"></i>${L("impennata", "spike")}</span>` : ""}`)}
       ${counts ? `<p class="note">${spikeNote((id) => provModel(id).byId.get(e.prov))}</p>` : ""}
-      <h3 class="subhead">Tutti i reati in provincia di ${esc(P.name)}</h3>
-      <p class="small">Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.</p>
+      <h3 class="subhead">${L("Tutti i reati in provincia di", "Every crime type in the province of")} ${esc(P.name)}</h3>
+      <p class="small">${L("Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.", "Each panel has its own scale. Grey line: Italy. Tap a crime to see it in this profile.")}</p>
       <div class="sm-grid" id="city-grid"></div>
-      <h3 class="subhead">${esc(m.label)}: i numeri anno per anno</h3>
-      <div class="tablewrap"><table><thead><tr><th>Anno</th>${counts ? `<th class="num">Casi in provincia</th>` : ""}<th class="num">Provincia, ogni 100.000 ab.</th>${capRow ? `<th class="num">${esc(cap.name)}</th>` : ""}<th class="num">Italia</th><th>Nota</th></tr></thead><tbody>
+      <h3 class="subhead">${esc(m.label)}: ${L("i numeri anno per anno", "year by year")}</h3>
+      <div class="tablewrap"><table><thead><tr><th>${L("Anno", "Year")}</th>${counts ? `<th class="num">${L("Casi in provincia", "Cases in the province")}</th>` : ""}<th class="num">${L("Provincia, ogni 100.000 ab.", "Province, per 100,000 res.")}</th>${capRow ? `<th class="num">${esc(cap.name)}</th>` : ""}<th class="num">${L("Italia", "Italy")}</th><th>${L("Nota", "Note")}</th></tr></thead><tbody>
         ${Y.map((yr, i) => {
           const a = r.an && r.an[i];
-          const note = COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `Impennata (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `Calo netto (${fmtPct(a.rr - 1)})` : "";
+          const note = COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `${L("Impennata", "Spike")} (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `${L("Calo netto", "Sharp fall")} (${fmtPct(a.rr - 1)})` : "";
           const n = counts ? P.n[t][i] : null;
           return `<tr><td>${yr}</td>${counts ? `<td class="num">${n == null ? "–" : nf0.format(n)}</td>` : ""}<td class="num">${fmtRate(r.s[i])}</td>${capRow ? `<td class="num">${fmtRate(capRow.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
-      <p class="small src">Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria, tasso di delittuosità per provincia e conteggi per comune capoluogo; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana; elenco ufficiale ISTAT dei comuni.${counts ? "" : " Per le province l’ISTAT pubblica i tassi: le variazioni qui sono rapporti tra tassi, senza il test statistico usato per i capoluoghi (cerchio vuoto)."}</p>`;
+      <p class="small src">${L("Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria, tasso di delittuosità per provincia e conteggi per comune capoluogo; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana; elenco ufficiale ISTAT dei comuni.", "Sources: ISTAT, crimes reported by the police to the judicial authorities, crime rate by province and counts for each provincial capital; perceived risk from the ISTAT survey Aspetti della vita quotidiana (Aspects of daily life); ISTAT official list of municipalities.")}${counts ? "" : L(" Per le province l’ISTAT pubblica i tassi: le variazioni qui sono rapporti tra tassi, senza il test statistico usato per i capoluoghi (cerchio vuoto).", " For the provinces ISTAT publishes rates: the changes here are ratios between rates, without the statistical test used for the provincial capitals (empty circle).")}</p>`;
     $("#city-grid").innerHTML = gridHTML(rows);
-    const series = [{ name: `Provincia di ${P.name}`, values: r.s, color: "var(--ink)", width: 2.25 }];
-    if (capRow) series.push({ name: `${cap.name}, capoluogo`, values: capRow.s, color: "var(--ink-2)", width: 1.75, dash: "5 4" });
-    series.push({ name: "Italia", values: m.it, color: "var(--muted)", width: 1.5 });
-    drawCard(series, r.an, rows, (tt, row, i) => `<b>${esc(tt.label)}</b> · ${Y[i]}<br>${counts && P.n[tt.id][i] != null ? nf0.format(P.n[tt.id][i]) + " casi, " : ""}${fmtRate(row.s[i])} ogni 100.000 ab. in provincia (Italia ${fmtRate(ITALY.rate[tt.id][i])})`);
+    const series = [{ name: EN ? `Province of ${P.name}` : `Provincia di ${P.name}`, values: r.s, color: "var(--ink)", width: 2.25 }];
+    if (capRow) series.push({ name: EN ? `${cap.name}, provincial capital` : `${cap.name}, capoluogo`, values: capRow.s, color: "var(--ink-2)", width: 1.75, dash: "5 4" });
+    series.push({ name: L("Italia", "Italy"), values: m.it, color: "var(--muted)", width: 1.5 });
+    drawCard(series, r.an, rows, (tt, row, i) => `<b>${esc(tt.label)}</b> · ${Y[i]}<br>${counts && P.n[tt.id][i] != null ? nf0.format(P.n[tt.id][i]) + L(" casi, ", " cases, ") : ""}${fmtRate(row.s[i])} ${L("ogni 100.000 ab. in provincia", "per 100,000 res. in the province")} (${L("Italia", "Italy")} ${fmtRate(ITALY.rate[tt.id][i])})`);
   }
 
   // ------------------------------------------------------------------ ricerca del comune
 
+  // sulle pagine in inglese i capoluoghi si trovano anche con il nome inglese (Rome, Milan…): sono solo chiavi di ricerca, l'elenco mostra il nome italiano
+  const EXONYM = { Roma: "Rome", Milano: "Milan", Napoli: "Naples", Torino: "Turin", Firenze: "Florence", Venezia: "Venice", Genova: "Genoa", Padova: "Padua", Siracusa: "Syracuse", Mantova: "Mantua", Livorno: "Leghorn" };
   function entry(name, alt, sigla, prov, city, region, aliases) {
-    const keys = [normQ(name)].concat([alt].concat(aliases || []).filter(Boolean).map(normQ));
+    const keys = [normQ(name)].concat([alt].concat(aliases || [], EN && city && EXONYM[name] ? [EXONYM[name]] : []).filter(Boolean).map(normQ));
     return { name, alt, sigla, prov, city, region, keys };
   }
 
@@ -2075,7 +2254,7 @@
       placesFailed = true;
       const hint = $("#finder-hint");
       if (hint) {
-        hint.textContent = "Non riesco a caricare l’elenco dei comuni: per ora la ricerca trova solo i 108 capoluoghi.";
+        hint.textContent = L("Non riesco a caricare l’elenco dei comuni: per ora la ricerca trova solo i 108 capoluoghi.", "The list of towns did not load: for now the search only finds the 108 provincial capitals.");
         hint.classList.add("warn");
       }
       throw err;
@@ -2121,7 +2300,7 @@
   function optionHTML(e, id, i) {
     const unit = UNITS && UNITS[e.sigla];
     const meta = unit && !normQ(unit).startsWith(normQ(e.region)) ? `${unit} · ${e.region}` : e.region;
-    return `<li role="option" id="${id}" data-i="${i}" aria-selected="false"><span class="o-name">${esc(e.name)}${e.alt ? ` <span class="small">${esc(e.alt)}</span>` : ""}</span><span class="o-meta">${esc(meta || "")}</span><span class="o-tag${e.city ? " cap" : ""}">${e.city ? "capoluogo" : "dati provinciali"}</span></li>`;
+    return `<li role="option" id="${id}" data-i="${i}" aria-selected="false"><span class="o-name">${esc(e.name)}${e.alt ? ` <span class="small">${esc(e.alt)}</span>` : ""}</span><span class="o-meta">${esc(meta || "")}</span><span class="o-tag${e.city ? " cap" : ""}">${e.city ? L("capoluogo", "provincial capital") : L("dati provinciali", "provincial data")}</span></li>`;
   }
 
   // Combobox accessibile: frecce per scegliere, Invio per aprire la scheda, Esc per chiudere l'elenco.
@@ -2138,9 +2317,9 @@
     const update = () => {
       if (!normQ(input.value)) { items = []; list.innerHTML = ""; close(); return; }
       items = search(input.value);
-      const loading = !PROV && !placesFailed ? " (sto caricando l’elenco dei comuni…)" : "";
-      list.innerHTML = items.length ? items.map((e, i) => optionHTML(e, `${list.id}-${i}`, i)).join("") + (loading ? `<li class="o-none">Solo capoluoghi${loading}</li>` : "")
-        : `<li class="o-none">${loading ? "Sto caricando l’elenco dei comuni…" : "Nessun comune con questo nome. L’elenco è quello ufficiale ISTAT: controlla l’ortografia."}</li>`;
+      const loading = !PROV && !placesFailed ? L(" (sto caricando l’elenco dei comuni…)", " (loading the list of towns…)") : "";
+      list.innerHTML = items.length ? items.map((e, i) => optionHTML(e, `${list.id}-${i}`, i)).join("") + (loading ? `<li class="o-none">${L("Solo capoluoghi", "Provincial capitals only")}${loading}</li>` : "")
+        : `<li class="o-none">${loading ? L("Sto caricando l’elenco dei comuni…", "Loading the list of towns…") : L("Nessun comune con questo nome. L’elenco è quello ufficiale ISTAT: controlla l’ortografia.", "No town by this name. The list is ISTAT’s official one, with Italian names: check the spelling.")}</li>`;
       list.hidden = false;
       input.setAttribute("aria-expanded", "true");
       setActive(items.length ? 0 : -1);
@@ -2252,8 +2431,70 @@
   function addSources(list, kind) {
     const ul = $("#sources");
     if (!ul || (ul.dataset.only && ul.dataset.only !== kind)) return;
-    ul.insertAdjacentHTML("beforeend", list.map((s) => `<li><code>${esc(s.id)}</code> ${esc(s.label)}</li>`).join(""));
+    ul.insertAdjacentHTML("beforeend", list.map((s) => sourceItem(s, kind)).join(""));
   }
+  // Le fonti in inglese, per id; "kind:id" quando lo stesso dataset ha un'altra etichetta in un altro file di dati.
+  // s.en (le fonti scritte qui dentro) vince su tutto; se manca la traduzione resta l'etichetta italiana.
+  const SOURCE_EN = {
+    "73_67_DF_DCCV_DELITTIPS_1": "ISTAT, Crimes reported by the police to the judicial authorities — by type of crime (source: Ministry of the Interior, SDI/SSD database)",
+    "73_67_DF_DCCV_DELITTIPS_9": "ISTAT, Reported crimes — crime rate (Italy)",
+    "164_164_DF_DCIS_RICPOPRES2011_24": "ISTAT, Reconstructed resident population 2002-2019, all municipalities",
+    "22_289": "ISTAT, Resident population on 1 January (2019-2026)",
+    "DF_DCSS_BEST_PPC_1_GC": "ISTAT, Households by perceived risk of crime in the area where they live — provinces and large municipalities",
+    "33_291": "ISTAT, Pollution, crime and noise in the area where people live (EU-SILC)",
+    "openpolis/geojson-italy": "ISTAT administrative boundaries, reworked by openpolis (CC BY 4.0)",
+    "73_173_DF_DCCV_DETENUTI_4": "ISTAT, Adult prisoners held in Italian prisons — geographical origin",
+    "73_173_DF_DCCV_DETENUTI_1": "ISTAT, Adult prisoners — offences",
+    "73_173_DF_DCCV_DETENUTI_2": "ISTAT, Adult prisoners — age",
+    "73_173_DF_DCCV_DETENUTI_5": "ISTAT, Adult prisoners — legal status",
+    "73_173_DF_DCCV_DETENUTI_6": "ISTAT, Prison capacity and prisoners per 100 places",
+    "demo.istat.it": "ISTAT, Demografia in cifre: foreign resident population on 1 January",
+    migr_eirtn: "Eurostat, Third-country nationals returned following an order to leave (annual data, rounded)",
+    migr_eiord: "Eurostat, Third-country nationals ordered to leave (annual data, rounded)",
+    CNTR_RG_60M_2020: "European Commission, GISCO: country boundaries of the world (© EuroGeographics for the administrative boundaries)",
+    "73_67_DF_DCCV_DELITTIPS_6": "ISTAT, Reported crimes in which the offender was identified, by type of crime — Italy (source: Ministry of the Interior, SDI/SSD database)",
+    "73_67_DF_DCCV_DELITTIPS_2": "ISTAT, Reported crimes by type and identity of the offender, committed during the year — large municipalities",
+    "73_67_DF_DCCV_DELITTIPS_5": "ISTAT, Crimes in which the offender was identified, by type — large municipalities (as a cross-check)",
+    "73_67_DF_DCCV_DELITTIPS_7": "ISTAT, Crimes in which the offender was identified — provinces",
+    "autori:73_67_DF_DCCV_DELITTIPS_9": "ISTAT, Reported crimes — crime rate by province (for the share of thefts)",
+    "73_342_DF_DCCV_SEGNALAZPS_2": "ISTAT, Records of minors reported, arrested or detained by the police, by type of crime (source: Ministry of the Interior, SDI/SSD database)",
+    "73_342_DF_DCCV_SEGNALAZPS_1": "ISTAT, Records of people reported, arrested or detained by the police, in total",
+    ds964: "Comune di Milano, Nuclei d'Identità Locale (NIL, the city’s neighbourhood units) currently in force, PGT 2030 (CC BY 4.0)",
+    ds379: "Comune di Milano, area of the Municipi, the city’s districts (CC BY 4.0)",
+    ds205: "Comune di Milano, demographic and territorial characteristics of the neighbourhoods, 2011-2024 (population register data, CC BY 4.0)",
+    ds503: "Comune di Milano, run-down, abandoned or disused buildings 2014-2017 (CC BY 4.0)",
+    ds392: "Comune di Milano on ISTAT data, 2011 Census: commuters coming into Milano, by census section of destination (CC BY 4.0)",
+  };
+  const sourceLabel = (s, kind) => (EN ? s.en || SOURCE_EN[kind + ":" + s.id] || SOURCE_EN[s.id] || s.label : s.label);
+  const sourceItem = (s, kind) => `<li><code>${esc(s.id)}</code> ${esc(sourceLabel(s, kind))}</li>`;
+
+  // I nomi che arrivano con i dati di carceri e rimpatri (continenti, paesi, reati): sulle pagine in en/ si traducono appena
+  // caricati, in tutti gli anni allo stesso modo, perché le tabelle cercano i gruppi per nome da un anno all'altro.
+  // Paesi: Intl.DisplayNames dal codice ISO; qui i gruppi dell'ISTAT, i codici non ISO e i nomi che si preferiscono.
+  const GEO_EN = {
+    Europa: "Europe", America: "Americas", Altri: "Other",
+    AFR_OTH: "Other African countries", ASI_OTH: "Other Asian countries", EUR_OTH: "Other European countries", OTH: "Other and stateless",
+    AME_C: "Central America", AME_N: "North America", AME_S: "South America", X1023: "Middle East",
+    UK: "United Kingdom", XK: "Kosovo", TR: "Turkey", BA: "Bosnia and Herzegovina", CG: "Congo", PS: "Palestine", CI: "Ivory Coast",
+  };
+  let geoNames = null;
+  const geoName = (id, name) => {
+    if (GEO_EN[id]) return GEO_EN[id];
+    try {
+      geoNames = geoNames || new Intl.DisplayNames(["en-GB"], { type: "region" });
+      const s = geoNames.of(id);
+      return s && s !== id ? s : name;
+    } catch (e) {
+      return name;
+    }
+  };
+  // i reati dei detenuti, per id: il nome intero (nel suggerimento) e quello breve (sulle righe del grafico, OFF_SHORT)
+  const PRISON_OFF_EN = {
+    STU: "drugs and psychotropic substances", RA: "robbery", FU: "theft offences", LPV: "intentional bodily harm", RIC: "handling stolen goods",
+    VIR: "violence, resistance or insult to a public official", AFS: "mafia-type or organised crime associations", ES: "extortion",
+    VPV_MIN: "coercion, threats", OMV: "intentional homicide", CA: "offences against the administration of justice",
+    MAL: "abuse of family members or children", VS: "sexual violence offences", TR: "fraud offences", ISFF: "inciting, exploiting or aiding prostitution",
+  };
 
   // ------------------------------------------------------------------ carceri
 
@@ -2262,6 +2503,10 @@
       const r = await fetch(ROOT + "data/carceri.json");
       if (!r.ok) throw new Error(r.status);
       CARCERI = await r.json();
+      if (EN) {
+        Object.values(CARCERI.albero).forEach((gs) => gs.forEach((g) => { g.name = GEO_EN[g.name] || g.name; g.children.forEach((c) => { c.name = geoName(c.id, c.name); }); }));
+        CARCERI.reati.forEach((x) => { x.name = PRISON_OFF_EN[x.id] || x.name; });
+      }
       state.treeYear = CARCERI.meta.last;
       addSources(CARCERI.meta.sources, "carceri");
       const seg = $("#tree-year-seg");
@@ -2280,7 +2525,7 @@
       renderBrief();
       renderDeepCards();
     } catch (e) {
-      if (has("carceri-facts")) $("#carceri-facts").innerHTML = `<p class="note">I dati sulle carceri non si sono caricati (${esc(e.message)}).</p>`;
+      if (has("carceri-facts")) $("#carceri-facts").innerHTML = `<p class="note">${L("I dati sulle carceri non si sono caricati", "The prison data did not load")} (${esc(e.message)}).</p>`;
       console.error(e);
     }
   }
@@ -2296,7 +2541,12 @@
     const pIt = C.posizione.it, pStr = C.posizione.str;
     const totIt = Object.values(pIt).reduce((a, b) => a + b, 0), totStr = Object.values(pStr).reduce((a, b) => a + b, 0);
     const ndIt = (pIt.AWFJ + pIt.APP + pIt.REC + pIt.MWOD) / totIt, ndStr = (pStr.AWFJ + pStr.APP + pStr.REC + pStr.MWOD) / totStr;
-    $("#carceri-facts").innerHTML = `
+    $("#carceri-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${nf1.format(quota)}%</div><div class="fl">of the ${nf0.format(tot)} prisoners held at the end of ${last} are foreign nationals: ${nf0.format(str)} people. In ${Yc[0]} the figure was ${nf1.format((100 * C.serie.str[0]) / C.serie.tot[0])}%.</div></div>
+      ${res ? `<div class="fact"><div class="fv">${nf1.format(res.quota)}%</div><div class="fl">of Italy’s residents are foreign nationals: ${nf0.format(res.stranieri)} out of ${nf0.format(res.pop)} on 1 January ${resKey} (source: ${esc(R.fonte === "demo.istat.it" ? R.fonte_label || "ISTAT" : "ISTAT")})</div></div>`
+            : `<div class="fact na"><div class="fv">share among residents: awaiting data</div><div class="fl">The ISTAT series on foreign residents could not be reached when this data was built. It will be added at the next update.</div></div>`}
+      <div class="fact"><div class="fv">${nf1.format(ndStr * 100)}%<small>vs ${nf1.format(ndIt * 100)}%</small></div><div class="fl">of foreign prisoners have no final conviction (they are awaiting trial, or have an appeal pending); among Italians the figure is ${nf1.format(ndIt * 100)}%</div></div>
+      <div class="fact"><div class="fv">${nf1.format(C.serie.affollamento[L])}</div><div class="fl">prisoners per 100 official places in ${last}. There were ${nf1.format(C.serie.affollamento[Yc.indexOf(2020)])} in 2020 and ${nf1.format(C.serie.affollamento[0])} in ${Yc[0]}.</div></div>` : `
       <div class="fact"><div class="fv">${nf1.format(quota)}%</div><div class="fl">dei ${nf0.format(tot)} detenuti presenti a fine ${last} è straniero: ${nf0.format(str)} persone. Nel ${Yc[0]} era il ${nf1.format((100 * C.serie.str[0]) / C.serie.tot[0])}%.</div></div>
       ${res ? `<div class="fact"><div class="fv">${nf1.format(res.quota)}%</div><div class="fl">degli abitanti dell'Italia è straniero: ${nf0.format(res.stranieri)} residenti su ${nf0.format(res.pop)} al 1° gennaio ${resKey} (fonte: ${esc(R.fonte_label || "ISTAT")})</div></div>`
             : `<div class="fact na"><div class="fv">quota tra i residenti: in attesa del dato</div><div class="fl">La serie ISTAT degli stranieri residenti non era raggiungibile quando questi dati sono stati costruiti. Verrà aggiunta al prossimo aggiornamento.</div></div>`}
@@ -2307,14 +2557,18 @@
 
     // la presenza straniera, in apertura: ogni 100 detenuti e ogni 100 residenti, con la frase che lo dice a parole
     const share = Yc.map((y, i) => (100 * C.serie.str[i]) / C.serie.tot[i]);
-    const NUMW = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci", "undici", "dodici", "tredici", "quattordici", "quindici"];
-    const oneIn = (q) => { const r = 100 / q, n = Math.round(r); return { w: NUMW[n] || nf0.format(n), pre: Math.abs(r - n) / n < 0.03 ? "" : r > n ? "quasi " : "più di " }; };
+    const NUMW = EN ? ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen"]
+      : ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci", "undici", "dodici", "tredici", "quattordici", "quindici"];
+    const oneIn = (q) => { const r = 100 / q, n = Math.round(r); return { w: NUMW[n] || nf0.format(n), pre: Math.abs(r - n) / n < 0.03 ? "" : r > n ? (EN ? "nearly " : "quasi ") : EN ? "more than " : "più di " }; };
     if (has("carceri-lead")) {
-      const a = oneIn(quota), b = res ? oneIn(res.quota) : null, t = `${a.pre}un detenuto su ${a.w} è straniero`;
-      $("#carceri-lead").textContent = t.charAt(0).toUpperCase() + t.slice(1) + (b ? `; tra chi vive in Italia, ${b.pre}uno su ${b.w}.` : ".");
+      const a = oneIn(quota), b = res ? oneIn(res.quota) : null, t = EN ? `${a.pre}one prisoner in ${a.w} is a foreign national` : `${a.pre}un detenuto su ${a.w} è straniero`;
+      $("#carceri-lead").textContent = t.charAt(0).toUpperCase() + t.slice(1) + (b ? (EN ? `; among people living in Italy, ${b.pre}one in ${b.w}.` : `; tra chi vive in Italia, ${b.pre}uno su ${b.w}.`) : ".");
     }
     if (has("carceri-waffle")) {
-      renderWaffle($("#carceri-waffle"), [
+      renderWaffle($("#carceri-waffle"), EN ? [
+        { v: quota, unit: "foreign nationals", label: `per 100 prisoners held at the end of ${last}`, aria: `${nf1.format(quota)} foreign nationals per 100 prisoners at the end of ${last}` },
+        ...(res ? [{ v: res.quota, unit: "foreign nationals", label: `per 100 residents on 1 January ${resKey}`, aria: `${nf1.format(res.quota)} foreign nationals per 100 residents on 1 January ${resKey}` }] : []),
+      ] : [
         { v: quota, label: `ogni 100 detenuti presenti a fine ${last}`, aria: `${nf1.format(quota)} stranieri ogni 100 detenuti a fine ${last}` },
         ...(res ? [{ v: res.quota, label: `ogni 100 residenti al 1° gennaio ${resKey}`, aria: `${nf1.format(res.quota)} stranieri ogni 100 residenti al 1° gennaio ${resKey}` }] : []),
       ]);
@@ -2322,24 +2576,28 @@
     // quanti, nel tempo: detenuti italiani e stranieri
     if (has("carceri-counts")) {
       seriesChart($("#carceri-counts"), {
-        years: Yc, label: `Detenuti italiani e stranieri presenti a fine anno, ${Yc[0]}–${last}`, height: 230,
-        series: [{ name: "italiani", values: C.serie.it, color: "var(--ink)" }, { name: "stranieri", values: C.serie.str, color: "var(--fall)", width: 2.5 }],
-        tip: (i) => `<b>fine ${Yc[i]}</b><br>${nf0.format(C.serie.it[i])} italiani<br>${nf0.format(C.serie.str[i])} stranieri, il ${nf1.format(share[i])}%<br>${nf0.format(C.serie.tot[i])} in tutto, ${nf1.format(C.serie.affollamento[i])} ogni 100 posti`,
+        years: Yc, label: EN ? `Italian and foreign prisoners held at the end of each year, ${Yc[0]}–${last}` : `Detenuti italiani e stranieri presenti a fine anno, ${Yc[0]}–${last}`, height: 230,
+        series: [{ name: EN ? "Italians" : "italiani", values: C.serie.it, color: "var(--ink)" }, { name: EN ? "foreign nationals" : "stranieri", values: C.serie.str, color: "var(--fall)", width: 2.5 }],
+        tip: (i) => EN
+          ? `<b>end of ${Yc[i]}</b><br>${nf0.format(C.serie.it[i])} Italians<br>${nf0.format(C.serie.str[i])} foreign nationals, ${nf1.format(share[i])}%<br>${nf0.format(C.serie.tot[i])} in total, ${nf1.format(C.serie.affollamento[i])} per 100 places`
+          : `<b>fine ${Yc[i]}</b><br>${nf0.format(C.serie.it[i])} italiani<br>${nf0.format(C.serie.str[i])} stranieri, il ${nf1.format(share[i])}%<br>${nf0.format(C.serie.tot[i])} in tutto, ${nf1.format(C.serie.affollamento[i])} ogni 100 posti`,
       });
     }
     // la quota di stranieri tra i detenuti e tra i residenti
     const resShare = Yc.map((y) => (resAnni[String(y)] ? resAnni[String(y)].quota : null));
     seriesChart($("#carceri-trend"), {
-      years: Yc, label: "Quota di stranieri tra i detenuti e tra i residenti", yMax: d3.max(share) * 1.15, height: 230,
+      years: Yc, label: EN ? "Share of foreign nationals among prisoners and among residents" : "Quota di stranieri tra i detenuti e tra i residenti", yMax: d3.max(share) * 1.15, height: 230,
       yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
-      series: [{ name: "tra i detenuti", values: share, color: "var(--fall)", width: 2.5 }, { name: "tra i residenti", values: resShare, color: "var(--ink-2)" }],
-      tip: (i) => `<b>${Yc[i]}</b><br>${nf1.format(share[i])}% dei detenuti a fine anno (${nf0.format(C.serie.str[i])} su ${nf0.format(C.serie.tot[i])})` + (resShare[i] != null ? `<br>${nf1.format(resShare[i])}% dei residenti al 1° gennaio` : ""),
+      series: [{ name: EN ? "among prisoners" : "tra i detenuti", values: share, color: "var(--fall)", width: 2.5 }, { name: EN ? "among residents" : "tra i residenti", values: resShare, color: "var(--ink-2)" }],
+      tip: (i) => EN
+        ? `<b>${Yc[i]}</b><br>${nf1.format(share[i])}% of prisoners at the end of the year (${nf0.format(C.serie.str[i])} of ${nf0.format(C.serie.tot[i])})` + (resShare[i] != null ? `<br>${nf1.format(resShare[i])}% of residents on 1 January` : "")
+        : `<b>${Yc[i]}</b><br>${nf1.format(share[i])}% dei detenuti a fine anno (${nf0.format(C.serie.str[i])} su ${nf0.format(C.serie.tot[i])})` + (resShare[i] != null ? `<br>${nf1.format(resShare[i])}% dei residenti al 1° gennaio` : ""),
     });
     if (has("carceri-nat")) renderCarceriNat();
 
     // regioni
     const regs = C.regioni;
-    $("#carceri-reg-sub").textContent = `Quota di stranieri tra i detenuti nel ${last}; la linea è l'Italia (${nf1.format(quota)}%).`;
+    $("#carceri-reg-sub").textContent = EN ? `Share of foreign nationals among prisoners in ${last}; the line is Italy (${nf1.format(quota)}%).` : `Quota di stranieri tra i detenuti nel ${last}; la linea è l'Italia (${nf1.format(quota)}%).`;
     const maxQ = d3.max(regs, (r) => r.quota);
     $("#carceri-regions").innerHTML = regs.map((r) => `<li><span class="name" title="${esc(r.name)}">${esc(r.name)}</span><span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * r.quota) / maxQ}%"></i><b class="rv-fade" style="left:${(100 * quota) / maxQ}%"></b></span><span class="val">${nf1.format(r.quota)}%</span></li>`).join("");
     reveal($("#carceri-regions"), $("#carceri-regions").querySelectorAll("li"));
@@ -2347,22 +2605,26 @@
     renderOffences();
     renderAge();
     const lab = C.posizione.labels;
-    $("#carceri-legal").innerHTML = `Posizione giuridica nel ${last}: tra gli stranieri il ${nf1.format((100 * pStr.AWFJ) / totStr)}% è in attesa del primo giudizio (italiani ${nf1.format((100 * pIt.AWFJ) / totIt)}%) e il ${nf1.format((100 * pStr.CONVFJ) / totStr)}% ha una condanna definitiva (italiani ${nf1.format((100 * pIt.CONVFJ) / totIt)}%).`;
-    $("#carceri-note-1").textContent = `Tra i detenuti stranieri ci sono anche persone senza permesso di soggiorno, che non compaiono tra i residenti: il confronto tra le due quote è quindi sbilanciato in partenza. Gli stranieri in Italia sono inoltre mediamente più giovani, e la fascia tra i 25 e i 40 anni è quella che in ogni paese finisce più spesso in carcere. E senza una casa o un lavoro stabile è più difficile ottenere misure alternative alla detenzione e più probabile restare in cella in attesa di giudizio: nel ${last} è senza condanna definitiva il ${nf1.format(ndStr * 100)}% degli stranieri contro il ${nf1.format(ndIt * 100)}% degli italiani.`;
+    $("#carceri-legal").innerHTML = EN
+      ? `Legal status in ${last}: among foreign nationals, ${nf1.format((100 * pStr.AWFJ) / totStr)}% are awaiting their first trial (Italians ${nf1.format((100 * pIt.AWFJ) / totIt)}%) and ${nf1.format((100 * pStr.CONVFJ) / totStr)}% have a final conviction (Italians ${nf1.format((100 * pIt.CONVFJ) / totIt)}%).`
+      : `Posizione giuridica nel ${last}: tra gli stranieri il ${nf1.format((100 * pStr.AWFJ) / totStr)}% è in attesa del primo giudizio (italiani ${nf1.format((100 * pIt.AWFJ) / totIt)}%) e il ${nf1.format((100 * pStr.CONVFJ) / totStr)}% ha una condanna definitiva (italiani ${nf1.format((100 * pIt.CONVFJ) / totIt)}%).`;
+    $("#carceri-note-1").textContent = EN
+      ? `Foreign prisoners include people without a residence permit, who do not appear among residents: so the comparison between the two shares is lopsided from the start. Foreign nationals in Italy are also younger on average, and people aged between 25 and 40 are the ones who end up in prison most often in every country. And without a home or a stable job it is harder to obtain alternatives to custody, and more likely to stay in a cell awaiting trial: in ${last}, ${nf1.format(ndStr * 100)}% of foreign nationals had no final conviction, against ${nf1.format(ndIt * 100)}% of Italians.`
+      : `Tra i detenuti stranieri ci sono anche persone senza permesso di soggiorno, che non compaiono tra i residenti: il confronto tra le due quote è quindi sbilanciato in partenza. Gli stranieri in Italia sono inoltre mediamente più giovani, e la fascia tra i 25 e i 40 anni è quella che in ogni paese finisce più spesso in carcere. E senza una casa o un lavoro stabile è più difficile ottenere misure alternative alla detenzione e più probabile restare in cella in attesa di giudizio: nel ${last} è senza condanna definitiva il ${nf1.format(ndStr * 100)}% degli stranieri contro il ${nf1.format(ndIt * 100)}% degli italiani.`;
   }
 
   function renderTreemap() {
     const C = CARCERI, y = state.treeYear;
     const groups = C.albero[String(y)];
     const total = d3.sum(groups, (g) => g.n);
-    $("#tree-sub").textContent = `${nf0.format(total)} detenuti stranieri a fine ${y}. Ogni rettangolo è proporzionale alle persone.`;
+    $("#tree-sub").textContent = EN ? `${nf0.format(total)} foreign prisoners at the end of ${y}. Each rectangle is proportional to the number of people.` : `${nf0.format(total)} detenuti stranieri a fine ${y}. Ogni rettangolo è proporzionale alle persone.`;
     const el = $("#treemap");
     const w = Math.max(300, el.clientWidth), h = Math.round(Math.min(520, Math.max(320, w * 0.72)));
     const root = d3.hierarchy({ name: "root", children: groups.map((g) => ({ name: g.name, children: g.children.filter((c) => c.n > 0).map((c) => ({ name: c.name, id: c.id, n: c.n })) })) })
       .sum((d) => d.n).sort((a, b) => b.value - a.value);
     d3.treemap().size([w, h]).paddingInner(2).paddingOuter(3).paddingTop(20).round(true)(root);
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", `Treemap dei detenuti stranieri per cittadinanza nel ${y}`);
+      .attr("role", "img").attr("aria-label", EN ? `Treemap of foreign prisoners by nationality in ${y}` : `Treemap dei detenuti stranieri per cittadinanza nel ${y}`);
     svg.selectAll("*").remove();
     const conts = root.children;
     let nLeaf = 0;
@@ -2370,7 +2632,7 @@
       g.leaves().forEach((d) => {
         const cw = d.x1 - d.x0, ch = d.y1 - d.y0, li = nLeaf++;
         const r = svg.append("rect").attr("class", "leaf rv-pop" + (gi % 2 ? " alt" : "")).style("--i", li).attr("x", d.x0).attr("y", d.y0).attr("width", cw).attr("height", ch).attr("rx", 2);
-        r.on("mousemove", (ev) => showTip(`<b>${esc(d.data.name)}</b> · ${esc(g.data.name)}<br>${nf0.format(d.value)} detenuti, ${nf1.format((100 * d.value) / total)}% degli stranieri`, ev)).on("mouseleave", hideTip);
+        r.on("mousemove", (ev) => showTip(`<b>${esc(d.data.name)}</b> · ${esc(g.data.name)}<br>${nf0.format(d.value)} ${L("detenuti", "prisoners")}, ${nf1.format((100 * d.value) / total)}% ${L("degli stranieri", "of foreign prisoners")}`, ev)).on("mouseleave", hideTip);
         const label = d.data.name, est = label.length * 6.6;
         if (cw > est + 10 && ch > 30) {
           svg.append("text").attr("class", "ll rv-fade").style("--i", li).attr("x", d.x0 + 6).attr("y", d.y0 + 16).text(label);
@@ -2389,12 +2651,13 @@
     // tabella gemella
     const years = C.meta.years;
     const leaves = groups.flatMap((g) => g.children.map((c) => ({ cont: g.name, ...c })));
-    $("#tree-table").innerHTML = `<thead><tr><th>Cittadinanza</th><th>Area</th>${years.map((yy) => `<th class="num">${yy}</th>`).join("")}</tr></thead><tbody>` +
+    $("#tree-table").innerHTML = `<thead><tr><th>${L("Cittadinanza", "Nationality")}</th><th>Area</th>${years.map((yy) => `<th class="num">${yy}</th>`).join("")}</tr></thead><tbody>` +
       leaves.map((lf) => `<tr><td>${esc(lf.name)}</td><td>${esc(lf.cont)}</td>${years.map((yy) => { const g = C.albero[String(yy)].find((x) => x.name === lf.cont); const c = g && g.children.find((x) => x.id === lf.id); return `<td class="num">${c ? nf0.format(c.n) : "–"}</td>`; }).join("")}</tr>`).join("") +
-      `<tr><td><b>Tutti gli stranieri</b></td><td></td>${years.map((yy) => `<td class="num"><b>${nf0.format(d3.sum(C.albero[String(yy)], (g) => g.n))}</b></td>`).join("")}</tr></tbody>`;
+      `<tr><td><b>${L("Tutti gli stranieri", "All foreign nationals")}</b></td><td></td>${years.map((yy) => `<td class="num"><b>${nf0.format(d3.sum(C.albero[String(yy)], (g) => g.n))}</b></td>`).join("")}</tr></tbody>`;
   }
 
   const OFF_SHORT = { STU: "Stupefacenti", RA: "Rapina", FU: "Furto", LPV: "Lesioni volontarie", RIC: "Ricettazione", VIR: "Resistenza a pubblico ufficiale", AFS: "Associazione mafiosa", ES: "Estorsione", VPV_MIN: "Violenza privata, minaccia", OMV: "Omicidio volontario", CA: "Contro l’amministrazione della giustizia", MAL: "Maltrattamenti in famiglia", VS: "Violenza sessuale", TR: "Truffa", ISFF: "Sfruttamento della prostituzione" };
+  if (EN) Object.assign(OFF_SHORT, { STU: "Drugs", RA: "Robbery", FU: "Theft", LPV: "Assault causing injury", RIC: "Handling stolen goods", VIR: "Resisting a public official", AFS: "Mafia association", ES: "Extortion", VPV_MIN: "Coercion, threats", OMV: "Intentional homicide", CA: "Against the administration of justice", MAL: "Domestic abuse", VS: "Sexual violence", TR: "Fraud", ISFF: "Exploiting prostitution" });
 
   function renderOffences() {
     const C = CARCERI;
@@ -2402,13 +2665,13 @@
     const el = $("#carceri-offences");
     const w = Math.max(300, el.clientWidth), rowH = 26, m = { t: 30, r: 40, b: 10, l: Math.min(230, Math.round(w * 0.42)) }, h = m.t + rows.length * rowH + m.b;
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", "Detenuti per tipo di reato ogni 100: italiani e stranieri");
+      .attr("role", "img").attr("aria-label", L("Detenuti per tipo di reato ogni 100: italiani e stranieri", "Prisoners per 100 by type of offence: Italians and foreign nationals"));
     svg.selectAll("*").remove();
     const x = d3.scaleLinear([0, Math.ceil(d3.max(rows, (r) => Math.max(r.it, r.str)) / 10) * 10], [m.l, w - m.r]);
     const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${m.t - 8})`).call(d3.axisTop(x).ticks(4).tickSize(-(h - m.t - m.b + 8)).tickFormat((v) => v));
     xa.select(".domain").remove();
     xa.selectAll(".tick line").style("stroke", "var(--grid)");
-    svg.append("text").attr("class", "lbl").attr("x", m.l - 10).attr("y", 10).attr("text-anchor", "end").text("ogni 100 detenuti del gruppo");
+    svg.append("text").attr("class", "lbl").attr("x", m.l - 10).attr("y", 10).attr("text-anchor", "end").text(L("ogni 100 detenuti del gruppo", "per 100 prisoners in the group"));
     rows.forEach((r, i) => {
       const yy = m.t + i * rowH + rowH / 2;
       const short = OFF_SHORT[r.id] || r.name;
@@ -2422,11 +2685,13 @@
       svg.append("text").attr("class", "lbl halo rv-fade").style("--i", i).style("--t0", "0.7s").attr("x", x(hi) + 9).attr("y", yy + 4).text(nf1.format(hi));
       if (x(hi) - x(lo) > 34 && x(lo) - m.l > 34) svg.append("text").attr("class", "lbl halo rv-fade").style("--i", i).style("--t0", "0.7s").attr("x", x(lo) - 9).attr("y", yy + 4).attr("text-anchor", "end").text(nf1.format(lo));
       svg.append("rect").attr("x", 0).attr("y", yy - rowH / 2).attr("width", w).attr("height", rowH).style("fill", "transparent")
-        .on("mousemove", (ev) => showTip(`<b>${esc(r.name)}</b><br>italiani ${nf1.format(r.it)} · stranieri ${nf1.format(r.str)} ogni 100<br>${nf0.format(r.n)} detenuti in tutto con questo reato`, ev)).on("mouseleave", hideTip);
+        .on("mousemove", (ev) => showTip(EN
+          ? `<b>${esc(r.name)}</b><br>Italians ${nf1.format(r.it)} · foreign nationals ${nf1.format(r.str)} per 100<br>${nf0.format(r.n)} prisoners in all with this offence`
+          : `<b>${esc(r.name)}</b><br>italiani ${nf1.format(r.it)} · stranieri ${nf1.format(r.str)} ogni 100<br>${nf0.format(r.n)} detenuti in tutto con questo reato`, ev)).on("mouseleave", hideTip);
     });
     reveal(el);
     if (!el.previousElementSibling.classList.contains("dumb-key")) {
-      el.insertAdjacentHTML("beforebegin", `<div class="dumb-key" aria-hidden="true"><span><i class="k-it"></i>italiani</span><span><i class="k-str"></i>stranieri</span></div>`);
+      el.insertAdjacentHTML("beforebegin", `<div class="dumb-key" aria-hidden="true"><span><i class="k-it"></i>${L("italiani", "Italians")}</span><span><i class="k-str"></i>${L("stranieri", "foreign nationals")}</span></div>`);
     }
   }
 
@@ -2438,7 +2703,7 @@
     const el = $("#carceri-age");
     const w = Math.max(280, el.clientWidth), m = { t: 22, r: 12, b: 24, l: 36 }, h = 200;
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", "Distribuzione per età dei detenuti italiani e stranieri");
+      .attr("role", "img").attr("aria-label", L("Distribuzione per età dei detenuti italiani e stranieri", "Age distribution of Italian and foreign prisoners"));
     svg.selectAll("*").remove();
     const x = d3.scaleBand(rows.map((r) => r.c), [m.l, w - m.r]).paddingInner(0.3).paddingOuter(0.1);
     const y = d3.scaleLinear([0, Math.ceil(d3.max(rows, (r) => Math.max(r.it, r.str)) / 5) * 5], [h - m.b, m.t]);
@@ -2453,11 +2718,11 @@
       svg.append("rect").attr("class", "rv-rise").style("--i", i).attr("x", x(r.c)).attr("y", y(r.it)).attr("width", bw).attr("height", y(0) - y(r.it)).attr("rx", 2).style("fill", "var(--ink)");
       svg.append("rect").attr("class", "rv-rise").style("--i", i).style("--t0", "0.12s").attr("x", x(r.c) + bw + 2).attr("y", y(r.str)).attr("width", bw).attr("height", y(0) - y(r.str)).attr("rx", 2).style("fill", "var(--fall)");
       svg.append("rect").attr("x", x(r.c) - 2).attr("y", m.t).attr("width", x.bandwidth() + 4).attr("height", h - m.t - m.b).style("fill", "transparent")
-        .on("mousemove", (ev) => showTip(`<b>${r.c} anni</b><br>italiani ${nf1.format(r.it)}% · stranieri ${nf1.format(r.str)}%`, ev)).on("mouseleave", hideTip);
+        .on("mousemove", (ev) => showTip(EN ? `<b>aged ${r.c}</b><br>Italians ${nf1.format(r.it)}% · foreign nationals ${nf1.format(r.str)}%` : `<b>${r.c} anni</b><br>italiani ${nf1.format(r.it)}% · stranieri ${nf1.format(r.str)}%`, ev)).on("mouseleave", hideTip);
     });
     const peakIt = rows.reduce((a, b) => (b.it > a.it ? b : a)), peakStr = rows.reduce((a, b) => (b.str > a.str ? b : a));
-    svg.append("text").attr("class", "lbl halo rv-fade").style("--t0", "0.8s").attr("x", x(peakIt.c) + bw / 2).attr("y", y(peakIt.it) - 5).attr("text-anchor", "middle").text("italiani");
-    svg.append("text").attr("class", "lbl halo rv-fade").style("--t0", "0.8s").attr("x", x(peakStr.c) + bw + 2 + bw / 2).attr("y", y(peakStr.str) - 5).attr("text-anchor", "middle").text("stranieri");
+    svg.append("text").attr("class", "lbl halo rv-fade").style("--t0", "0.8s").attr("x", x(peakIt.c) + bw / 2).attr("y", y(peakIt.it) - 5).attr("text-anchor", "middle").text(L("italiani", "Italians"));
+    svg.append("text").attr("class", "lbl halo rv-fade").style("--t0", "0.8s").attr("x", x(peakStr.c) + bw + 2 + bw / 2).attr("y", y(peakStr.str) - 5).attr("text-anchor", "middle").text(L("stranieri", "foreign nationals"));
     reveal(el);
   }
 
@@ -2469,13 +2734,17 @@
       .filter((d) => d.id !== "OTH")
       .map((d) => ({ ...d, v: Yc.map((y) => pick(y, d.cont, d.id)) }))
       .sort((a, b) => (b.v[L] || 0) - (a.v[L] || 0));
-    $("#carceri-nat-sub").textContent = `Detenuti stranieri presenti a fine anno, dal ${Yc[0]} al ${Yc[L]}: i paesi che l’ISTAT pubblica uno per uno e, per gli altri, il gruppo. In alto il numero del ${Yc[L]}. Ogni riquadro ha la propria scala: si legge la forma della curva, non il confronto tra riquadri.`;
+    $("#carceri-nat-sub").textContent = EN
+      ? `Foreign prisoners held at the end of each year, from ${Yc[0]} to ${Yc[L]}: the countries that ISTAT publishes one by one and, for the rest, the group. At the top, the number in ${Yc[L]}. Each panel has its own scale: read the shape of the curve, not the comparison between panels.`
+      : `Detenuti stranieri presenti a fine anno, dal ${Yc[0]} al ${Yc[L]}: i paesi che l’ISTAT pubblica uno per uno e, per gli altri, il gruppo. In alto il numero del ${Yc[L]}. Ogni riquadro ha la propria scala: si legge la forma della curva, non il confronto tra riquadri.`;
     sparkGrid($("#carceri-nat"), rows, {
       years: Yc,
       lines: (r) => [{ values: r.v, color: "var(--fall)" }],
       head: (r) => `<span class="n" title="${esc(r.name)}">${esc(r.name)}</span><span class="small">${r.v[L] == null ? "–" : nf0.format(r.v[L])}</span>`,
-      foot: (r) => { const i0 = r.v.findIndex((v) => v != null); return `<span>${i0 >= 0 && r.v[L] != null ? `${fmtPct(r.v[L] / r.v[i0] - 1)} dal ${Yc[i0]}` : ""}</span><span>picco ${Yc[d3.maxIndex(r.v, (v) => v || 0)]}</span>`; },
-      tip: (r, i) => `<b>${esc(r.name)}</b> · fine ${Yc[i]}<br>${r.v[i] == null ? "dato non disponibile" : `${nf0.format(r.v[i])} detenuti`}`,
+      foot: (r) => { const i0 = r.v.findIndex((v) => v != null); return `<span>${i0 >= 0 && r.v[L] != null ? `${fmtPct(r.v[L] / r.v[i0] - 1)} ${EN ? "since" : "dal"} ${Yc[i0]}` : ""}</span><span>${EN ? "peak" : "picco"} ${Yc[d3.maxIndex(r.v, (v) => v || 0)]}</span>`; },
+      tip: (r, i) => EN
+        ? `<b>${esc(r.name)}</b> · end of ${Yc[i]}<br>${r.v[i] == null ? "no data" : `${nf0.format(r.v[i])} prisoners`}`
+        : `<b>${esc(r.name)}</b> · fine ${Yc[i]}<br>${r.v[i] == null ? "dato non disponibile" : `${nf0.format(r.v[i])} detenuti`}`,
     });
   }
 
@@ -2486,6 +2755,7 @@
       const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
       const [data, world] = await Promise.all([get(ROOT + "data/rimpatri.json"), has("rimp-map") ? get(ROOT + "data/mondo.topo.json") : null]);
       RIMP = data;
+      if (EN) RIMP.paesi.forEach((p) => { p.name = geoName(p.id, p.name); });
       if (world) WORLD = topojson.feature(world, world.objects.paesi).features;
       state.rimpYear = RIMP.meta.last;
       addSources(RIMP.meta.sources, "rimpatri");
@@ -2501,7 +2771,7 @@
       renderBrief();
       renderDeepCards();
     } catch (e) {
-      if (has("rimpatri-facts")) $("#rimpatri-facts").innerHTML = `<p class="note">I dati sui rimpatri non si sono caricati (${esc(e.message)}).</p>`;
+      if (has("rimpatri-facts")) $("#rimpatri-facts").innerHTML = `<p class="note">${L("I dati sui rimpatri non si sono caricati", "The returns data did not load")} (${esc(e.message)}).</p>`;
       console.error(e);
     }
   }
@@ -2514,7 +2784,11 @@
     const top = D.paesi.filter((p) => p.r[L]).sort((a, b) => b.r[L] - a.r[L]).slice(0, 3);
     const names = top.map((p) => p.name);
     $("#rimp-span").textContent = `${Yr[0]}–${last}`;
-    $("#rimpatri-facts").innerHTML = `
+    $("#rimpatri-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${nf0.format(R[L])}</div><div class="fl">people returned in ${last} after an order to leave Italy. The highest figure in the series was in ${Yr[iMax]}: ${nf0.format(R[iMax])}.</div></div>
+      <div class="fact"><div class="fv">${per100(R[L], O[L])}<small>in 100</small></div><div class="fl">returns per 100 orders in ${last}, out of ${nf0.format(O[L])} orders. In ${Yr[0]} there were ${per100(R[0], O[0])}, but there were ${nf0.format(O[0])} orders.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(R[iMin])}</div><div class="fl">returns in ${Yr[iMin]}, the lowest in the series${COVID.has(Yr[iMin]) ? ", when the pandemic closed borders and all but grounded flights" : ""}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format((100 * d3.sum(top, (p) => p.r[L])) / R[L])}%</div><div class="fl">of returns in ${last} involved citizens of ${andList(names)}.</div></div>` : `
       <div class="fact"><div class="fv">${nf0.format(R[L])}</div><div class="fl">persone rimpatriate nel ${last} dopo un ordine di lasciare l'Italia. Il massimo della serie è del ${Yr[iMax]}: ${nf0.format(R[iMax])}.</div></div>
       <div class="fact"><div class="fv">${per100(R[L], O[L])}<small>su 100</small></div><div class="fl">rimpatri ogni 100 ordini nel ${last}, su ${nf0.format(O[L])} ordini. Nel ${Yr[0]} erano ${per100(R[0], O[0])}, ma gli ordini erano ${nf0.format(O[0])}.</div></div>
       <div class="fact"><div class="fv">${nf0.format(R[iMin])}</div><div class="fl">rimpatri nel ${Yr[iMin]}, il minimo della serie${COVID.has(Yr[iMin]) ? ", quando la pandemia ha chiuso le frontiere e quasi azzerato i voli" : ""}.</div></div>
@@ -2531,7 +2805,7 @@
     const el = $("#rimp-trend");
     const w = Math.max(280, el.clientWidth), h = 240, m = { t: 14, r: 16, b: 24, l: 48 };
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", `Ordini di lasciare l'Italia e rimpatri dal ${Yr[0]} al ${Yr[L]}`);
+      .attr("role", "img").attr("aria-label", EN ? `Orders to leave Italy and returns from ${Yr[0]} to ${Yr[L]}` : `Ordini di lasciare l'Italia e rimpatri dal ${Yr[0]} al ${Yr[L]}`);
     svg.selectAll("*").remove();
     const x = d3.scaleLinear([Yr[0], Yr[L]], [m.l, w - m.r]);
     const y = d3.scaleLinear([0, d3.max(O)], [h - m.b, m.t]).nice(4);
@@ -2550,7 +2824,7 @@
     const line = d3.line().x((_, i) => x(Yr[i])).y((v) => y(v));
     svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).attr("d", line(O)).style("fill", "none").style("stroke", "var(--ink-2)").style("stroke-width", 2).style("stroke-linejoin", "round");
     svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).style("--t0", "0.15s").attr("d", line(R)).style("fill", "none").style("stroke", "var(--fall)").style("stroke-width", 2.5).style("stroke-linejoin", "round");
-    [[O, "var(--ink-2)", "ordini di lasciare l'Italia"], [R, "var(--fall)", "rimpatri"]].forEach(([s, c, label]) => {
+    [[O, "var(--ink-2)", EN ? "orders to leave Italy" : "ordini di lasciare l'Italia"], [R, "var(--fall)", EN ? "returns" : "rimpatri"]].forEach(([s, c, label]) => {
       svg.append("circle").attr("class", "mark rv-pop").attr("cx", x(Yr[L])).attr("cy", y(s[L])).attr("r", 4).style("fill", c).style("stroke", "var(--surface)").style("stroke-width", 2);
       svg.append("text").attr("class", "lbl-strong halo mark rv-fade").attr("x", x(Yr[L]) - 6).attr("y", y(s[L]) - 9).attr("text-anchor", "end").text(nf0.format(s[L]));
       svg.append("text").attr("class", "lbl halo rv-fade").attr("x", x(Yr[0]) + 4).attr("y", y(s[0]) - 9).text(label);
@@ -2563,7 +2837,9 @@
         if (i < 0) return;
         guide.style("display", null).attr("x1", x(Yr[i])).attr("x2", x(Yr[i]));
         [O, R].forEach((s, k) => dots[k].style("display", null).attr("cx", x(Yr[i])).attr("cy", y(s[i])));
-        showTip(`<b>${Yr[i]}</b><br>${nf0.format(O[i])} ordini di lasciare l'Italia<br>${nf0.format(R[i])} rimpatri, ${nf0.format(Math.round((100 * R[i]) / O[i]))} ogni 100 ordini`, ev);
+        showTip(EN
+          ? `<b>${Yr[i]}</b><br>${nf0.format(O[i])} orders to leave Italy<br>${nf0.format(R[i])} returns, ${nf0.format(Math.round((100 * R[i]) / O[i]))} per 100 orders`
+          : `<b>${Yr[i]}</b><br>${nf0.format(O[i])} ordini di lasciare l'Italia<br>${nf0.format(R[i])} rimpatri, ${nf0.format(Math.round((100 * R[i]) / O[i]))} ogni 100 ordini`, ev);
       })
       .on("mouseleave", () => { guide.style("display", "none"); dots.forEach((d) => d.style("display", "none")); hideTip(); });
     reveal(el);
@@ -2586,7 +2862,7 @@
     const D = RIMP, Yr = D.meta.years, L = Yr.length - 1, from = L - RC.n + 1, MIN = 250 * RC.n;
     const sum = (a) => d3.sum(a.slice(from), (v) => v || 0);
     const gli = (n) => `${vowelNum(n) ? "gli" : "i"} ${nf0.format(n)}`, degli = (n) => `${vowelNum(n) ? "degli" : "dei"} ${nf0.format(n)}`;
-    const span = RC.n === 1 ? `nel ${Yr[L]}` : `dal ${Yr[from]} al ${Yr[L]}`, spanT = RC.n === 1 ? `${Yr[L]}` : `${Yr[from]}–${Yr[L]}`;
+    const span = EN ? (RC.n === 1 ? `in ${Yr[L]}` : `from ${Yr[from]} to ${Yr[L]}`) : RC.n === 1 ? `nel ${Yr[L]}` : `dal ${Yr[from]} al ${Yr[L]}`, spanT = RC.n === 1 ? `${Yr[L]}` : `${Yr[from]}–${Yr[L]}`;
     let rows = D.paesi.map((p) => ({ p, r: sum(p.r), o: sum(p.o) })).filter((d) => d.o > 0 || d.r > 0).map((d) => ({ ...d, k: d.o ? (100 * d.r) / d.o : null }));
     const R = sum(D.totale.rimpatri), O = sum(D.totale.ordini);
     const ok = rows.filter((d) => d.o >= MIN);
@@ -2594,29 +2870,42 @@
     else rows.sort((a, b) => b[RC.sort] - a[RC.sort] || b.o - a.o);
     const shown = RC.sort === "k" || RC.all ? rows : rows.slice(0, RC.top);
     const max = d3.max(shown, (d) => Math.max(d.o, d.r)) || 1, pct = (v) => `${((100 * v) / max).toFixed(2)}%`;
-    const kTxt = (d) => (d.k == null ? "–" : d.o < MIN ? `<span class="few" title="Meno di ${nf0.format(MIN)} ordini nel periodo: il rapporto è instabile">${nf0.format(d.k)}</span>` : nf0.format(d.k));
+    const kTxt = (d) => (d.k == null ? "–" : d.o < MIN ? `<span class="few" title="${EN ? `Fewer than ${nf0.format(MIN)} orders in the period: the ratio is unstable` : `Meno di ${nf0.format(MIN)} ordini nel periodo: il rapporto è instabile`}">${nf0.format(d.k)}</span>` : nf0.format(d.k));
     const ol = $("#rimp-countries");
-    ol.innerHTML = `<li class="rc-head" aria-hidden="true"><span>Cittadinanza</span><span>Ordini e rimpatri, ${spanT}</span><span class="num">Rimpatri su ordini</span><span class="num">Ogni 100</span></li>` +
+    ol.innerHTML = (EN
+      ? `<li class="rc-head" aria-hidden="true"><span>Nationality</span><span>Orders and returns, ${spanT}</span><span class="num">Returns out of orders</span><span class="num">Per 100</span></li>`
+      : `<li class="rc-head" aria-hidden="true"><span>Cittadinanza</span><span>Ordini e rimpatri, ${spanT}</span><span class="num">Rimpatri su ordini</span><span class="num">Ogni 100</span></li>`) +
       shown.map((d) => `<li><span class="name" title="${esc(d.p.name)}">${esc(d.p.name)}</span><span class="rc-bars" aria-hidden="true"><i class="o rv-grow" style="width:${pct(d.o)}"></i><i class="r rv-grow" style="width:${pct(d.r)}"></i></span>` +
-        `<span class="val"><b>${nf0.format(d.r)}</b><span class="vh"> rimpatri</span> su ${nf0.format(d.o)}<span class="vh"> ordini</span></span><span class="k">${kTxt(d)}<span class="vh"> rimpatri ogni 100 ordini</span></span></li>`).join("");
+        (EN
+          ? `<span class="val"><b>${nf0.format(d.r)}</b><span class="vh"> returns</span> of ${nf0.format(d.o)}<span class="vh"> orders</span></span><span class="k">${kTxt(d)}<span class="vh"> returns per 100 orders</span></span></li>`
+          : `<span class="val"><b>${nf0.format(d.r)}</b><span class="vh"> rimpatri</span> su ${nf0.format(d.o)}<span class="vh"> ordini</span></span><span class="k">${kTxt(d)}<span class="vh"> rimpatri ogni 100 ordini</span></span></li>`)).join("");
     const items = ol.querySelectorAll("li:not(.rc-head)");
     reveal(ol, items);
     items.forEach((li, i) => {
       const d = shown[i];
-      li.addEventListener("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} ordini di lasciare l’Italia<br>${nf0.format(d.r)} rimpatri${d.k == null ? "" : `, ${nf0.format(d.k)} ogni 100 ordini`}`, ev));
+      li.addEventListener("mousemove", (ev) => showTip(EN
+        ? `<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} orders to leave Italy<br>${nf0.format(d.r)} returns${d.k == null ? "" : `, ${nf0.format(d.k)} per 100 orders`}`
+        : `<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} ordini di lasciare l’Italia<br>${nf0.format(d.r)} rimpatri${d.k == null ? "" : `, ${nf0.format(d.k)} ogni 100 ordini`}`, ev));
       li.addEventListener("mouseleave", hideTip);
     });
-    $("#rc-sub").textContent = `Cittadini di paesi non UE, ${span}. ` +
+    $("#rc-sub").textContent = EN
+      ? `Citizens of non-EU countries, ${span}. ` +
+        (RC.sort === "k" ? `Only the ${nf0.format(rows.length)} countries with at least ${nf0.format(MIN)} orders in the period: with fewer cases the ratio changes a lot from one year to the next.`
+          : shown.length < rows.length ? `The ${shown.length} countries, out of ${nf0.format(rows.length)}, with the most ${RC.sort === "o" ? "orders" : "returns"}.` : `All ${nf0.format(rows.length)} countries, ranked by ${RC.sort === "o" ? "orders" : "returns"}.`) +
+        ` In all, ${nf0.format(R)} returns out of ${nf0.format(O)} orders: ${nf0.format((100 * R) / O)} per 100.`
+      : `Cittadini di paesi non UE, ${span}. ` +
       (RC.sort === "k" ? `Solo ${gli(rows.length)} paesi con almeno ${nf0.format(MIN)} ordini nel periodo: con meno casi il rapporto cambia molto da un anno all’altro.`
         : `${shown.length < rows.length ? `I primi ${shown.length} ${degli(rows.length)} paesi` : `Tutti ${gli(rows.length)} paesi`} ${RC.sort === "o" ? "con più ordini" : "con più rimpatri"}.`) +
       ` In tutto ${nf0.format(R)} rimpatri su ${nf0.format(O)} ordini: ${nf0.format((100 * R) / O)} ogni 100.`;
     const more = $("#rc-more");
     more.hidden = RC.sort === "k" || rows.length <= RC.top;
-    more.textContent = RC.all ? `Mostra solo i primi ${RC.top}` : `Mostra tutti ${gli(rows.length)} paesi`;
+    more.textContent = EN ? (RC.all ? `Show only the top ${RC.top}` : `Show all ${nf0.format(rows.length)} countries`) : RC.all ? `Mostra solo i primi ${RC.top}` : `Mostra tutti ${gli(rows.length)} paesi`;
     const byK = ok.slice().sort((a, b) => b.k - a.k);
     if (byK.length > 1) {
       const hi = byK[0], lo = byK[byK.length - 1];
-      $("#rc-note").textContent = `Tra ${gli(byK.length)} paesi con almeno ${nf0.format(MIN)} ordini ${span}, i rimpatri vanno da ${nf0.format(lo.k)} ogni 100 ordini (${lo.p.name}: ${nf0.format(lo.r)} su ${nf0.format(lo.o)}) a ${nf0.format(hi.k)} ogni 100 (${hi.p.name}: ${nf0.format(hi.r)} su ${nf0.format(hi.o)}). Ordini e rimpatri dello stesso periodo non riguardano sempre le stesse persone.`;
+      $("#rc-note").textContent = EN
+        ? `Among the ${nf0.format(byK.length)} countries with at least ${nf0.format(MIN)} orders ${span}, returns range from ${nf0.format(lo.k)} per 100 orders (${lo.p.name}: ${nf0.format(lo.r)} of ${nf0.format(lo.o)}) to ${nf0.format(hi.k)} per 100 (${hi.p.name}: ${nf0.format(hi.r)} of ${nf0.format(hi.o)}). Orders and returns in the same period do not always concern the same people.`
+        : `Tra ${gli(byK.length)} paesi con almeno ${nf0.format(MIN)} ordini ${span}, i rimpatri vanno da ${nf0.format(lo.k)} ogni 100 ordini (${lo.p.name}: ${nf0.format(lo.r)} su ${nf0.format(lo.o)}) a ${nf0.format(hi.k)} ogni 100 (${hi.p.name}: ${nf0.format(hi.r)} su ${nf0.format(hi.o)}). Ordini e rimpatri dello stesso periodo non riguardano sempre le stesse persone.`;
     }
   }
 
@@ -2636,7 +2925,7 @@
     const h = Math.ceil(b[1][1] - b[0][1]) + 20;
     proj.translate([proj.translate()[0] + 10 - b[0][0], proj.translate()[1] + 10 - b[0][1]]);
     const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
-      .attr("role", "img").attr("aria-label", `Carta dei rimpatri dall'Italia per paese di cittadinanza nel ${y}`);
+      .attr("role", "img").attr("aria-label", EN ? `Map of returns from Italy by country of citizenship in ${y}` : `Carta dei rimpatri dall'Italia per paese di cittadinanza nel ${y}`);
     svg.selectAll("*").remove();
 
     const rows = placed.map((p) => ({ p, n: p.r[i] || 0, o: p.o[i] })).filter((d) => d.n > 0).sort((a, b2) => b2.n - a.n);
@@ -2662,7 +2951,9 @@
     const g = svg.append("g");
     g.selectAll("circle").data(ends).join("circle").attr("class", "bub rv-pop").style("--i", (d, k) => k)
       .attr("cx", (d) => d.xy[0]).attr("cy", (d) => d.xy[1]).attr("r", (d) => Math.max(1.5, rad(d.n)))
-      .on("mousemove", (ev, d) => showTip(`<b>${esc(d.p.name)}</b> · ${y}<br>${nf0.format(d.n)} rimpatri${d.o ? `<br>${nf0.format(d.o)} ordini di lasciare l'Italia` : ""}`, ev))
+      .on("mousemove", (ev, d) => showTip(EN
+        ? `<b>${esc(d.p.name)}</b> · ${y}<br>${nf0.format(d.n)} returns${d.o ? `<br>${nf0.format(d.o)} orders to leave Italy` : ""}`
+        : `<b>${esc(d.p.name)}</b> · ${y}<br>${nf0.format(d.n)} rimpatri${d.o ? `<br>${nf0.format(d.o)} ordini di lasciare l'Italia` : ""}`, ev))
       .on("mouseleave", hideTip);
     // etichette dei primi paesi, spinte verso l'esterno rispetto all'Italia; salta quelle che si sovrappongono
     const boxes = [];
@@ -2678,23 +2969,29 @@
     });
 
     const tot = D.totale.rimpatri[i];
-    $("#rimp-map-sub").textContent = `${nf0.format(tot)} persone rimpatriate nel ${y}, cittadine di ${rows.length} paesi. Ogni cerchio è proporzionale alle persone; la scala è la stessa per tutti gli anni.`;
+    $("#rimp-map-sub").textContent = EN
+      ? `${nf0.format(tot)} people returned in ${y}, citizens of ${rows.length} countries. Each circle is proportional to the number of people; the scale is the same for every year.`
+      : `${nf0.format(tot)} persone rimpatriate nel ${y}, cittadine di ${rows.length} paesi. Ogni cerchio è proporzionale alle persone; la scala è la stessa per tutti gli anni.`;
     const keys = [100, 500, 1000].filter((v) => v < gmax);
     $("#rimp-legend").innerHTML = keys.map((v) => `<span><i class="bubk" style="width:${2 * rad(v)}px;height:${2 * rad(v)}px"></i>${nf0.format(v)}</span>`).join("") +
-      `<span><i class="swk home"></i>Italia</span><span><i class="swk dest"></i>paesi con almeno un rimpatrio nell'anno</span>`;
+      `<span><i class="swk home"></i>${L("Italia", "Italy")}</span><span><i class="swk dest"></i>${L("paesi con almeno un rimpatrio nell'anno", "countries with at least one return in the year")}</span>`;
     reveal(el.closest(".rimp-mapblock"));
   }
 
   function renderRimpGrid() {
     const D = RIMP, Yr = D.meta.years, L = Yr.length - 1;
     const rows = D.paesi.slice(0, 24);
-    $("#rimp-sm-sub").textContent = `${vowelNum(rows.length) ? "Gli" : "I"} ${rows.length} paesi con più rimpatri dal ${Yr[0]} al ${Yr[L]}. Ogni anno gli ordini di lasciare l’Italia (linea grigia) e i rimpatri (linea blu); l’ombra è la distanza tra i due. In alto i rimpatri ogni 100 ordini di tutto il periodo, in basso i rimpatri dal ${Yr[0]} e l’anno con più rimpatri. Ogni riquadro ha la propria scala: si legge la forma, non il confronto tra paesi.`;
+    $("#rimp-sm-sub").textContent = EN
+      ? `The ${rows.length} countries with the most returns from ${Yr[0]} to ${Yr[L]}. For each year, orders to leave Italy (grey line) and returns (blue line); the shading is the gap between the two. At the top, returns per 100 orders over the whole period; at the bottom, returns since ${Yr[0]} and the year with the most returns. Each panel has its own scale: read the shape, not the comparison between countries.`
+      : `${vowelNum(rows.length) ? "Gli" : "I"} ${rows.length} paesi con più rimpatri dal ${Yr[0]} al ${Yr[L]}. Ogni anno gli ordini di lasciare l’Italia (linea grigia) e i rimpatri (linea blu); l’ombra è la distanza tra i due. In alto i rimpatri ogni 100 ordini di tutto il periodo, in basso i rimpatri dal ${Yr[0]} e l’anno con più rimpatri. Ogni riquadro ha la propria scala: si legge la forma, non il confronto tra paesi.`;
     sparkGrid($("#rimp-sm"), rows, {
       years: Yr, gap: true,
       lines: (p) => [{ values: p.r, color: "var(--fall)", width: 2 }, { values: p.o, color: "var(--ink-2)", width: 1.25 }],
-      head: (p) => { const r = d3.sum(p.r, (v) => v || 0), o = d3.sum(p.o, (v) => v || 0); return `<span class="n" title="${esc(p.name)}">${esc(p.name)}</span><span class="small">${o ? nf0.format((100 * r) / o) : "–"} su 100</span>`; },
-      foot: (p) => `<span>${nf0.format(d3.sum(p.r, (v) => v || 0))} dal ${Yr[0]}</span><span>picco ${Yr[d3.maxIndex(p.r, (v) => v || 0)]}</span>`,
-      tip: (p, i) => `<b>${esc(p.name)}</b> · ${Yr[i]}<br>${p.o[i] == null ? "–" : nf0.format(p.o[i])} ordini di lasciare l’Italia<br>${p.r[i] == null ? "–" : nf0.format(p.r[i])} rimpatri${p.o[i] ? `, ${nf0.format((100 * (p.r[i] || 0)) / p.o[i])} ogni 100` : ""}`,
+      head: (p) => { const r = d3.sum(p.r, (v) => v || 0), o = d3.sum(p.o, (v) => v || 0); return `<span class="n" title="${esc(p.name)}">${esc(p.name)}</span><span class="small">${o ? nf0.format((100 * r) / o) : "–"} ${EN ? "in 100" : "su 100"}</span>`; },
+      foot: (p) => `<span>${nf0.format(d3.sum(p.r, (v) => v || 0))} ${EN ? "since" : "dal"} ${Yr[0]}</span><span>${EN ? "peak" : "picco"} ${Yr[d3.maxIndex(p.r, (v) => v || 0)]}</span>`,
+      tip: (p, i) => EN
+        ? `<b>${esc(p.name)}</b> · ${Yr[i]}<br>${p.o[i] == null ? "–" : nf0.format(p.o[i])} orders to leave Italy<br>${p.r[i] == null ? "–" : nf0.format(p.r[i])} returns${p.o[i] ? `, ${nf0.format((100 * (p.r[i] || 0)) / p.o[i])} per 100` : ""}`
+        : `<b>${esc(p.name)}</b> · ${Yr[i]}<br>${p.o[i] == null ? "–" : nf0.format(p.o[i])} ordini di lasciare l’Italia<br>${p.r[i] == null ? "–" : nf0.format(p.r[i])} rimpatri${p.o[i] ? `, ${nf0.format((100 * (p.r[i] || 0)) / p.o[i])} ogni 100` : ""}`,
     });
   }
 
@@ -2706,11 +3003,11 @@
     const k = (r, o) => (tot(o) ? nf0.format((100 * tot(r)) / tot(o)) : "–");
     const rowsOf = (name, r, o, b) => {
       const B = (s) => (b ? `<b>${s}</b>` : s);
-      return `<tr class="rc-o"><td rowspan="2">${B(esc(name))}</td><td>ordini</td>${o.map(cell).join("")}${cell(tot(o))}<td class="num" rowspan="2">${B(k(r, o))}</td></tr>` +
-        `<tr class="rc-r"><td>rimpatri</td>${r.map(cell).join("")}${cell(tot(r))}</tr>`;
+      return `<tr class="rc-o"><td rowspan="2">${B(esc(name))}</td><td>${L("ordini", "orders")}</td>${o.map(cell).join("")}${cell(tot(o))}<td class="num" rowspan="2">${B(k(r, o))}</td></tr>` +
+        `<tr class="rc-r"><td>${L("rimpatri", "returns")}</td>${r.map(cell).join("")}${cell(tot(r))}</tr>`;
     };
-    $("#rimp-table").innerHTML = `<thead><tr><th>Cittadinanza</th><th></th>${Yr.map((y) => `<th class="num">${y}</th>`).join("")}<th class="num">Totale</th><th class="num">Rimpatri ogni 100 ordini</th></tr></thead><tbody>` +
-      D.paesi.map((p) => rowsOf(p.name, p.r, p.o, false)).join("") + rowsOf("Tutti i paesi", D.totale.rimpatri, D.totale.ordini, true) + `</tbody>`;
+    $("#rimp-table").innerHTML = `<thead><tr><th>${L("Cittadinanza", "Nationality")}</th><th></th>${Yr.map((y) => `<th class="num">${y}</th>`).join("")}<th class="num">${L("Totale", "Total")}</th><th class="num">${L("Rimpatri ogni 100 ordini", "Returns per 100 orders")}</th></tr></thead><tbody>` +
+      D.paesi.map((p) => rowsOf(p.name, p.r, p.o, false)).join("") + rowsOf(L("Tutti i paesi", "All countries"), D.totale.rimpatri, D.totale.ordini, true) + `</tbody>`;
   }
 
   // i comandi delle sezioni sui reati: ci sono solo nella home
@@ -2816,48 +3113,64 @@
       if (has("autori-facts")) renderAutori();
       renderDeepCards();
     } catch (e) {
-      if (has("autori-facts")) $("#autori-facts").innerHTML = `<p class="note">I dati sugli autori dei delitti non si sono caricati (${esc(e.message)}).</p>`;
+      if (has("autori-facts")) $("#autori-facts").innerHTML = `<p class="note">${L("I dati sugli autori dei delitti non si sono caricati", "The data on offenders did not load")} (${esc(e.message)}).</p>`;
       console.error(e);
     }
   }
 
   // «quattro su cinque», «quasi tre su quattro»: la frazione semplice più vicina a una quota (0–1)
-  const FRACW = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci"];
+  const FRACW = EN ? ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+    : ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci"];
   function fracWords(q) {
     let best = null;
     for (let n = 2; n <= 10; n++) for (let k = 1; k < n; k++) {
       const err = Math.abs(k / n - q);
       if (!best || err < best.err - 0.012) best = { k, n, err };
     }
-    return { k: best.k, n: best.n, pre: best.err < 0.01 ? "" : best.k / best.n > q ? "quasi " : "più di " };
+    return { k: best.k, n: best.n, pre: best.err < 0.01 ? "" : best.k / best.n > q ? L("quasi ", "nearly ") : L("più di ", "more than ") };
   }
   const tLabel = (t) => (TYPE[t] ? TYPE[t].label : t);
   // nomi brevi per le righe dei grafici, dove lo spazio è poco; il nome intero resta nel suggerimento
   const T_SHORT = { THEFT: "Furti", BURGTHEF: "Furti in casa", PICKTHEF: "Borseggi", BAGTHEF: "Scippi", CARTHEF: "Furti d’auto", VEHITHEF: "Furti su auto",
     ROBBER: "Rapine", HOUSEROB: "Rapine in casa", SWINCYB: "Truffe e frodi", CYBERCRIM: "Delitti informatici" };
+  if (EN) Object.assign(T_SHORT, { THEFT: "Thefts", BURGTHEF: "Burglaries", PICKTHEF: "Pickpocketing", BAGTHEF: "Bag snatching", CARTHEF: "Car thefts", VEHITHEF: "Thefts from cars",
+    ROBBER: "Robberies", HOUSEROB: "Home robberies", SWINCYB: "Fraud", CYBERCRIM: "Cybercrime" });
   const tShort = (t) => T_SHORT[t] || tLabel(t);
   // l'articolo davanti a una percentuale: «il 5,4%» ma «l’8,2%», «nell’11,3%»
   const ELIDE = /^(8|1(?![0-9])|11(?![0-9]))/;
-  const pctA = (prep, v) => { const s = nf1.format(v); return (ELIDE.test(s) ? { il: "l’", nel: "nell’", al: "all’", del: "dell’", dal: "dall’" }[prep] : prep + " ") + s + "%"; };
+  // in inglese niente articolo: solo «5.4%»
+  const pctA = (prep, v) => { const s = nf1.format(v); if (EN) return s + "%"; return (ELIDE.test(s) ? { il: "l’", nel: "nell’", al: "all’", del: "dell’", dal: "dall’" }[prep] : prep + " ") + s + "%"; };
 
   function renderAutori() {
     const A = AUTORI, Ya = A.meta.years, L = Ya.length - 1, last = A.meta.last, it = A.italia;
     const v = (t, i = L) => (it[t] ? it[t][i] : null);
     const tot = v("TOT"), un = fracWords(1 - tot / 100);
-    const lead = `${un.pre}${un.k === 1 ? "un delitto" : FRACW[un.k] + " delitti"} su ${FRACW[un.n]} ${un.k === 1 ? "resta" : "restano"} senza un autore noto`;
+    const lead = EN
+      ? `${un.pre}${FRACW[un.k]} in ${FRACW[un.n]} crimes ${un.k === 1 ? "remains" : "remain"} without a known offender`
+      : `${un.pre}${un.k === 1 ? "un delitto" : FRACW[un.k] + " delitti"} su ${FRACW[un.n]} ${un.k === 1 ? "resta" : "restano"} senza un autore noto`;
     $("#autori-lead").textContent = lead.charAt(0).toUpperCase() + lead.slice(1);
-    $("#autori-lead-sub").textContent = `Ogni quadratino è un delitto su cento commessi nel ${last} e denunciati. In blu quelli di cui si conosce l’autore.`;
-    renderWaffle($("#autori-waffle"), [["TOT", "tutti i delitti"], ["THEFT", "furti"], ["CULPINJU", "lesioni dolose"]].filter(([t]) => v(t) != null).map(([t, name]) => ({
+    $("#autori-lead-sub").textContent = EN
+      ? `Each square is one in every hundred crimes committed in ${last} and reported. In blue, those whose offender is known.`
+      : `Ogni quadratino è un delitto su cento commessi nel ${last} e denunciati. In blu quelli di cui si conosce l’autore.`;
+    renderWaffle($("#autori-waffle"), (EN ? [["TOT", "all crimes"], ["THEFT", "thefts"], ["CULPINJU", "assaults causing injury"]] : [["TOT", "tutti i delitti"], ["THEFT", "furti"], ["CULPINJU", "lesioni dolose"]]).filter(([t]) => v(t) != null).map(([t, name]) => (EN ? {
+      v: v(t), unit: "in 100", label: `${name}, ${last}`, aria: `${nf1.format(v(t))} ${name} in 100 with a known offender in ${last}`,
+    } : {
       v: v(t), unit: "su 100", label: `${name}, ${last}`, aria: `${nf1.format(v(t))} ${name} su 100 con autore noto nel ${last}`,
     })));
-    $("#autori-note-1").textContent = `Nei furti l’autore è noto solo ${pctA("nel", v("THEFT"))} dei casi: chi ruba di solito non si fa vedere, e spesso la vittima se ne accorge dopo. Nelle lesioni dolose la quota sale ${pctA("al", v("CULPINJU"))}, nelle violenze sessuali ${pctA("al", v("RAPE"))}: chi le subisce spesso conosce chi aggredisce, o lo vede in faccia.`;
+    $("#autori-note-1").textContent = EN
+      ? `For thefts the offender is known in only ${nf1.format(v("THEFT"))}% of cases: thieves are usually not seen, and victims often notice only later. For assaults causing injury the share rises to ${nf1.format(v("CULPINJU"))}%, for sexual violence to ${nf1.format(v("RAPE"))}%: victims often know their attacker, or see their face.`
+      : `Nei furti l’autore è noto solo ${pctA("nel", v("THEFT"))} dei casi: chi ruba di solito non si fa vedere, e spesso la vittima se ne accorge dopo. Nelle lesioni dolose la quota sale ${pctA("al", v("CULPINJU"))}, nelle violenze sessuali ${pctA("al", v("RAPE"))}: chi le subisce spesso conosce chi aggredisce, o lo vede in faccia.`;
 
     // le città, sugli ultimi tre anni sommati: le servono i fatti in apertura, la classifica e la tabella
     const K = d3.range(Math.max(0, L - 2), L + 1), span = `${Ya[K[0]]}–${last}`;
     const pool = (c, t) => { const n = d3.sum(K, (i) => c.tot[t][i] || 0), k = d3.sum(K, (i) => c.noto[t][i] || 0); return { n, k, v: n ? (100 * k) / n : null }; };
     const cityTot = A.citta.map((c) => ({ c, ...pool(c, "TOT") })).sort((a, b) => a.v - b.v);
     const cLo = cityTot[0], cHi = cityTot[cityTot.length - 1];
-    $("#autori-facts").innerHTML = `
+    $("#autori-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${nf1.format(tot)}%</div><div class="fl">of crimes committed and reported in ${last} had a known offender by the end of the year. In ${Ya[0]} it was ${nf1.format(v("TOT", 0))}%.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(v("THEFT"))}%</div><div class="fl">of thefts. For home burglaries ${nf1.format(v("BURGTHEF"))}%, for car thefts ${nf1.format(v("CARTHEF"))}%.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(v("INTENHOM"))}%</div><div class="fl">of intentional homicides have a known offender by 31 December. Offenders identified the following year are not counted.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(cLo.v)}%</div><div class="fl">of crimes had a known offender in ${esc(cLo.c.name)} between ${Ya[K[0]]} and ${last}, the lowest share among the twelve big cities. The highest is in ${esc(cHi.c.name)}: ${nf1.format(cHi.v)}%.</div></div>` : `
       <div class="fact"><div class="fv">${nf1.format(tot)}%</div><div class="fl">dei delitti commessi e denunciati nel ${last} ha un autore noto entro l’anno. Nel ${Ya[0]} era ${pctA("il", v("TOT", 0))}.</div></div>
       <div class="fact"><div class="fv">${nf1.format(v("THEFT"))}%</div><div class="fl">dei furti. Per i furti in casa ${pctA("il", v("BURGTHEF"))}, per i furti d’auto ${pctA("il", v("CARTHEF"))}.</div></div>
       <div class="fact"><div class="fv">${nf1.format(v("INTENHOM"))}%</div><div class="fl">degli omicidi volontari ha un autore noto entro il 31 dicembre. Chi viene scoperto l’anno dopo non entra nel conto.</div></div>
@@ -2865,12 +3178,22 @@
 
     // reato per reato: il primo anno e l'ultimo, dalla quota più alta alla più bassa
     const rows = A.types.filter((t) => t !== "TOT" && v(t) != null).map((t) => ({
-      name: tShort(t), a: v(t, 0), b: v(t), tip: `<b>${esc(tLabel(t))}</b><br>autore noto: ${nf1.format(v(t))}% nel ${last}, ${nf1.format(v(t, 0))}% nel ${Ya[0]}${GLOSS[t] ? `<br><span class="small">${esc(GLOSS[t])}</span>` : ""}`,
+      name: tShort(t), a: v(t, 0), b: v(t), tip: (EN
+        ? `<b>${esc(tLabel(t))}</b><br>known offender: ${nf1.format(v(t))}% in ${last}, ${nf1.format(v(t, 0))}% in ${Ya[0]}`
+        : `<b>${esc(tLabel(t))}</b><br>autore noto: ${nf1.format(v(t))}% nel ${last}, ${nf1.format(v(t, 0))}% nel ${Ya[0]}`) + `${GLOSS[t] ? `<br><span class="small">${esc(GLOSS[t])}</span>` : ""}`,
     })).sort((a, b) => b.b - a.b);
-    rows.push({ name: tLabel("TOT"), a: v("TOT", 0), b: tot, strong: true, tip: `<b>Tutti i delitti</b><br>autore noto: ${nf1.format(tot)}% nel ${last}, ${nf1.format(v("TOT", 0))}% nel ${Ya[0]}` });
-    $("#autori-types-sub").textContent = `Italia, delitti commessi nel ${Ya[0]} e nel ${last}, dalla quota più alta alla più bassa; in fondo tutti i delitti insieme.`;
-    dumbbell($("#autori-types"), rows, { label: `Delitti con autore noto ogni 100, per tipo, ${Ya[0]} e ${last}`, unit: "ogni 100 delitti", keys: [String(Ya[0]), String(last)], max: 100 });
-    $("#autori-types-note").textContent = "In cima stanno spaccio e ricettazione: si scoprono quasi solo durante un controllo, con l’autore già davanti, quindi la quota dice quanto si controlla. In fondo i furti, soprattutto di auto e sulle auto in sosta, i danneggiamenti e i delitti informatici: chi li commette quasi mai si fa vedere.";
+    rows.push({ name: tLabel("TOT"), a: v("TOT", 0), b: tot, strong: true, tip: EN
+      ? `<b>All crimes</b><br>known offender: ${nf1.format(tot)}% in ${last}, ${nf1.format(v("TOT", 0))}% in ${Ya[0]}`
+      : `<b>Tutti i delitti</b><br>autore noto: ${nf1.format(tot)}% nel ${last}, ${nf1.format(v("TOT", 0))}% nel ${Ya[0]}` });
+    $("#autori-types-sub").textContent = EN
+      ? `Italy, crimes committed in ${Ya[0]} and in ${last}, from the highest share to the lowest; at the bottom, all crimes together.`
+      : `Italia, delitti commessi nel ${Ya[0]} e nel ${last}, dalla quota più alta alla più bassa; in fondo tutti i delitti insieme.`;
+    dumbbell($("#autori-types"), rows, EN
+      ? { label: `Crimes with a known offender per 100, by type, ${Ya[0]} and ${last}`, unit: "per 100 crimes", keys: [String(Ya[0]), String(last)], max: 100 }
+      : { label: `Delitti con autore noto ogni 100, per tipo, ${Ya[0]} e ${last}`, unit: "ogni 100 delitti", keys: [String(Ya[0]), String(last)], max: 100 });
+    $("#autori-types-note").textContent = EN
+      ? "At the top are drug dealing and handling stolen goods: they are discovered almost only during a police check, with the offender already there, so the share shows how much checking goes on. At the bottom are thefts, especially of cars and from parked cars, criminal damage and cybercrime: the people who commit them are almost never seen."
+      : "In cima stanno spaccio e ricettazione: si scoprono quasi solo durante un controllo, con l’autore già davanti, quindi la quota dice quanto si controlla. In fondo i furti, soprattutto di auto e sulle auto in sosta, i danneggiamenti e i delitti informatici: chi li commette quasi mai si fa vedere.";
 
     // nel tempo: un riquadro per tipo, ognuno con la sua scala
     if (has("autori-sm")) {
@@ -2880,29 +3203,36 @@
         head: (t) => `<span class="n" title="${esc(tLabel(t))}">${esc(tLabel(t))}</span><span class="chg">${nf1.format(v(t))}%</span>`,
         foot: (t) => `<span>${Ya[0]}: ${nf1.format(v(t, 0))}%</span><span>${last}</span>`,
         lines: (t) => [{ values: it[t], color: "var(--fall)" }],
-        tip: (t, i) => `<b>${esc(tLabel(t))}</b> · ${Ya[i]}<br>${it[t][i] == null ? "nessun dato" : nf1.format(it[t][i]) + "% con autore noto"}`,
+        tip: (t, i) => `<b>${esc(tLabel(t))}</b> · ${Ya[i]}<br>${it[t][i] == null ? (EN ? "no data" : "nessun dato") : nf1.format(it[t][i]) + (EN ? "% with a known offender" : "% con autore noto")}`,
       });
     }
 
     renderAutoriCities();
 
     // tabella: i tipi di delitto per riga, le città per colonna
-    const head = `<thead><tr><th scope="col">Delitto</th>${A.citta.map((c) => `<th scope="col" class="num">${esc(c.name)}</th>`).join("")}<th scope="col" class="num">Italia</th></tr></thead>`;
+    const head = `<thead><tr><th scope="col">${EN ? "Crime" : "Delitto"}</th>${A.citta.map((c) => `<th scope="col" class="num">${esc(c.name)}</th>`).join("")}<th scope="col" class="num">${EN ? "Italy" : "Italia"}</th></tr></thead>`;
     const body = A.types.filter((t) => v(t) != null).map((t) => `<tr><th scope="row">${esc(tLabel(t))}</th>${A.citta.map((c) => {
       const p = pool(c, t);
       return `<td class="num">${p.v == null ? "–" : nf1.format(p.v) + (p.n < 20 ? "*" : "")}</td>`;
     }).join("")}<td class="num">${nf1.format(d3.mean(K, (i) => it[t][i]))}</td></tr>`).join("");
-    $("#autori-city-table").innerHTML = `<caption>Delitti con autore noto ogni 100 commessi e denunciati, ${span}; l’asterisco indica meno di 20 delitti nei tre anni. Per l’Italia, media delle quote annuali.</caption>${head}<tbody>${body}</tbody>`;
+    $("#autori-city-table").innerHTML = `<caption>${EN
+      ? `Crimes with a known offender per 100 committed and reported, ${span}; an asterisk marks fewer than 20 crimes over the three years. For Italy, the average of the annual shares.`
+      : `Delitti con autore noto ogni 100 commessi e denunciati, ${span}; l’asterisco indica meno di 20 delitti nei tre anni. Per l’Italia, media delle quote annuali.`}</caption>${head}<tbody>${body}</tbody>`;
 
     // province: media delle quote degli ultimi tre anni
     const P = A.province, ids = Object.keys(P);
     const mean = (p, key) => d3.mean(K, (i) => p[key][i]);
     const prov = ids.map((id) => ({ id, p: P[id], v: mean(P[id], "pct"), f: mean(P[id], "furti") })).filter((d) => d.v != null);
     const itK = d3.mean(K, (i) => it.TOT[i]);
-    $("#autori-prov-sub").textContent = `Delitti con autore noto ogni 100 commessi e denunciati, sul totale dei delitti, media ${span}. Più è scuro, più spesso l’autore è noto.`;
+    $("#autori-prov-sub").textContent = EN
+      ? `Crimes with a known offender per 100 committed and reported, all crimes, average ${span}. The darker the colour, the more often the offender is known.`
+      : `Delitti con autore noto ogni 100 commessi e denunciati, sul totale dei delitti, media ${span}. Più è scuro, più spesso l’autore è noto.`;
     if (has("autori-map")) {
-      provMap($("#autori-map"), $("#autori-legend"), new Map(prov.map((d) => [d.p.cap.slice(0, 3), { v: d.v, tip: `<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf1.format(d.v)}% dei delitti con autore noto<br><span class="small">media ${span}; nel ${last}: ${nf1.format(d.p.pct[L])}%</span>${d.f != null ? `<br><span class="small">furti: ${nf0.format(d.f)} delitti denunciati su 100</span>` : ""}` }])),
-        { label: `Carta delle province: delitti con autore noto ogni 100, media ${span}`, legend: `Delitti con autore noto ogni 100, ${span}` });
+      provMap($("#autori-map"), $("#autori-legend"), new Map(prov.map((d) => [d.p.cap.slice(0, 3), { v: d.v, tip: EN
+        ? `<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf1.format(d.v)}% of crimes with a known offender<br><span class="small">average ${span}; in ${last}: ${nf1.format(d.p.pct[L])}%</span>${d.f != null ? `<br><span class="small">thefts: ${nf0.format(d.f)} in 100 reported crimes</span>` : ""}`
+        : `<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf1.format(d.v)}% dei delitti con autore noto<br><span class="small">media ${span}; nel ${last}: ${nf1.format(d.p.pct[L])}%</span>${d.f != null ? `<br><span class="small">furti: ${nf0.format(d.f)} delitti denunciati su 100</span>` : ""}` }])),
+        EN ? { label: `Map of provinces: crimes with a known offender per 100, average ${span}`, legend: `Crimes with a known offender per 100, ${span}` }
+          : { label: `Carta delle province: delitti con autore noto ogni 100, media ${span}`, legend: `Delitti con autore noto ogni 100, ${span}` });
     }
     const byV = prov.slice().sort((a, b) => b.v - a.v), n = 8, mx = byV[0].v;
     const item = (d) => ({ name: d.p.name.split("/")[0], v: d.v, title: `${d.p.name}: ${nf1.format(d.v)}% (${span})` });
@@ -2910,7 +3240,10 @@
     barList($("#autori-prov-bottom"), byV.slice(-n).reverse().map(item), { max: mx, ref: itK });
     const withF = prov.filter((d) => d.f != null), r = pearson(withF.map((d) => d.f), withF.map((d) => d.v));
     const big = ["Milano", "Roma", "Napoli", "Torino"].map((nm) => prov.find((d) => d.p.name === nm)).filter(Boolean);
-    $("#autori-prov-note").textContent = `La linea nelle barre è l’Italia (${nf1.format(itK)}%). Le province delle grandi città hanno le quote più basse: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
+    $("#autori-prov-note").textContent = EN
+      ? `The line in the bars is Italy (${nf1.format(itK)}%). The provinces of the big cities have the lowest shares: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
+        `The main reason is theft: where thefts make up more of all crimes, the offender is known less often (correlation ${nf2.format(r).replace("-", "−")} across the ${withF.length} provinces). In Sardegna the colours follow the four historical provinces for which ISTAT publishes data; the borders drawn are today’s.`
+      : `La linea nelle barre è l’Italia (${nf1.format(itK)}%). Le province delle grandi città hanno le quote più basse: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
       `Il motivo principale sono i furti: dove pesano di più sul totale dei delitti, l’autore si conosce meno spesso (correlazione ${nf2.format(r).replace("-", "−")} tra le ${withF.length} province). In Sardegna i colori seguono le quattro province storiche su cui l’ISTAT pubblica i dati; i confini disegnati sono quelli di oggi.`;
   }
 
@@ -2920,11 +3253,13 @@
     const K = d3.range(Math.max(0, L - 2), L + 1), span = `${Ya[K[0]]}–${last}`;
     const rows = A.citta.map((c) => {
       const n = d3.sum(K, (i) => c.tot[t][i] || 0), k = d3.sum(K, (i) => c.noto[t][i] || 0);
-      return { name: c.name, v: n ? (100 * k) / n : null, few: n < 20, title: `${c.name}: ${nf0.format(k)} delitti con autore noto su ${nf0.format(n)}, ${span}` };
+      return { name: c.name, v: n ? (100 * k) / n : null, few: n < 20, title: EN ? `${c.name}: ${nf0.format(k)} crimes with a known offender out of ${nf0.format(n)}, ${span}` : `${c.name}: ${nf0.format(k)} delitti con autore noto su ${nf0.format(n)}, ${span}` };
     }).filter((r) => r.v != null).sort((a, b) => b.v - a.v);
     const itK = d3.mean(K, (i) => A.italia[t][i]);
-    $("#autori-city-title").textContent = `${tLabel(t)}: delitti con autore noto ogni 100`;
-    $("#autori-city-sub").textContent = `Delitti commessi e denunciati tra il ${Ya[K[0]]} e il ${last}, sommati. La linea è l’Italia (${nf1.format(itK)}%, media delle quote annuali).` + (rows.some((r) => r.few) ? " L’asterisco indica meno di 20 delitti nei tre anni." : "");
+    $("#autori-city-title").textContent = EN ? `${tLabel(t)}: crimes with a known offender per 100` : `${tLabel(t)}: delitti con autore noto ogni 100`;
+    $("#autori-city-sub").textContent = EN
+      ? `Crimes committed and reported between ${Ya[K[0]]} and ${last}, added together. The line is Italy (${nf1.format(itK)}%, the average of the annual shares).` + (rows.some((r) => r.few) ? " An asterisk marks fewer than 20 crimes over the three years." : "")
+      : `Delitti commessi e denunciati tra il ${Ya[K[0]]} e il ${last}, sommati. La linea è l’Italia (${nf1.format(itK)}%, media delle quote annuali).` + (rows.some((r) => r.few) ? " L’asterisco indica meno di 20 delitti nei tre anni." : "");
     barList($("#autori-cities"), rows, { max: Math.max(d3.max(rows, (r) => r.v), itK) * 1.02, ref: itK });
   }
 
@@ -2945,7 +3280,7 @@
       if (has("minori-facts")) renderMinori();
       renderDeepCards();
     } catch (e) {
-      if (has("minori-facts")) $("#minori-facts").innerHTML = `<p class="note">I dati sui minorenni non si sono caricati (${esc(e.message)}).</p>`;
+      if (has("minori-facts")) $("#minori-facts").innerHTML = `<p class="note">${L("I dati sui minorenni non si sono caricati", "The data on minors did not load")} (${esc(e.message)}).</p>`;
       console.error(e);
     }
   }
@@ -2960,7 +3295,7 @@
   // «una su quattro», «più di una su otto»
   function oneIn(q) {
     const r = 100 / q, n = Math.round(r);
-    return { n, w: FRACW[n] || nf0.format(n), pre: Math.abs(r - n) / n < 0.03 ? "" : r > n ? "quasi " : "più di " };
+    return { n, w: FRACW[n] || nf0.format(n), pre: Math.abs(r - n) / n < 0.03 ? "" : r > n ? L("quasi ", "nearly ") : L("più di ", "more than ") };
   }
 
   function renderMinori() {
@@ -2969,16 +3304,31 @@
 
     // apertura: le rapine in strada, il delitto dove la quota è cresciuta di più
     const s1 = sh("STREETROB", L), s0 = sh("STREETROB", i0), a = oneIn(s1), b = oneIn(s0);
-    $("#minori-lead").textContent = `${a.pre ? a.pre.charAt(0).toUpperCase() + a.pre.slice(1) + "una" : "Una"} segnalazione su ${a.w} per rapina in strada riguarda un minorenne`;
-    $("#minori-lead-sub").textContent = `Nel ${y0} era ${b.pre}una su ${b.w}. Ogni quadratino è una segnalazione su cento; in blu quelle che riguardano un minorenne.`;
-    renderWaffle($("#minori-waffle"), [
+    $("#minori-lead").textContent = EN
+      ? `${a.pre ? a.pre.charAt(0).toUpperCase() + a.pre.slice(1) + "one" : "One"} in ${a.w} records for street robbery involves a minor`
+      : `${a.pre ? a.pre.charAt(0).toUpperCase() + a.pre.slice(1) + "una" : "Una"} segnalazione su ${a.w} per rapina in strada riguarda un minorenne`;
+    $("#minori-lead-sub").textContent = EN
+      ? `In ${y0} it was ${b.pre}one in ${b.w}. Each square is one record in a hundred; in blue, those involving a minor.`
+      : `Nel ${y0} era ${b.pre}una su ${b.w}. Ogni quadratino è una segnalazione su cento; in blu quelle che riguardano un minorenne.`;
+    renderWaffle($("#minori-waffle"), EN ? [
+      { v: sh("TOT", L), unit: "in 100", label: `all crimes, ${last}`, aria: `${nf1.format(sh("TOT", L))} records in 100 involve a minor, all crimes, ${last}` },
+      { v: s0, unit: "in 100", label: `street robberies, ${y0}`, aria: `${nf1.format(s0)} street robbery records in 100 involve a minor in ${y0}` },
+      { v: s1, unit: "in 100", label: `street robberies, ${last}`, aria: `${nf1.format(s1)} street robbery records in 100 involve a minor in ${last}` },
+    ] : [
       { v: sh("TOT", L), unit: "su 100", label: `tutti i delitti, ${last}`, aria: `${nf1.format(sh("TOT", L))} segnalazioni su 100 riguardano un minorenne, tutti i delitti, ${last}` },
       { v: s0, unit: "su 100", label: `rapine in strada, ${y0}`, aria: `${nf1.format(s0)} segnalazioni su 100 per rapina in strada riguardano un minorenne nel ${y0}` },
       { v: s1, unit: "su 100", label: `rapine in strada, ${last}`, aria: `${nf1.format(s1)} segnalazioni su 100 per rapina in strada riguardano un minorenne nel ${last}` },
     ]);
-    $("#minori-note-1").textContent = `Le segnalazioni di minorenni per furto sono scese da ${nf0.format(mn.THEFT[i0])} nel ${y0} a ${nf0.format(mn.THEFT[L])} nel ${last}, ma sono scese anche quelle degli adulti: tra tutte le persone segnalate per furto, i minorenni sono passati ${pctA("dal", sh("THEFT", i0))} ${pctA("al", sh("THEFT", L))}. ` +
+    $("#minori-note-1").textContent = EN
+      ? `Records of minors for theft fell from ${nf0.format(mn.THEFT[i0])} in ${y0} to ${nf0.format(mn.THEFT[L])} in ${last}, but those of adults fell too: among all people recorded for theft, the share of minors went from ${nf1.format(sh("THEFT", i0))}% to ${nf1.format(sh("THEFT", L))}%. ` +
+        `For street robbery, records of minors went from ${nf0.format(mn.STREETROB[i0])} to ${nf0.format(mn.STREETROB[L])}, and the share from ${nf1.format(s0)}% to ${nf1.format(s1)}%: there, minors really do account for more.`
+      : `Le segnalazioni di minorenni per furto sono scese da ${nf0.format(mn.THEFT[i0])} nel ${y0} a ${nf0.format(mn.THEFT[L])} nel ${last}, ma sono scese anche quelle degli adulti: tra tutte le persone segnalate per furto, i minorenni sono passati ${pctA("dal", sh("THEFT", i0))} ${pctA("al", sh("THEFT", L))}. ` +
       `Per le rapine in strada le segnalazioni di minorenni sono passate da ${nf0.format(mn.STREETROB[i0])} a ${nf0.format(mn.STREETROB[L])}, e la quota ${pctA("dal", s0)} ${pctA("al", s1)}: lì i minorenni pesano davvero di più.`;
-    $("#minori-facts").innerHTML = `
+    $("#minori-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${nf0.format(mn.TOT[L])}</div><div class="fl">records of minors in ${last}: ${nf1.format(sh("TOT", L))}% of those for all people reported or arrested. In ${y0} there were ${nf0.format(mn.TOT[i0])}, ${nf1.format(sh("TOT", i0))}%.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sh("ROBBER", L))}%</div><div class="fl">of records for robbery involve a minor. In ${y0} it was ${nf1.format(sh("ROBBER", i0))}%.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sh("CULPINJU", L))}%</div><div class="fl">of records for assault causing injury involve a minor. In ${y0} it was ${nf1.format(sh("CULPINJU", i0))}%.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sh("THEFT", L))}%</div><div class="fl">of records for theft involve a minor: here the share has fallen, from ${nf1.format(sh("THEFT", i0))}% in ${y0}.</div></div>` : `
       <div class="fact"><div class="fv">${nf0.format(mn.TOT[L])}</div><div class="fl">segnalazioni di minorenni nel ${last}: ${pctA("il", sh("TOT", L))} di quelle di tutte le persone denunciate o arrestate. Nel ${y0} erano ${nf0.format(mn.TOT[i0])}, ${pctA("il", sh("TOT", i0))}.</div></div>
       <div class="fact"><div class="fv">${nf1.format(sh("ROBBER", L))}%</div><div class="fl">delle segnalazioni per rapina riguarda un minorenne. Nel ${y0} era ${pctA("il", sh("ROBBER", i0))}.</div></div>
       <div class="fact"><div class="fv">${nf1.format(sh("CULPINJU", L))}%</div><div class="fl">delle segnalazioni per lesioni dolose riguarda un minorenne. Nel ${y0} era ${pctA("il", sh("CULPINJU", i0))}.</div></div>
@@ -2986,43 +3336,55 @@
 
     // reato per reato: la quota nel 2014 e nell'ultimo anno
     const types = minoriTypes().filter((t) => t !== "TOT");
-    const tip = (t) => `<b>${esc(tLabel(t))}</b><br>${[i0, L].map((i) => `${Ym[i]}: ${nf0.format(mn[t][i] || 0)} minorenni su ${nf0.format(M.italia.tot[t][i] || 0)} segnalazioni, ${sh(t, i) == null ? "–" : nf1.format(sh(t, i)) + "%"}`).join("<br>")}`;
+    const tip = (t) => `<b>${esc(tLabel(t))}</b><br>${[i0, L].map((i) => `${Ym[i]}: ${nf0.format(mn[t][i] || 0)} ${EN ? "minors out of" : "minorenni su"} ${nf0.format(M.italia.tot[t][i] || 0)} ${EN ? "records" : "segnalazioni"}, ${sh(t, i) == null ? "–" : nf1.format(sh(t, i)) + "%"}`).join("<br>")}`;
     const rows = types.map((t) => ({ t, name: tShort(t), a: sh(t, i0), b: sh(t, L), tip: tip(t) })).sort((p, q) => q.b - p.b);
     rows.push({ t: "TOT", name: tLabel("TOT"), a: sh("TOT", i0), b: sh("TOT", L), strong: true, tip: tip("TOT") });
-    $("#minori-types-sub").textContent = `Italia, ${y0} e ${last}, dalla quota più alta alla più bassa; in fondo tutti i delitti insieme. Mancano i delitti con meno di 20 segnalazioni di minorenni in entrambi gli anni.`;
-    dumbbell($("#minori-types"), rows, { label: `Minorenni ogni 100 persone segnalate, per tipo di delitto, ${y0} e ${last}`, unit: "ogni 100 segnalazioni", keys: [String(y0), String(last)] });
+    $("#minori-types-sub").textContent = EN
+      ? `Italy, ${y0} and ${last}, from the highest share to the lowest; at the bottom, all crimes together. Crimes with fewer than 20 records of minors in both years are left out.`
+      : `Italia, ${y0} e ${last}, dalla quota più alta alla più bassa; in fondo tutti i delitti insieme. Mancano i delitti con meno di 20 segnalazioni di minorenni in entrambi gli anni.`;
+    dumbbell($("#minori-types"), rows, EN
+      ? { label: `Minors per 100 people recorded, by type of crime, ${y0} and ${last}`, unit: "per 100 records", keys: [String(y0), String(last)] }
+      : { label: `Minorenni ogni 100 persone segnalate, per tipo di delitto, ${y0} e ${last}`, unit: "ogni 100 segnalazioni", keys: [String(y0), String(last)] });
     const moves = rows.filter((r) => r.t !== "TOT").map((r) => ({ ...r, d: r.b - r.a }));
     const up = moves.slice().sort((p, q) => q.d - p.d).slice(0, 3), down = moves.filter((r) => r.d < 0).sort((p, q) => p.d - q.d).slice(0, 3);
-    const say = (r) => `${lower(tShort(r.t))} (da ${nf1.format(r.a)} a ${nf1.format(r.b)})`;
-    $("#minori-types-note").textContent = `La quota è cresciuta di più per ${up.map(say).join(", ")}.` + (down.length ? ` È scesa per ${down.map(say).join(", ")}.` : "") + " Per i delitti più rari pochi casi spostano molto la quota: i numeri sono nel riquadro che compare passando sopra una riga.";
+    const say = (r) => (EN ? `${lower(tShort(r.t))} (from ${nf1.format(r.a)} to ${nf1.format(r.b)})` : `${lower(tShort(r.t))} (da ${nf1.format(r.a)} a ${nf1.format(r.b)})`);
+    $("#minori-types-note").textContent = EN
+      ? `The share grew most for ${andList(up.map(say))}.` + (down.length ? ` It fell for ${andList(down.map(say))}.` : "") + " For the rarer crimes a few cases move the share a lot: the numbers are in the box that appears when you hover over a row."
+      : `La quota è cresciuta di più per ${up.map(say).join(", ")}.` + (down.length ? ` È scesa per ${down.map(say).join(", ")}.` : "") + " Per i delitti più rari pochi casi spostano molto la quota: i numeri sono nel riquadro che compare passando sopra una riga.";
 
     // nel tempo: la quota dal 2014, i numeri dal 2004
     const ys = Ym.slice(i0), shs = (t) => ys.map((_, k) => sh(t, i0 + k));
-    $("#minori-trend-sub").textContent = `Segnalazioni di minorenni ogni 100 segnalazioni di tutte le persone, ${y0}–${last}`;
+    $("#minori-trend-sub").textContent = EN ? `Records of minors per 100 records of all people, ${y0}–${last}` : `Segnalazioni di minorenni ogni 100 segnalazioni di tutte le persone, ${y0}–${last}`;
     seriesChart($("#minori-trend"), {
-      years: ys, label: `Minorenni ogni 100 persone segnalate, ${y0}–${last}`, height: 250, covid: true, yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
+      years: ys, label: EN ? `Minors per 100 people recorded, ${y0}–${last}` : `Minorenni ogni 100 persone segnalate, ${y0}–${last}`, height: 250, covid: true, yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
       series: [
-        { name: "rapine", values: shs("ROBBER"), color: "var(--fall)", width: 2.5, at: 2017, dy: -10 },
-        { name: "lesioni dolose", values: shs("CULPINJU"), color: "var(--ink)", at: 2016, dy: -10 },
-        { name: "furti", values: shs("THEFT"), color: "var(--muted)", dash: "4 3", at: 2015, dy: 16, dyEnd: 16 },
-        { name: "tutti i delitti", values: shs("TOT"), color: "var(--ink-2)", at: 2015, dy: 16 },
+        { name: EN ? "robberies" : "rapine", values: shs("ROBBER"), color: "var(--fall)", width: 2.5, at: 2017, dy: -10 },
+        { name: EN ? "assaults causing injury" : "lesioni dolose", values: shs("CULPINJU"), color: "var(--ink)", at: 2016, dy: -10 },
+        { name: EN ? "thefts" : "furti", values: shs("THEFT"), color: "var(--muted)", dash: "4 3", at: 2015, dy: 16, dyEnd: 16 },
+        { name: EN ? "all crimes" : "tutti i delitti", values: shs("TOT"), color: "var(--ink-2)", at: 2015, dy: 16 },
       ],
     });
-    $("#minori-counts-sub").textContent = `Segnalazioni di minorenni denunciati o arrestati, ${Ym[0]}–${last}`;
+    $("#minori-counts-sub").textContent = EN ? `Records of minors reported or arrested, ${Ym[0]}–${last}` : `Segnalazioni di minorenni denunciati o arrestati, ${Ym[0]}–${last}`;
     seriesChart($("#minori-counts"), {
-      years: Ym, label: `Segnalazioni di minorenni, ${Ym[0]}–${last}`, height: 250, covid: true, yMin: 0,
-      series: [{ name: "minorenni segnalati", values: mn.TOT, color: "var(--fall)", width: 2.5, label: false }],
-      tip: (i) => `<b>${Ym[i]}</b><br>${nf0.format(mn.TOT[i])} segnalazioni di minorenni` + (sh("TOT", i) != null ? `<br>${nf1.format(sh("TOT", i))}% di tutte le persone segnalate` : ""),
+      years: Ym, label: EN ? `Records of minors, ${Ym[0]}–${last}` : `Segnalazioni di minorenni, ${Ym[0]}–${last}`, height: 250, covid: true, yMin: 0,
+      series: [{ name: EN ? "minors recorded" : "minorenni segnalati", values: mn.TOT, color: "var(--fall)", width: 2.5, label: false }],
+      tip: (i) => EN
+        ? `<b>${Ym[i]}</b><br>${nf0.format(mn.TOT[i])} records of minors` + (sh("TOT", i) != null ? `<br>${nf1.format(sh("TOT", i))}% of all people recorded` : "")
+        : `<b>${Ym[i]}</b><br>${nf0.format(mn.TOT[i])} segnalazioni di minorenni` + (sh("TOT", i) != null ? `<br>${nf1.format(sh("TOT", i))}% di tutte le persone segnalate` : ""),
     });
     if (has("minori-sm")) {
-      $("#minori-sm-sub").textContent = `Segnalazioni di minorenni per tipo di delitto, ${Ym[0]}–${last}; per i tipi di furto e di rapina dal 2006. Ogni riquadro ha la sua scala.`;
+      $("#minori-sm-sub").textContent = EN
+        ? `Records of minors by type of crime, ${Ym[0]}–${last}; for the types of theft and robbery, from 2006. Each panel has its own scale.`
+        : `Segnalazioni di minorenni per tipo di delitto, ${Ym[0]}–${last}; per i tipi di furto e di rapina dal 2006. Ogni riquadro ha la sua scala.`;
       const first = (t) => mn[t].findIndex((x) => x != null);
       sparkGrid($("#minori-sm"), ["TOT"].concat(types), {
         years: Ym,
         head: (t) => `<span class="n" title="${esc(tLabel(t))}">${esc(tLabel(t))}</span><span class="chg">${nf0.format(mn[t][L])}</span>`,
         foot: (t) => `<span>${Ym[first(t)]}: ${nf0.format(mn[t][first(t)])}</span><span>${last}</span>`,
         lines: (t) => [{ values: mn[t], color: "var(--fall)" }],
-        tip: (t, i) => `<b>${esc(tLabel(t))}</b> · ${Ym[i]}<br>${mn[t][i] == null ? "nessun dato" : nf0.format(mn[t][i]) + " segnalazioni di minorenni"}${sh(t, i) != null ? `<br>${nf1.format(sh(t, i))}% di tutte le persone segnalate` : ""}`,
+        tip: (t, i) => EN
+          ? `<b>${esc(tLabel(t))}</b> · ${Ym[i]}<br>${mn[t][i] == null ? "no data" : nf0.format(mn[t][i]) + " records of minors"}${sh(t, i) != null ? `<br>${nf1.format(sh(t, i))}% of all people recorded` : ""}`
+          : `<b>${esc(tLabel(t))}</b> · ${Ym[i]}<br>${mn[t][i] == null ? "nessun dato" : nf0.format(mn[t][i]) + " segnalazioni di minorenni"}${sh(t, i) != null ? `<br>${nf1.format(sh(t, i))}% di tutte le persone segnalate` : ""}`,
       });
     }
     renderMinoriRegions();
@@ -3036,23 +3398,32 @@
     const Ym = M.meta.years, off = Ym.indexOf(ry[0]);
     const itm = d3.sum(K, (i) => M.italia.min[t][off + i] || 0), itn = d3.sum(K, (i) => M.italia.tot[t][off + i] || 0), itv = itn ? (100 * itm) / itn : null;
     const rows = M.regioni.map((r) => ({ r, ...pool(r) })).filter((d) => d.v != null).sort((p, q) => q.v - p.v);
-    const span = `tra il ${ry[K[0]]} e il ${last}`;
-    $("#minori-reg-title").textContent = `${tLabel(t)}: minorenni ogni 100 persone segnalate`;
-    $("#minori-reg-sub").textContent = `Segnalazioni ${span}, sommate. La linea è l’Italia (${nf1.format(itv)}%).` + (rows.some((d) => d.m < 20) ? " L’asterisco indica meno di 20 segnalazioni di minorenni nei tre anni." : "");
-    barList($("#minori-regions"), rows.map((d) => ({ name: d.r.name, v: d.v, few: d.m < 20, title: `${d.r.name}: ${nf0.format(d.m)} minorenni su ${nf0.format(d.n)} segnalazioni, ${ry[K[0]]}–${last}` })), { max: Math.max(rows[0].v, itv) * 1.02, ref: itv });
+    const span = EN ? `between ${ry[K[0]]} and ${last}` : `tra il ${ry[K[0]]} e il ${last}`;
+    $("#minori-reg-title").textContent = EN ? `${tLabel(t)}: minors per 100 people recorded` : `${tLabel(t)}: minorenni ogni 100 persone segnalate`;
+    $("#minori-reg-sub").textContent = EN
+      ? `Records ${span}, added together. The line is Italy (${nf1.format(itv)}%).` + (rows.some((d) => d.m < 20) ? " An asterisk marks fewer than 20 records of minors over the three years." : "")
+      : `Segnalazioni ${span}, sommate. La linea è l’Italia (${nf1.format(itv)}%).` + (rows.some((d) => d.m < 20) ? " L’asterisco indica meno di 20 segnalazioni di minorenni nei tre anni." : "");
+    barList($("#minori-regions"), rows.map((d) => ({ name: d.r.name, v: d.v, few: d.m < 20, title: EN ? `${d.r.name}: ${nf0.format(d.m)} minors out of ${nf0.format(d.n)} records, ${ry[K[0]]}–${last}` : `${d.r.name}: ${nf0.format(d.m)} minorenni su ${nf0.format(d.n)} segnalazioni, ${ry[K[0]]}–${last}` })), { max: Math.max(rows[0].v, itv) * 1.02, ref: itv });
     if (has("minori-map")) {
-      provMap($("#minori-map"), $("#minori-legend"), new Map(rows.map((d) => [d.r.istat, { v: d.v, tip: `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minorenni ogni 100 persone segnalate<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} su ${nf0.format(d.n)}</span>` }])),
-        { by: "reg", label: `Carta delle regioni: minorenni ogni 100 persone segnalate, ${tLabel(t)}`, legend: `Minorenni ogni 100 segnalati, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" });
+      provMap($("#minori-map"), $("#minori-legend"), new Map(rows.map((d) => [d.r.istat, { v: d.v, tip: EN
+        ? `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minors per 100 people recorded<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} of ${nf0.format(d.n)}</span>`
+        : `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minorenni ogni 100 persone segnalate<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} su ${nf0.format(d.n)}</span>` }])),
+        EN ? { by: "reg", label: `Map of regions: minors per 100 people recorded, ${tLabel(t)}`, legend: `Minors per 100 people recorded, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" }
+          : { by: "reg", label: `Carta delle regioni: minorenni ogni 100 persone segnalate, ${tLabel(t)}`, legend: `Minorenni ogni 100 segnalati, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" });
     }
     // nella nota solo le regioni con almeno 20 segnalazioni di minorenni: con meno casi la quota è poco solida
     const solid = rows.filter((d) => d.m >= 20), hi = solid.slice(0, 2), lo = solid.slice(-2).reverse(), nm = (d) => `${d.r.name} (${nf1.format(d.v)}%)`;
-    $("#minori-reg-note").textContent = (solid.length >= 4 ? `Le quote più alte sono in ${hi.map(nm).join(" e ")}, le più basse in ${lo.map(nm).join(" e ")}` + (solid.length < rows.length ? ", tra le regioni con almeno 20 segnalazioni di minorenni" : "") + ". " : "") + `La quota non dice dove i ragazzi delinquono di più: dipende anche da quanti delitti commettono gli adulti e da quanti giovani vivono in ogni regione.`;
+    $("#minori-reg-note").textContent = EN
+      ? (solid.length >= 4 ? `The highest shares are in ${hi.map(nm).join(" and ")}, the lowest in ${lo.map(nm).join(" and ")}` + (solid.length < rows.length ? ", among regions with at least 20 records of minors" : "") + ". " : "") + "The share does not say where young people commit the most crimes: it also depends on how many crimes adults commit, and on how many young people live in each region."
+      : (solid.length >= 4 ? `Le quote più alte sono in ${hi.map(nm).join(" e ")}, le più basse in ${lo.map(nm).join(" e ")}` + (solid.length < rows.length ? ", tra le regioni con almeno 20 segnalazioni di minorenni" : "") + ". " : "") + `La quota non dice dove i ragazzi delinquono di più: dipende anche da quanti delitti commettono gli adulti e da quanti giovani vivono in ogni regione.`;
   }
 
   function wireHome() {
     // il menu dei reati, uguale nella mappa e nella griglia delle città: ognuno cambia solo la sua sezione
     const groups = d3.group(TYPES, (t) => t.group);
-    const typeOptions = Array.from(groups, ([g, ts]) => `<optgroup label="${esc(g)}">${ts.map((t) => `<option value="${t.id}">${esc(t.label)}</option>`).join("")}</optgroup>`).join("");
+    // t.group resta in italiano (il codice lo confronta): qui si scrive nella lingua della pagina
+    const groupName = (g) => (EN && { Totale: "All", Furti: "Thefts", Rapine: "Robberies", "Contro la persona": "Against the person", "Patrimonio ed economia": "Property and economy", Altro: "Other" }[g]) || g;
+    const typeOptions = Array.from(groups, ([g, ts]) => `<optgroup label="${esc(groupName(g))}">${ts.map((t) => `<option value="${t.id}">${esc(t.label)}</option>`).join("")}</optgroup>`).join("");
     const mapSel = $("#map-type"), gridSel = $("#grid-type");
     mapSel.innerHTML = gridSel.innerHTML = typeOptions;
     mapSel.value = state.mapType;
@@ -3061,10 +3432,10 @@
     gridSel.addEventListener("change", () => { state.gridType = gridSel.value; renderGrid(); });
 
     heroCarousel();
-    $("#base-label").textContent = `Confronta il ${Y[LAST]} con il`;
+    $("#base-label").textContent = EN ? `Compare ${Y[LAST]} with` : `Confronta il ${Y[LAST]} con il`;
     seg("#base-seg", "base", (v) => setMap(null, +v));
     // «Cosa sale e cosa scende»: due periodi, solo per questa sezione
-    $("#mix-base-seg").querySelectorAll("button").forEach((b) => { b.textContent = `Tra il ${b.dataset.mbase} e il ${Y[LAST]}`; });
+    $("#mix-base-seg").querySelectorAll("button").forEach((b) => { b.textContent = EN ? `Between ${b.dataset.mbase} and ${Y[LAST]}` : `Tra il ${b.dataset.mbase} e il ${Y[LAST]}`; });
     seg("#mix-base-seg", "mbase", (v) => { state.mixBase = +v; renderMix(); });
     seg("#spike-year-seg", "year", (v) => { state.spikeYear = +v; state.spikeShown = 12; renderSpikes(); });
     seg("#spike-sort-seg", "ssort", (v) => { state.spikeSort = v; state.spikeShown = 12; renderSpikes(); });
@@ -3152,7 +3523,7 @@
       const searching = (on) => {
         mast.classList.toggle("searching", on);
         findBtn.setAttribute("aria-expanded", on);
-        findBtn.setAttribute("aria-label", on ? "Chiudi la ricerca" : "Cerca un comune");
+        findBtn.setAttribute("aria-label", on ? L("Chiudi la ricerca", "Close the search") : L("Cerca un comune", "Search for a town"));
         if (on) input.focus();
       };
       findBtn.addEventListener("click", () => searching(!mast.classList.contains("searching")));
@@ -3167,7 +3538,7 @@
       });
       // tutte le voci, anche quelle che portano a un'altra pagina: gli approfondimenti, e dagli approfondimenti la home
       const links = [...document.querySelectorAll(".masthead .menu a")];
-      secSel.innerHTML = `<option value="" hidden>Sezioni</option>` + links.map((a) => `<option value="${esc(a.getAttribute("href"))}">${esc(a.textContent)}</option>`).join("");
+      secSel.innerHTML = `<option value="" hidden>${L("Sezioni", "Sections")}</option>` + links.map((a) => `<option value="${esc(a.getAttribute("href"))}">${esc(a.textContent)}</option>`).join("");
       // segue la voce che il menu in testata segna come in vista (il suo ascoltatore di scroll gira prima di questo)
       const sync = () => { const a = $(".masthead .menu a[aria-current]"), v = a ? a.getAttribute("href") : ""; if (secSel.value !== v) secSel.value = v; };
       secSel.addEventListener("change", () => {
@@ -3183,14 +3554,18 @@
     new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     const extraSources = [
-      { id: "73_67_DF_DCCV_DELITTIPS_9", label: "ISTAT, Delitti denunciati — tasso di delittuosità per provincia (schede dei comuni che non sono capoluogo)" },
-      { id: "Elenco-comuni-italiani.csv", label: "ISTAT, Elenco dei comuni italiani (codici statistici delle unità amministrative territoriali), per la ricerca del comune" },
+      { id: "73_67_DF_DCCV_DELITTIPS_9", label: "ISTAT, Delitti denunciati — tasso di delittuosità per provincia (schede dei comuni che non sono capoluogo)",
+        en: "ISTAT, Reported crimes — crime rate by province (profiles of towns that are not provincial capitals)" },
+      { id: "Elenco-comuni-italiani.csv", label: "ISTAT, Elenco dei comuni italiani (codici statistici delle unità amministrative territoriali), per la ricerca del comune",
+        en: "ISTAT, List of Italian municipalities (statistical codes of the territorial administrative units), for the town search" },
     ];
     const srcs = $("#sources");
-    if (srcs && !srcs.dataset.only) srcs.innerHTML = META.sources.concat(extraSources).map((s) => `<li><code>${esc(s.id)}</code> ${esc(s.label)}</li>`).join("");
+    if (srcs && !srcs.dataset.only) srcs.innerHTML = META.sources.concat(extraSources).map((s) => sourceItem(s)).join("");
     // l'approfondimento sulla percezione: delitti, popolazione, le due indagini sulla percezione e i tassi delle province
-    else if (srcs && srcs.dataset.only === "percezione") addSources(META.sources.filter((s) => !/geojson/.test(s.id)).map((s) => (/DELITTIPS_9$/.test(s.id) ? { ...s, label: "ISTAT, Delitti denunciati — tasso di delittuosità, Italia e province" } : s)), "percezione");
-    if (has("colophon")) $("#colophon").innerHTML = `Atlante della sicurezza · dati ISTAT aggiornati al ${Y[LAST]}, dataset generato il ${new Date(META.built).toLocaleDateString("it-IT")}`;
+    else if (srcs && srcs.dataset.only === "percezione") addSources(META.sources.filter((s) => !/geojson/.test(s.id)).map((s) => (/DELITTIPS_9$/.test(s.id) ? { ...s, label: "ISTAT, Delitti denunciati — tasso di delittuosità, Italia e province", en: "ISTAT, Reported crimes — crime rate, Italy and provinces" } : s)), "percezione");
+    if (has("colophon")) $("#colophon").innerHTML = EN
+      ? `Atlante della sicurezza · ISTAT data up to ${Y[LAST]}, dataset built on ${new Date(META.built).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" })}`
+      : `Atlante della sicurezza · dati ISTAT aggiornati al ${Y[LAST]}, dataset generato il ${new Date(META.built).toLocaleDateString(LOCALE)}`;
   }
 
   // ------------------------------------------------------------------ avvio
@@ -3206,6 +3581,7 @@
       QINDEX = new Set(Array.isArray(qindex) ? qindex : []);
       META = data.meta; Y = META.years; LAST = Y.length - 1;
       TYPES = data.types; TYPE = Object.fromEntries(TYPES.map((t) => [t.id, t]));
+      if (EN) TYPES.forEach((t) => { if (TYPE_EN[t.id]) t.label = TYPE_EN[t.id]; });
       CITIES = data.cities; ITALY = data.italy; TOPO = topo;
       wire();
       renderAll();
@@ -3235,18 +3611,28 @@
           Promise.allSettled(loads).then(() => { if (Math.abs(scrollY - y) < 2) go(); });
         } else if (h === "metodo" || h === "domande") {
           // i vecchi link alla metodologia e alle domande frequenti della home: ora stanno nella pagina del progetto
-          location.replace(ROOT + "progetto/#" + h);
+          location.replace(PAGES + "progetto/#" + h);
         } else if (["carceri", "rimpatri", "percezione"].includes(h) && has("approfondimenti")) {
           // i vecchi link alle sezioni della home su carceri, rimpatri e percezione: ora sono approfondimenti
-          location.replace(ROOT + "approfondimenti/" + h + ".html");
+          location.replace(PAGES + "approfondimenti/" + h + ".html");
         }
       }
     } catch (e) {
-      $("#app").insertAdjacentHTML("afterbegin", `<p class="loading wrap">Non riesco a caricare i dati (${esc(e.message)}). Ricarica la pagina; se il problema resta, i file in <code>data/</code> potrebbero mancare.</p>`);
+      $("#app").insertAdjacentHTML("afterbegin", EN
+        ? `<p class="loading wrap">The data could not be loaded (${esc(e.message)}). Reload the page; if the problem persists, the files in <code>data/</code> may be missing.</p>`
+        : `<p class="loading wrap">Non riesco a caricare i dati (${esc(e.message)}). Ricarica la pagina; se il problema resta, i file in <code>data/</code> potrebbero mancare.</p>`);
       throw e;
     }
   }
   start();
+})();
+
+/* Il tasto della lingua (EN sulle pagine italiane, IT su quelle in en/) porta alla pagina gemella: se è aperta la scheda
+   di una città o si è su una sezione (#roma, #mappa), porta lì anche nell'altra lingua, perché gli id sono gli stessi. */
+(function () {
+  "use strict";
+  const a = document.querySelector(".bar-lang");
+  if (a) a.addEventListener("click", () => { a.href = a.href.split("#")[0] + location.hash; });
 })();
 
 /* Apertura con video (solo la home, vc.css "apertura con video"). Non aspetta i dati: parte appena la pagina c'è.
@@ -3260,8 +3646,10 @@
   if (!head || !v) return;
   const mast = document.querySelector(".masthead"), btn = document.getElementById("vh-pause"), clock = document.getElementById("vh-clock");
   let inView = true, held = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const EN = /^en\b/i.test(document.documentElement.lang);
 
-  v.src = `video/hero-roma-${matchMedia("(max-width: 900px)").matches ? 640 : 1280}.mp4`;
+  // il film sta accanto a vc.js, non accanto alla pagina (la home inglese è in en/)
+  v.src = new URL(`video/hero-roma-${matchMedia("(max-width: 900px)").matches ? 640 : 1280}.mp4`, document.currentScript.src).href;
   const play = () => {
     if (!inView || held) return;
     const p = v.play();
@@ -3270,7 +3658,7 @@
   const hold = (h) => {
     held = h;
     btn.setAttribute("aria-pressed", h);
-    btn.setAttribute("aria-label", h ? "Fai ripartire il video" : "Ferma il video");
+    btn.setAttribute("aria-label", EN ? (h ? "Play the video" : "Pause the video") : h ? "Fai ripartire il video" : "Ferma il video");
     if (h) v.pause(); else play();
   };
   hold(held);

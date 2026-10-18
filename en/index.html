@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atlante della sicurezza: reported crime in Italy, city by city, 2006–2024</title>
+<meta name="description" content="Atlante della sicurezza: how many crimes are really reported in Italian cities, and how that is changing. Official ISTAT data for 2006–2024 on the 108 provincial capitals, with rankings, a map and spikes.">
+<link rel="canonical" href="https://atlantedellasicurezza.it/en/">
+<link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/">
+<link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/">
+<link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Jacopo Ottaviani">
+<!-- Icone della pagina (scheda del browser, preferiti, schermata iniziale): le disegna scripts/make_icons.py. -->
+<link rel="icon" href="../favicon.ico" sizes="32x32">
+<link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<meta name="theme-color" content="#f3f4f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1110" media="(prefers-color-scheme: dark)">
+
+<!-- Anteprima del link quando viene condiviso (WhatsApp, Slack, Telegram, LinkedIn, Facebook, X).
+     L'immagine la produce scripts/make_og.py da scripts/og-card.html; quando cambia, alzare ?v=
+     così le app scaricano di nuovo la scheda invece di mostrare quella in cache. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atlante della sicurezza">
+<meta property="og:title" content="Atlante della sicurezza: reported crime in Italy, city by city, 2006–2024">
+<meta property="og:description" content="How many crimes are really reported in Italian cities, and how that is changing: official ISTAT data on the 108 provincial capitals and a profile for every town, with rankings, a map and spikes.">
+<meta property="og:url" content="https://atlantedellasicurezza.it/en/">
+<meta property="og:image" content="https://atlantedellasicurezza.it/img/og-image-en.jpg?v=1">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atlante della sicurezza. Fewer crimes are reported in Italy than fifteen years ago, but not everywhere, and not all of them. Map of the 108 provincial capitals with one spire per city: its height is the rate of reported crimes, red rising, blue falling.">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atlante della sicurezza: reported crime in Italy, city by city, 2006–2024">
+<meta name="twitter:description" content="How many crimes are really reported in Italian cities, and how that is changing: official ISTAT data on the 108 provincial capitals and a profile for every town, with rankings, a map and spikes.">
+<meta name="twitter:image" content="https://atlantedellasicurezza.it/img/og-image-en.jpg?v=1">
+<meta name="twitter:image:alt" content="Atlante della sicurezza. Fewer crimes are reported in Italy than fifteen years ago, but not everywhere, and not all of them. Map of the 108 provincial capitals with one spire per city: its height is the rate of reported crimes, red rising, blue falling.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="../vc.css?v=51">
+<!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://atlantedellasicurezza.it/en/#pagina",
+      "url": "https://atlantedellasicurezza.it/en/",
+      "name": "Atlante della sicurezza: reported crime in Italy, city by city, 2006–2024",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://atlantedellasicurezza.it/#website"
+      },
+      "about": {
+        "@id": "https://atlantedellasicurezza.it/en/#dati"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://atlantedellasicurezza.it/img/og-image-en.jpg",
+        "width": 1200,
+        "height": 630
+      }
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://atlantedellasicurezza.it/en/#dati",
+      "name": "Reported crimes in Italy’s 108 provincial capitals, 2006–2024",
+      "description": "Crimes reported by the police to the judicial authorities in the 108 provincial capitals, by type of crime (24 categories plus the total) and by year from 2006 to 2024, with the resident population, rates per 100,000 residents, national and provincial rates, and the share of households that feel the area where they live is at risk of crime. Based on official ISTAT data, sourced from the Ministry of the Interior.",
+      "url": "https://atlantedellasicurezza.it/en/",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "temporalCoverage": "2006/2024",
+      "spatialCoverage": {
+        "@type": "Country",
+        "name": "Italy"
+      },
+      "creator": {
+        "@type": "Person",
+        "@id": "https://atlantedellasicurezza.it/progetto/#autore",
+        "name": "Jacopo Ottaviani",
+        "url": "https://jacopoottaviani.com/"
+      },
+      "sourceOrganization": {
+        "@type": "Organization",
+        "name": "ISTAT, Italian National Institute of Statistics",
+        "url": "https://www.istat.it/"
+      },
+      "isBasedOn": "https://esploradati.istat.it/",
+      "keywords": [
+        "reported crimes",
+        "crime",
+        "public safety",
+        "crime rate",
+        "provincial capitals",
+        "ISTAT",
+        "Italy"
+      ],
+      "variableMeasured": [
+        "Reported crimes",
+        "Reported crimes per 100,000 residents",
+        "Resident population",
+        "Households that feel the area where they live is at risk of crime (%)"
+      ],
+      "distribution": [
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://atlantedellasicurezza.it/data/vc.json"
+        },
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://atlantedellasicurezza.it/data/province.json"
+        },
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://atlantedellasicurezza.it/data/comuni.json"
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<!-- vc:content -->
+<header class="masthead on-film">
+  <div class="wrap">
+    <h1 class="wordmark"><a href="#" aria-label="Atlante della sicurezza: back to the top"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></a></h1>
+    <nav class="menu" aria-label="Page sections">
+      <ul>
+        <li><a href="#mappa">Map</a></li>
+        <li><a href="#mix">Crimes</a></li>
+        <li><a href="#impennate">Spikes</a></li>
+        <li><a href="#citta">Cities</a></li>
+        <li><a href="approfondimenti/" data-spy="approfondimenti">Deep dives</a></li>
+        <li><a href="progetto/">About</a></li>
+      </ul>
+    </nav>
+    <div class="cta bar-cta">
+      <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee (opens in a new tab)" title="Support this project">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+        <span>Buy me a coffee</span>
+      </a>
+      <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani on LinkedIn (opens in a new tab)" title="Jacopo Ottaviani on LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+    </div>
+    <!-- La lente apre la ricerca del comune al posto delle voci; sul telefono le voci diventano il menu a tendina. -->
+    <div class="bar-tools">
+      <select id="section-select" aria-label="Go to a section of the page"></select>
+      <div class="control control-search">
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Search for a town" placeholder="Search for a town" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Towns found" hidden></ul>
+        </div>
+      </div>
+      <a class="bar-lang" href="../" hreflang="it" lang="it" aria-label="Versione italiana" title="Versione italiana">IT</a>
+      <button type="button" class="bar-find" id="bar-find" aria-label="Search for a town" aria-expanded="false" aria-controls="city-combo">
+        <svg class="i-find" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="i-close" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <!-- Apertura: un film di Roma a tutta larghezza come da una telecamera a circuito chiuso, con il titolo della pagina.
+       Scivola sotto la barra, che ci passa sopra trasparente (on-film, già nel markup così la barra non lampeggia
+       prima di vc.js). Il film è decorativo (aria-hidden): vc.js sceglie il file, lo ferma fuori schermo e scrive l'ora;
+       il tasto lo ferma e lo fa ripartire. -->
+  <section class="vhead" aria-labelledby="hero-title">
+    <div class="vh-media" aria-hidden="true">
+      <video id="vh-video" muted loop playsinline preload="none" tabindex="-1" poster="../video/hero-roma-poster.jpg"></video>
+      <div class="vh-tone"></div>
+      <div class="vh-lines"></div>
+      <div class="vh-vig"></div>
+      <div class="vh-grain"></div>
+      <div class="vh-scrim"></div>
+      <div class="vh-hud">
+        <div class="wrap">
+          <p class="rec">Rec</p>
+          <p class="cam">Cam 03 · Roma<br><span id="vh-clock"></span></p>
+        </div>
+      </div>
+    </div>
+    <div class="wrap vh-copy">
+      <div>
+        <p class="vh-kicker">Official ISTAT data · 108 provincial capitals · 2006–2024</p>
+        <h2 id="hero-title">Fewer crimes are reported in Italy than fifteen years ago. <em>But not everywhere, and not all of them.</em></h2>
+      </div>
+      <button type="button" class="vh-pause" id="vh-pause" aria-pressed="false" aria-label="Pause the video">
+        <svg class="i-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="1.5" width="3" height="11" rx="0.5"/><rect x="8.5" y="1.5" width="3" height="11" rx="0.5"/></svg>
+        <svg class="i-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 1.8v10.4a.5.5 0 0 0 .76.43l8.4-5.2a.5.5 0 0 0 0-.86l-8.4-5.2a.5.5 0 0 0-.76.43z"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section class="hero" aria-label="The headline numbers and charts">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <ol class="eyechart" id="eyechart" aria-label="The key numbers">
+            <li><span class="fig">…</span><span class="cap">Loading ISTAT data</span></li>
+          </ol>
+          <p class="hero-note">A tool for reading the official crime data up close: city by city, crime by crime, year by year. Spikes, meaning sudden increases, are marked in gold.</p>
+          <div class="mix-key hero-key">
+            <span class="lead">In the charts</span>
+            <span><i class="k-up"></i>red: rising</span>
+            <span><i class="k-down"></i>blue: falling</span>
+            <span><i class="k-flat"></i>grey: a difference too small to say that anything has changed</span>
+            <span><i class="k-gold"></i>gold: spike, a sudden increase</span>
+          </div>
+        </div>
+        <!-- Tre grafici su una striscia, uno per ogni pezzo del titolo: l'Italia nel tempo, le città (non ovunque),
+             i reati (non tutti). Avanza da sola ogni otto secondi, si ferma con il mouse sopra; frecce, punti e dito
+             per sfogliare. Titoli e grafici li riempie vc.js: sempre tutti i delitti, confrontati con il 2019. -->
+        <div class="national hero-car" id="national">
+          <div class="car-head">
+            <div class="car-meta on" data-k="0">
+              <div class="kicker">Italy, 2006–2024</div>
+              <h3 id="national-title">…</h3>
+              <p class="sub" id="national-sub">Reported crimes per 100,000 residents</p>
+            </div>
+            <div class="car-meta" data-k="1">
+              <div class="kicker" id="cities-kicker">Not everywhere · the cities</div>
+              <h3 id="cities-title">…</h3>
+              <p class="sub" id="cities-sub"></p>
+            </div>
+            <div class="car-meta" data-k="2">
+              <div class="kicker" id="types-kicker">Not all of them · the crimes</div>
+              <h3 id="types-title">…</h3>
+              <p class="sub" id="types-sub"></p>
+            </div>
+          </div>
+          <div class="car-strip">
+            <div class="car-track">
+              <div class="car-panel" data-k="0" role="group" aria-roledescription="chart" aria-label="Over time"><div class="chart" id="national-chart"></div></div>
+              <div class="car-panel" data-k="1" role="group" aria-roledescription="chart" aria-label="In the cities" aria-hidden="true"><div class="chart" id="cities-chart"></div></div>
+              <div class="car-panel" data-k="2" role="group" aria-roledescription="chart" aria-label="By crime" aria-hidden="true"><div class="chart" id="types-chart"></div></div>
+            </div>
+          </div>
+          <div class="car-nav">
+            <button type="button" class="arr" data-dir="-1" aria-label="Previous chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <div class="car-dots" role="tablist" aria-label="Three charts">
+              <button type="button" role="tab" aria-selected="true" aria-label="Over time" data-k="0"></button>
+              <button type="button" role="tab" aria-selected="false" aria-label="In the cities" data-k="1"></button>
+              <button type="button" role="tab" aria-selected="false" aria-label="By crime" data-k="2"></button>
+            </div>
+            <button type="button" class="arr" data-dir="1" aria-label="Next chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <!-- la fonte, uguale per i tre grafici: in basso a destra, sulla riga di frecce e punti -->
+            <p class="car-src">Source: ISTAT</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="finder" id="cerca" aria-labelledby="finder-title">
+    <div class="wrap finder-grid">
+      <div>
+        <div class="kicker">Your town</div>
+        <h2 id="finder-title">How have things gone where you live?</h2>
+        <p class="finder-dek">Type the name of your town and open its profile: every reported crime, year by year since 2006, alongside Italy as a whole, with the share of households that feel at risk. Official ISTAT data only.</p>
+      </div>
+      <div>
+        <div class="combo combo-big" id="finder-combo">
+          <label for="finder-input" class="vh">Your town</label>
+          <svg class="combo-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" id="finder-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-list" aria-describedby="finder-hint" placeholder="E.g. Roma, Rovereto, Foggia" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="finder-list" role="listbox" aria-label="Towns found" hidden></ul>
+        </div>
+        <p class="finder-hint" id="finder-hint">Every Italian town. For the 108 provincial capitals the data are for the municipality itself; for the others ISTAT only publishes figures for the province, and the profile says so.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="mappa" aria-labelledby="map-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Ranking and map</div>
+        <h2 id="map-title">Where the most crimes are reported, and where the fewest</h2>
+        <p class="dek" id="map-dek"></p>
+        <!-- i comandi della mappa: cambiano solo la mappa e la classifica qui sotto -->
+        <div class="map-picks">
+          <label class="control"><span class="label">Crime</span>
+            <select id="map-type"></select>
+          </label>
+          <div class="control base-pick" role="group" aria-labelledby="base-label"><span class="label" id="base-label">Compare 2024 with</span>
+            <div class="seg" id="base-seg">
+              <button type="button" data-base="2023" aria-pressed="false">2023</button>
+              <button type="button" data-base="2019" aria-pressed="true">2019, before Covid</button>
+              <button type="button" data-base="2014">2014</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="two">
+        <div class="mapbox">
+          <div id="map"></div>
+          <div class="legend" id="map-legend"></div>
+        </div>
+        <div>
+          <div class="rank-cols">
+            <div class="rank"><h3 id="rank-top-title">Most reports</h3><ol id="rank-top"></ol></div>
+            <div class="rank"><h3 id="rank-bottom-title">Fewest reports</h3><ol id="rank-bottom"></ol></div>
+          </div>
+          <p class="note" id="rank-note"></p>
+          <details class="full">
+            <summary>Full ranking of the 108 provincial capitals (table)</summary>
+            <div class="tablewrap"><table id="rank-table"></table></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="mix" aria-labelledby="mix-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">The national picture</div>
+        <h2 id="mix-title">What’s going up and what’s going down</h2>
+        <p class="dek" id="mix-dek">Crimes don’t all fall together. Tap a crime to see it in every city.</p>
+        <!-- il periodo del confronto: vale solo per questa sezione (vc.js scrive l'ultimo anno nei bottoni) -->
+        <div class="seg mix-period" id="mix-base-seg" role="group" aria-label="Comparison period">
+          <button type="button" data-mbase="2014" aria-pressed="false">Between 2014 and 2024</button>
+          <button type="button" data-mbase="2019" aria-pressed="true">Between 2019 and 2024</button>
+        </div>
+      </header>
+      <div class="mix-key" aria-hidden="true">
+        <span><i class="k-up"></i>rising</span>
+        <span><i class="k-down"></i>falling</span>
+        <span><i class="k-flat"></i>minimal change</span>
+        <span><i class="k-zero"></i>no change</span>
+        <span><i class="k-ref"></i>all crimes</span>
+      </div>
+      <div class="mix" id="mix-grid"></div>
+    </div>
+  </section>
+
+
+  <section class="block band" id="impennate" aria-labelledby="spike-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Spikes and falls</div>
+        <h2 id="spike-title">Where something changed suddenly</h2>
+        <p class="dek">A spike is a year in which reports of a crime suddenly jump: at least a quarter above the average of the previous three years, with at least 20 cases and a jump that chance alone does not explain. “In proportion” puts the most solid increases first, “By extra cases” the ones that affect the most people. <a href="progetto/#metodo">How we spot them</a>.</p>
+      </header>
+      <div class="chips" role="group" aria-label="Year of the spikes">
+        <span class="small">Year</span>
+        <div class="seg" id="spike-year-seg">
+          <button type="button" data-year="2024" aria-pressed="true">2024</button>
+          <button type="button" data-year="2023" aria-pressed="false">2023</button>
+          <button type="button" data-year="2022" aria-pressed="false">2022</button>
+        </div>
+        <span class="small">Sort</span>
+        <div class="seg" id="spike-sort-seg">
+          <button type="button" data-ssort="rel" aria-pressed="true">In proportion</button>
+          <button type="button" data-ssort="abs" aria-pressed="false">By extra cases</button>
+        </div>
+        <span class="small" id="spike-count"></span>
+      </div>
+      <div class="cards" id="spike-cards"></div>
+      <div class="more"><button type="button" class="btn" id="spike-more">Show more spikes</button></div>
+      <h3 class="subhead">The sharpest falls</h3>
+      <div class="cards" id="fall-cards"></div>
+    </div>
+  </section>
+
+  <section class="block" id="citta" aria-labelledby="grid-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">All 108 provincial capitals</div>
+        <h2 id="grid-title">City by city, from 2006 to 2024</h2>
+        <p class="dek" id="grid-dek"></p>
+      </header>
+      <div class="gridbar">
+        <label class="control"><span class="label">Crime</span>
+          <select id="grid-type"></select>
+        </label>
+        <div class="control" role="group" aria-label="Sort"><span class="label">Sort</span>
+          <div class="seg" id="sort-seg">
+            <button type="button" data-sort="level" aria-pressed="true">Level</button>
+            <button type="button" data-sort="change" aria-pressed="false">Change</button>
+            <button type="button" data-sort="spike" aria-pressed="false">Spikes</button>
+            <button type="button" data-sort="area" aria-pressed="false">Area</button>
+            <button type="button" data-sort="name" aria-pressed="false">A–Z</button>
+          </div>
+        </div>
+        <div class="control" role="group" aria-label="Scale"><span class="label">Scale</span>
+          <div class="seg" id="scale-seg">
+            <button type="button" data-scale="shared" aria-pressed="true">Same for all</button>
+            <button type="button" data-scale="own" aria-pressed="false">Own</button>
+          </div>
+        </div>
+        <div class="key" aria-hidden="true">
+          <span><i class="k-line"></i>city</span>
+          <span><i class="k-it"></i>Italy</span>
+          <span><i class="k-gold"></i>spike</span>
+          <span><i class="k-fall"></i>sharp fall</span>
+          <span><i class="k-covid"></i>2020–21</span>
+        </div>
+      </div>
+      <div id="sm"></div>
+    </div>
+  </section>
+
+  <!-- Carceri, rimpatri e percezione hanno ognuno la sua pagina in approfondimenti/: qui solo le tre schede, con una cifra che scrive vc.js. -->
+  <section class="block" id="approfondimenti" aria-labelledby="dd-band-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Deep dives</div>
+        <h2 id="dd-band-title">Beyond the reports</h2>
+        <p class="dek">Five questions that reported crimes alone cannot answer: who is in prison, how many returns are actually carried out, how far fear follows crime, for how many crimes the offender is known, and what share of the people reported are minors. Each one has its own page. <a href="approfondimenti/">All the deep dives</a>.</p>
+      </header>
+      <div class="dd-cards">
+        <a class="dd-card" href="approfondimenti/carceri.html" data-dd="carceri">
+          <span class="kicker">Prisons</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Foreign nationals in Italian prisons</h3>
+          <p>How many there are, which countries they come from, which crimes they are held for, and why the comparison with residents needs reading with care.</p>
+          <span class="dd-go">Read the deep dive <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/rimpatri.html" data-dd="rimpatri">
+          <span class="kicker">Returns</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>How many returns are ordered, and how many carried out</h3>
+          <p>Country by country, the orders to leave Italy and the returns actually carried out, year by year since 2008.</p>
+          <span class="dd-go">Read the deep dive <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/percezione.html" data-dd="percezione">
+          <span class="kicker">Perception and reality</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>How unsafe we feel, and how unsafe we are</h3>
+          <p>Fear of crime set against reported crimes: in Italy, in the big cities and province by province.</p>
+          <span class="dd-go">Read the deep dive <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/autori-ignoti.html" data-dd="autori">
+          <span class="kicker">Unknown offenders</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>How many crimes go without a known offender</h3>
+          <p>For how many reported crimes the offender is known: crime by crime, in the big cities and province by province.</p>
+          <span class="dd-go">Read the deep dive <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/minori.html" data-dd="minori">
+          <span class="kicker">Minors</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Minors reported and arrested</h3>
+          <p>How many there are among the people reported, for which crimes, and how that has changed since 2004, region by region.</p>
+          <span class="dd-go">Read the deep dive <span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="credit">
+      <p class="made">Made with <span class="heart" aria-hidden="true">♥</span> by <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a> · <a href="progetto/">About, methodology and sources</a> · <a href="../citta/">The 108 provincial capitals, city by city (in Italian)</a></p>
+      <div class="cta">
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee (opens in a new tab)" title="Support this project">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Buy me a coffee</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani on LinkedIn (opens in a new tab)" title="Jacopo Ottaviani on LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+      </div>
+      <div id="colophon">Atlante della sicurezza · ISTAT data</div>
+    </div>
+    <nav class="source-logos" aria-label="Data sources">
+      <span class="lbl">Data sources</span>
+      <a class="logo logo-istat" href="https://www.istat.it/" rel="noopener" aria-label="ISTAT, Italian National Institute of Statistics"></a>
+      <a class="logo logo-eurostat" href="https://ec.europa.eu/eurostat" rel="noopener" aria-label="Eurostat"></a>
+      <a class="logo logo-openpolis" href="https://www.openpolis.it/" rel="noopener" aria-label="Fondazione openpolis"></a>
+    </nav>
+  </div>
+</footer>
+
+<dialog class="cityd" id="city-dialog" aria-labelledby="city-name">
+  <div class="top">
+    <div>
+      <div class="kicker" id="city-kicker"></div>
+      <h2 id="city-name"></h2>
+    </div>
+    <button type="button" class="btn close" id="city-close">Close</button>
+  </div>
+  <div class="body" id="city-body"></div>
+</dialog>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<!-- /vc:content -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="../vc.js?v=48"></script>
+</body>
+</html>
