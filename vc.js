@@ -2501,3 +2501,63 @@
   }
   start();
 })();
+
+/* Apertura con video (solo la home, vc.css "apertura con video"). Non aspetta i dati: parte appena la pagina c'è.
+   Il film è il 1280 sugli schermi larghi e il 640 fino a 900px; con prefers-reduced-motion resta la locandina e parte
+   solo dal tasto. Si ferma quando l'apertura esce dallo schermo. Gli iPhone in risparmio energetico rifiutano di
+   avviare anche un film muto ma lo lasciano partire a un tocco: ogni tocco o tasto riprova finché non parte.
+   La barra è trasparente finché il film le passa sotto (.on-film), smerigliata appena il film sale (.drift). */
+(function () {
+  "use strict";
+  const head = document.querySelector(".vhead"), v = document.getElementById("vh-video");
+  if (!head || !v) return;
+  const mast = document.querySelector(".masthead"), btn = document.getElementById("vh-pause"), clock = document.getElementById("vh-clock");
+  let inView = true, held = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  v.src = `video/hero-roma-${matchMedia("(max-width: 900px)").matches ? 640 : 1280}.mp4`;
+  const play = () => {
+    if (!inView || held) return;
+    const p = v.play();
+    if (p && p.catch) p.catch(() => {});
+  };
+  const hold = (h) => {
+    held = h;
+    btn.setAttribute("aria-pressed", h);
+    btn.setAttribute("aria-label", h ? "Fai ripartire il video" : "Ferma il video");
+    if (h) v.pause(); else play();
+  };
+  hold(held);
+  btn.addEventListener("click", () => hold(!held));
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((entries) => {
+      inView = entries[0].isIntersecting;
+      if (inView) play(); else v.pause();
+    }).observe(head);
+  }
+  // link, pulsanti e campi avviano il film col loro clic, senza ritardo
+  const gestures = ["touchend", "click", "keydown"];
+  const retry = (e) => {
+    if (e.type === "touchend" && e.target.closest && e.target.closest("a, button, select, input")) return;
+    if (v.paused) play();
+  };
+  gestures.forEach((ev) => addEventListener(ev, retry, { passive: true }));
+  v.addEventListener("playing", () => gestures.forEach((ev) => removeEventListener(ev, retry)), { once: true });
+
+  const film = () => {
+    const over = head.getBoundingClientRect().bottom > mast.offsetHeight + 1;
+    mast.classList.toggle("on-film", over);
+    mast.classList.toggle("drift", over && scrollY > 24);
+  };
+  addEventListener("scroll", film, { passive: true });
+  addEventListener("resize", film);
+  film();
+
+  // l'ora vera, come sullo schermo di una telecamera
+  const pad = (n) => String(n).padStart(2, "0");
+  const tick = () => {
+    const d = new Date();
+    clock.textContent = `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}  ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
+  tick();
+  setInterval(tick, 1000);
+})();

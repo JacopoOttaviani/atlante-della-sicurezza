@@ -35,11 +35,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=43">
+<link rel="stylesheet" href="vc.css?v=44">
 </head>
 <body>
 <!-- vc:content -->
-<header class="masthead">
+<header class="masthead on-film">
   <div class="wrap">
     <h1 class="wordmark"><a href="#" aria-label="Atlante della sicurezza: torna all'inizio"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></a></h1>
     <nav class="menu" aria-label="Sezioni della pagina">
@@ -83,9 +83,39 @@
 </header>
 
 <main id="app">
-  <section class="hero" aria-labelledby="hero-title">
+  <!-- Apertura: un film di Roma a tutta larghezza come da una telecamera a circuito chiuso, con il titolo della pagina.
+       Scivola sotto la barra, che ci passa sopra trasparente (on-film, già nel markup così la barra non lampeggia
+       prima di vc.js). Il film è decorativo (aria-hidden): vc.js sceglie il file, lo ferma fuori schermo e scrive l'ora;
+       il tasto lo ferma e lo fa ripartire. -->
+  <section class="vhead" aria-labelledby="hero-title">
+    <div class="vh-media" aria-hidden="true">
+      <video id="vh-video" muted loop playsinline preload="none" tabindex="-1" poster="video/hero-roma-poster.jpg"></video>
+      <div class="vh-tone"></div>
+      <div class="vh-lines"></div>
+      <div class="vh-vig"></div>
+      <div class="vh-grain"></div>
+      <div class="vh-scrim"></div>
+      <div class="vh-hud">
+        <div class="wrap">
+          <p class="rec">Rec</p>
+          <p class="cam">Cam 03 · Roma<br><span id="vh-clock"></span></p>
+        </div>
+      </div>
+    </div>
+    <div class="wrap vh-copy">
+      <div>
+        <p class="vh-kicker">Dati ufficiali ISTAT · 108 comuni capoluogo · 2006–2024</p>
+        <h2 id="hero-title">In Italia si denunciano meno reati di quindici anni fa. <em>Ma non ovunque, e non tutti.</em></h2>
+      </div>
+      <button type="button" class="vh-pause" id="vh-pause" aria-pressed="false" aria-label="Ferma il video">
+        <svg class="i-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="1.5" width="3" height="11" rx="0.5"/><rect x="8.5" y="1.5" width="3" height="11" rx="0.5"/></svg>
+        <svg class="i-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 1.8v10.4a.5.5 0 0 0 .76.43l8.4-5.2a.5.5 0 0 0 0-.86l-8.4-5.2a.5.5 0 0 0-.76.43z"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section class="hero" aria-label="I numeri e i grafici in apertura">
     <div class="wrap">
-      <h2 id="hero-title">In Italia si denunciano meno reati di quindici anni fa. <em>Ma non ovunque, e non tutti.</em></h2>
       <div class="hero-grid">
         <div>
           <ol class="eyechart" id="eyechart" aria-label="I numeri principali">
@@ -497,6 +527,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=41"></script>
+<script src="vc.js?v=42"></script>
 </body>
 </html>

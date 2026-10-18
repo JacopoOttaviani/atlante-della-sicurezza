@@ -148,6 +148,170 @@ button, select, input { font: inherit; color: inherit; }
   .masthead .wrap { gap: 12px; }
 }
 
+/* ---------------------------------------------------------------- apertura con video (solo la home) */
+/* Il film a tutta larghezza in cima alla home, con il titolo della pagina: quattro inquadrature di Roma (Colosseo,
+   banchina, corridoio e scale mobili della metro), 13 secondi al 75% della velocità, senza sottotitoli
+   (video/hero-roma-1280.mp4 e -640.mp4). Il trattamento è quello di una telecamera a circuito chiuso: bianco e nero
+   freddo e duro, righe di scansione con una banda che scorre, vignetta e grana; in sovrimpressione REC, il nome della
+   camera e l'ora vera (vc.js). Scelto fra quattro proposte, che restano in hero-video-options.html.
+   L'apertura scivola sotto la barra incollata: la barra ci passa sopra trasparente (.on-film) con i colori del film,
+   ridefinendo i token della testata così logo, voci, lente, pulsanti e tendina seguono da soli; appena il film comincia
+   a salire diventa smerigliata (.drift), e passato il film torna quella di sempre. Con la ricerca aperta torna piena:
+   l'elenco dei comuni scende sopra il film. */
+.masthead { transition: background-color 0.3s ease, border-color 0.3s ease; }
+.masthead.on-film:not(.searching) {
+  --ink: #f3f4f0;
+  --ink-2: rgba(243, 244, 240, 0.84);
+  --muted: rgba(243, 244, 240, 0.62);
+  --gold-ink: #e3b23c;
+  --rule: rgba(243, 244, 240, 0.32);
+  --surface: rgba(8, 10, 9, 0.32);
+  --land: rgba(243, 244, 240, 0.14);
+  color: var(--ink);
+  color-scheme: dark;
+  background: transparent;
+  border-bottom-color: transparent;
+}
+.masthead.on-film:not(.searching) .menu a:hover { border-bottom-color: currentColor; }
+.masthead.on-film.drift:not(.searching) {
+  background: rgba(10, 12, 11, 0.55);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+}
+
+.vhead {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  margin-top: calc(-1 * var(--bar-h));
+  height: min(86svh, 900px);
+  min-height: 520px;
+  background: #0e1110;
+  color: #eef0ec;
+}
+.vh-media { position: absolute; inset: 0; z-index: -1; overflow: hidden; isolation: isolate; }
+.vh-media > * { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.vh-media video { display: block; object-fit: cover; object-position: 50% 40%; filter: grayscale(1) contrast(1.5) brightness(1.06) blur(0.3px); }
+/* iOS disegna il tasto play su un film che non parte da solo: nascosto, il primo tocco lo avvia (vc.js) */
+.vh-media video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
+.vh-tone { background: #b4cdc2; mix-blend-mode: multiply; }  /* il verde freddo dei monitor */
+.vh-lines {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0) 100%) 0 -30% / 100% 24% no-repeat,
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+  animation: vh-roll 6s linear infinite;
+}
+.vh-vig { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.7) 100%); }
+.vh-media .vh-grain {
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  opacity: 0.2;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.3 -0.3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: vh-grain 0.6s steps(5) infinite;
+}
+/* il velo: in alto per la barra, in basso a sinistra per il titolo; il film resta pieno al centro e a destra */
+.vh-scrim {
+  background:
+    linear-gradient(to bottom, rgba(8, 10, 9, 0.62) 0, rgba(8, 10, 9, 0) 150px),
+    linear-gradient(to top, rgba(8, 10, 9, 0.82) 0%, rgba(8, 10, 9, 0.4) 34%, rgba(8, 10, 9, 0) 62%),
+    linear-gradient(to right, rgba(8, 10, 9, 0.55) 0%, rgba(8, 10, 9, 0) 58%);
+}
+.vh-media .vh-hud { top: calc(var(--bar-h) + 18px); bottom: auto; height: auto; }
+.vh-hud .wrap { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.vh-hud p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 236, 0.86);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+.vh-hud .rec::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #e25a6e;
+  vertical-align: 0.05em;
+  animation: vh-blink 1.2s steps(1) infinite;
+}
+.vh-hud .cam { text-align: right; }
+.vh-copy {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+  padding-bottom: clamp(32px, 7vh, 72px);
+}
+.vh-kicker {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112%;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(238, 240, 236, 0.78);
+}
+.vhead h2 {
+  margin: 0;
+  max-width: 21ch;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(2.3rem, 5.2vw, 4.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  color: #eef0ec;
+}
+.vhead h2 em { font-style: italic; color: #e3b23c; }
+.vh-pause {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(238, 240, 236, 0.4);
+  background: rgba(8, 10, 9, 0.35);
+  color: #eef0ec;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.vh-pause:hover { border-color: #eef0ec; }
+.vh-pause svg { width: 14px; height: 14px; fill: currentColor; }
+.vh-pause .i-play { display: none; }
+.vh-pause[aria-pressed="true"] .i-play { display: block; }
+.vh-pause[aria-pressed="true"] .i-pause { display: none; }
+@keyframes vh-roll { from { background-position: 0 -30%, 0 0; } to { background-position: 0 130%, 0 0; } }
+@keyframes vh-blink { 50% { opacity: 0; } }
+@keyframes vh-grain {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-7%, 4%); }
+  40%  { transform: translate(5%, -6%); }
+  60%  { transform: translate(-3%, -9%); }
+  80%  { transform: translate(8%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+/* telefono: il film più basso, il titolo a tutta larghezza; il tasto sale in alto a destra, sulla riga di REC */
+@media (max-width: 560px) {
+  .vhead { height: min(78svh, 680px); min-height: 460px; }
+  .vh-copy { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-bottom: 28px; }
+  .vh-pause { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: calc(var(--bar-h) + 10px); }
+  .vh-kicker { font-size: 11px; margin-bottom: 12px; }
+  .vh-hud p { font-size: 10.5px; }
+  .vh-hud .cam { display: none; }
+}
+
 /* ---------------------------------------------------------------- ottotipo */
 .hero { background: var(--surface); border-bottom: 1px solid var(--rule); padding-block: 44px 36px; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: stretch; }
