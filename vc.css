@@ -136,7 +136,29 @@ button, select, input { font: inherit; color: inherit; }
 .menu a:hover { color: var(--ink); border-bottom-color: var(--rule); }
 .menu a[aria-current] { color: var(--ink); border-bottom-color: var(--gold); }
 .cta.bar-cta { flex: none; align-self: center; margin-left: auto; flex-wrap: nowrap; }
-.bar-cta .li:hover, .bar-cta .li:focus-visible { background: var(--land); } /* sul fondo della barra var(--bg) non si vedrebbe */
+/* LinkedIn nella barra: al passaggio diventa blu LinkedIn, un riflesso lo attraversa e la «in» fa un saltello.
+   Il selettore porta .cta.bar-cta perché la regola .cta .li:hover del piè di pagina viene dopo e altrimenti vincerebbe.
+   Il riflesso sta dietro testo e icona (z-index -1 dentro isolation), così le lettere restano nette. */
+.cta.bar-cta .li { position: relative; overflow: hidden; isolation: isolate; transition: transform 0.15s, box-shadow 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s; }
+.cta.bar-cta .li::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 50%; z-index: -1; pointer-events: none;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.62) 50%, transparent 80%);
+  transform: translateX(-110%) skewX(-16deg);
+}
+.cta.bar-cta .li:hover, .cta.bar-cta .li:focus-visible {
+  background: #0a66c2; border-color: #0a66c2; color: #fff;
+  box-shadow: 0 8px 18px -8px rgba(10, 102, 194, 0.85);
+}
+.cta.bar-cta .li:active { background: #004182; border-color: #004182; transform: translateY(0); }
+.cta.bar-cta .li:hover::after, .cta.bar-cta .li:focus-visible::after { animation: li-shine 0.9s cubic-bezier(0.45, 0, 0.25, 1) 0.08s both; }
+.cta.bar-cta .li:hover svg, .cta.bar-cta .li:focus-visible svg { animation: li-hop 0.6s ease-out both; }
+@keyframes li-shine { from { transform: translateX(-110%) skewX(-16deg); } to { transform: translateX(240%) skewX(-16deg); } }
+@keyframes li-hop {
+  0% { transform: none; }
+  30% { transform: translateY(-2px) scale(1.25) rotate(-10deg); }
+  60% { transform: translateY(0) scale(0.95) rotate(4deg); }
+  100% { transform: none; }
+}
 /* Sotto i 1240px i due pulsanti tengono solo l'icona; sotto i 1024px del nome resta il simbolo. */
 @media (max-width: 1239px) {
   .bar-cta a { width: 32px; padding: 0; justify-content: center; }
