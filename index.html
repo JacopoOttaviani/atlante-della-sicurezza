@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=38">
+<link rel="stylesheet" href="vc.css?v=40">
 </head>
 <body>
 <!-- vc:content -->
@@ -65,8 +65,15 @@
         <span>LinkedIn</span>
       </a>
     </div>
+    <!-- La lente apre la ricerca del comune al posto delle voci; sul telefono le voci diventano il menu a tendina. -->
     <div class="bar-tools">
       <select id="section-select" aria-label="Vai a una sezione della pagina"></select>
+      <div class="control control-search">
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca un comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+      </div>
       <button type="button" class="bar-find" id="bar-find" aria-label="Cerca un comune" aria-expanded="false" aria-controls="city-combo">
         <svg class="i-find" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <svg class="i-close" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -88,7 +95,7 @@
         </div>
         <!-- Tre grafici su una striscia, uno per ogni pezzo del titolo: l'Italia nel tempo, le città (non ovunque),
              i reati (non tutti). Avanza da sola ogni otto secondi, si ferma con il mouse sopra; frecce, punti e dito
-             per sfogliare. Titoli e grafici li riempie vc.js e seguono il reato scelto e l'anno di confronto. -->
+             per sfogliare. Titoli e grafici li riempie vc.js: sempre tutti i delitti, confrontati con il 2019. -->
         <div class="national hero-car" id="national">
           <div class="car-head">
             <div class="car-meta on" data-k="0">
@@ -165,31 +172,23 @@
     </div>
   </section>
 
-  <nav class="controls" aria-label="Scegli il reato o cerca un comune">
-    <div class="wrap">
-      <label class="control"><span class="label opt">Reato</span>
-        <select id="type-select"></select>
-      </label>
-      <div class="control control-search">
-        <div class="combo" id="city-combo">
-          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
-          <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
-        </div>
-      </div>
-    </div>
-  </nav>
-
   <section class="block" id="mappa" aria-labelledby="map-title">
     <div class="wrap">
       <header>
         <div class="kicker">Classifica e mappa</div>
         <h2 id="map-title">Dove si denuncia di più, e dove di meno</h2>
         <p class="dek" id="map-dek"></p>
-        <div class="control base-pick" role="group" aria-labelledby="base-label"><span class="label" id="base-label">Confronta il 2024 con il</span>
-          <div class="seg" id="base-seg">
-            <button type="button" data-base="2023" aria-pressed="false">2023</button>
-            <button type="button" data-base="2019" aria-pressed="true">2019, prima del Covid</button>
-            <button type="button" data-base="2014">2014</button>
+        <!-- i comandi della mappa: cambiano solo la mappa e la classifica qui sotto -->
+        <div class="map-picks">
+          <label class="control"><span class="label">Reato</span>
+            <select id="map-type"></select>
+          </label>
+          <div class="control base-pick" role="group" aria-labelledby="base-label"><span class="label" id="base-label">Confronta il 2024 con il</span>
+            <div class="seg" id="base-seg">
+              <button type="button" data-base="2023" aria-pressed="false">2023</button>
+              <button type="button" data-base="2019" aria-pressed="true">2019, prima del Covid</button>
+              <button type="button" data-base="2014">2014</button>
+            </div>
           </div>
         </div>
       </header>
@@ -268,6 +267,9 @@
         <p class="dek" id="grid-dek"></p>
       </header>
       <div class="gridbar">
+        <label class="control"><span class="label">Reato</span>
+          <select id="grid-type"></select>
+        </label>
         <div class="control" role="group" aria-label="Ordina"><span class="label">Ordina</span>
           <div class="seg" id="sort-seg">
             <button type="button" data-sort="level" aria-pressed="true">Livello</button>
@@ -300,7 +302,7 @@
       <header>
         <div class="kicker">Chi è in carcere</div>
         <h2 id="carceri-title">Gli stranieri nelle carceri italiane</h2>
-        <p class="dek" id="carceri-dek">Un altro dato ufficiale, un'altra popolazione: non le denunce ma le persone detenute negli istituti penitenziari, contate dal Ministero della Giustizia alla fine di ogni anno. I comandi in alto non valgono qui.</p>
+        <p class="dek" id="carceri-dek">Un altro dato ufficiale, un'altra popolazione: non le denunce ma le persone detenute negli istituti penitenziari, contate dal Ministero della Giustizia alla fine di ogni anno.</p>
       </header>
       <div class="facts" id="carceri-facts"></div>
       <div class="carceri-grid">
@@ -351,7 +353,7 @@
       <header>
         <div class="kicker">Rimpatri</div>
         <h2 id="rimpatri-title">Quante persone l'Italia rimpatria, e verso dove</h2>
-        <p class="dek" id="rimpatri-dek">Ogni anno l'Italia ordina a decine di migliaia di cittadini di paesi fuori dall'Unione europea di lasciare il territorio. Solo una parte viene davvero rimpatriata. I dati europei dicono quante persone partono e di quale paese sono cittadine, non da quale città o centro di permanenza partono. I comandi in alto non valgono qui.</p>
+        <p class="dek" id="rimpatri-dek">Ogni anno l'Italia ordina a decine di migliaia di cittadini di paesi fuori dall'Unione europea di lasciare il territorio. Solo una parte viene davvero rimpatriata. I dati europei dicono quante persone partono e di quale paese sono cittadine, non da quale città o centro di permanenza partono.</p>
       </header>
       <div class="facts" id="rimpatri-facts"></div>
       <div class="carceri-grid two-even">
@@ -487,6 +489,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=38"></script>
+<script src="vc.js?v=39"></script>
 </body>
 </html>

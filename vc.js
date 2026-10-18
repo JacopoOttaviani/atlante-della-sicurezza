@@ -75,7 +75,11 @@
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   let Y, LAST, TYPES, TYPE, CITIES, ITALY, TOPO, META;
-  const state = { type: "TOT", base: 2019, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null };
+  // Ogni sezione ha il suo stato e cambia solo sé stessa: reato e anno di confronto della mappa, reato della griglia,
+  // reato e anno della scheda aperta. L'apertura, «In breve» e «Cosa sale e cosa scende» guardano sempre tutti i
+  // delitti confrontati con il 2019 (REF).
+  const REF = 2019;
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null };
   let CARCERI = null;
   let RIMP = null, WORLD = null;
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
@@ -147,10 +151,10 @@
   const windowRate = (c, t, i0, i1) => windowRateSeries(c.n[t], c.pop, i0, i1);
 
   const cache = new Map();
-  function model(t) {
-    const key = t + "|" + state.base;
+  function model(t, base = REF) {
+    const key = t + "|" + base;
     if (cache.has(key)) return cache.get(key);
-    const iB = Y.indexOf(state.base);
+    const iB = Y.indexOf(base);
     const rare = TYPE[t].rare;
     const rows = CITIES.map((c) => {
       const s = series(c, t);
@@ -166,7 +170,7 @@
     ranked.forEach((r, i) => (r.rank = i > 0 && r.lvl === ranked[i - 1].lvl ? ranked[i - 1].rank : i + 1));
     const it = ITALY.rate[t];
     const m = {
-      t, rows, ranked, it, rare,
+      t, base, rows, ranked, it, rare,
       itLvl: rare ? d3.mean(it.slice(LAST - 2)) : it[LAST],
       max: d3.max(rows, (r) => d3.max(r.s)),
       label: TYPE[t].label,
@@ -410,7 +414,7 @@
   // ------------------------------------------------------------------ in breve
 
   // Le domande che chiunque si fa, con una risposta in poche righe. Ogni cifra viene dagli stessi calcoli delle
-  // sezioni sotto e segue l'anno di confronto scelto; carceri e rimpatri compaiono quando i loro dati sono arrivati.
+  // sezioni sotto, confrontate con il 2019; carceri e rimpatri compaiono quando i loro dati sono arrivati.
   const shortLabel = (t) => lower(t.label.replace(/ \(.*\)$/, ""));
   // numeri che si leggono con la vocale davanti (uno, otto, undici, ottanta…): "dell’8%", "l’11%", "all’83° posto"
   const vowelNum = (n) => n === 1 || n === 11 || /^8/.test(String(n));
@@ -420,7 +424,7 @@
   function renderBrief() {
     const host = $("#brief");
     if (!host) return;
-    const tot = ITALY.rate.TOT, iB = Y.indexOf(state.base), tm = model("TOT");
+    const tot = ITALY.rate.TOT, iB = Y.indexOf(REF), tm = model("TOT");
     const cards = [];
     const card = (q, a, href, go) => cards.push(`<article class="brief-q rv-up"><h3>${q}</h3><p>${a}</p><a class="go" href="${href}">${go} <span aria-hidden="true">→</span></a></article>`);
 
@@ -430,7 +434,7 @@
     const downs = ch.filter((d) => d.ch < -0.03).sort((a, b) => a.ch - b.ch).slice(0, 3);
     const list = (l) => andList(l.map((d) => `${esc(shortLabel(d.t))} (${fmtPct(d.ch)})`));
     card("Quali reati aumentano, e quali calano?",
-      `Dal ${state.base} al ${Y[LAST]} i delitti denunciati in Italia, tutti insieme, sono ${moved(tot[LAST] / tot[iB] - 1, "aumentati", "diminuiti")}. ` +
+      `Dal ${REF} al ${Y[LAST]} i delitti denunciati in Italia, tutti insieme, sono ${moved(tot[LAST] / tot[iB] - 1, "aumentati", "diminuiti")}. ` +
       (ups.length ? `Sono cresciute soprattutto le denunce per ${list(ups)}. ` : "") +
       (downs.length ? `Sono calate quelle per ${list(downs)}. ` : "") +
       `Più denunce non vuol dire sempre più reati: a volte vuol dire che le vittime denunciano di più${ups.some((d) => d.t.id === "RAPE") ? ", come può accadere per le violenze sessuali" : ""}.`,
@@ -495,11 +499,11 @@
   }
 
   function renderNational() {
-    const m = model(state.type);
+    const m = model("TOT");
     const it = m.it;
-    const iB = Y.indexOf(state.base);
+    const iB = Y.indexOf(REF);
     const ch = it[LAST] / it[iB] - 1;
-    $("#national-title").textContent = `${m.label}: ${fmtRate(it[LAST])} nel ${Y[LAST]}, ${fmtPct(ch)} rispetto al ${state.base}`;
+    $("#national-title").textContent = `${m.label}: ${fmtRate(it[LAST])} nel ${Y[LAST]}, ${fmtPct(ch)} rispetto al ${REF}`;
     $("#national-sub").textContent = `${m.label === "Tutti i delitti" ? "Delitti denunciati" : "Denunce"} ogni 100.000 abitanti, Italia`;
     const el = $("#national-chart");
     // il riquadro è alto quanto la colonna dei numeri: il grafico prende tutto lo spazio che gli resta
@@ -508,10 +512,10 @@
       years: Y, values: it, xDomain: [Y[0], Y[LAST]], xTicks: [2006, 2010, 2015, 2020, 2024],
       yMin: d3.min(it) * 0.82, yMax: d3.max(it) * 1.08, covid: true, height: h, mr: 18,
       marks: [
-        { year: state.base, text: fmtRate(it[iB]), hollow: true, dy: state.base >= Y[LAST] - 2 ? 20 : -10 },
+        { year: REF, text: fmtRate(it[iB]), hollow: true, dy: REF >= Y[LAST] - 2 ? 20 : -10 },
         { year: Y[LAST], text: fmtRate(it[LAST]), strong: true, anchor: "end", dx: 0, dy: -12 },
       ],
-      hover: (i) => `<b>${Y[i]}</b>: ${fmtRate(it[i])} ogni 100.000 ab.<br>${nf0.format(ITALY.n[state.type][i])} denunce`,
+      hover: (i) => `<b>${Y[i]}</b>: ${fmtRate(it[i])} ogni 100.000 ab.<br>${nf0.format(ITALY.n.TOT[i])} denunce`,
     });
   }
 
@@ -519,17 +523,17 @@
 
   // Il riquadro a destra dell'apertura fa scorrere tre grafici, uno per ogni pezzo del titolo: l'Italia nel tempo
   // (renderNational), le città (guglie come nella mappa, con i movimenti più netti accanto) e i reati (quali
-  // salgono e quali calano). Seguono il reato scelto e l'anno di confronto come il resto della pagina.
+  // salgono e quali calano). Mostrano sempre tutti i delitti confrontati con il 2019: i comandi delle sezioni sotto non li toccano.
   function renderHeroCities() {
     const el = $("#cities-chart");
     if (!el) return;
-    const m = model(state.type);
+    const m = model("TOT");
     const rows = m.rows.filter((r) => r.lvl != null);
     const up = rows.filter((r) => sig(r.cmp) === "up"), down = rows.filter((r) => sig(r.cmp) === "down");
     const flat = rows.length - up.length - down.length;
     $("#cities-kicker").textContent = `Non ovunque · ${rows.length} capoluoghi`;
-    $("#cities-title").textContent = `${m.label}: dal ${state.base} le denunce salgono in ${up.length} città e calano in ${down.length}`;
-    $("#cities-sub").textContent = `Ogni guglia un capoluogo, alta quanto le denunce per abitante (${m.levelNote}); rossa se dal ${state.base} salgono, blu se calano; in oro le impennate`;
+    $("#cities-title").textContent = `${m.label}: dal ${REF} le denunce salgono in ${up.length} città e calano in ${down.length}`;
+    $("#cities-sub").textContent = `Ogni guglia un capoluogo, alta quanto le denunce per abitante (${m.levelNote}); rossa se dal ${REF} salgono, blu se calano; in oro le impennate`;
     const r0 = el.getBoundingClientRect();
     const w = Math.max(260, Math.round(r0.width)), h = Math.min(560, Math.max(240, Math.round(r0.height)));
     el.innerHTML = "";
@@ -548,7 +552,7 @@
     const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[4, 4 + sky], [mw - 4, h - 4]], land);
     const path = d3.geoPath(proj);
     const svg = d3.select(mapEl).append("svg").attr("viewBox", `0 0 ${mw} ${h}`).attr("role", "img")
-      .attr("aria-label", `Mappa dei capoluoghi: ${m.label}, denunce per abitante e variazione rispetto al ${state.base}`);
+      .attr("aria-label", `Mappa dei capoluoghi: ${m.label}, denunce per abitante e variazione rispetto al ${REF}`);
     const sameReg = (a, b) => a.properties.reg_istat_code === b.properties.reg_istat_code;
     const base = svg.append("g").attr("class", "base rv-fade");
     base.append("path").attr("class", "land").attr("d", path(land));
@@ -585,7 +589,7 @@
       const topUp = up.slice().sort((a, b) => b.cmp.pct - a.cmp.pct).slice(0, 3);
       const topDown = down.slice().sort((a, b) => a.cmp.pct - b.cmp.pct).slice(0, 3);
       list.innerHTML =
-        (topUp.length ? `<h4>Salgono di più dal ${state.base}</h4><ul>${topUp.map(li).join("")}</ul>` : "") +
+        (topUp.length ? `<h4>Salgono di più dal ${REF}</h4><ul>${topUp.map(li).join("")}</ul>` : "") +
         (topDown.length ? `<h4>Calano di più</h4><ul>${topDown.map(li).join("")}</ul>` : "") +
         `<p class="tot">${up.length} città in aumento, ${down.length} in calo, ${flat} con differenze troppo piccole per dirlo</p>`;
       el.appendChild(list);
@@ -597,11 +601,11 @@
   }
 
   // Barre divergenti: i cinque reati che salgono di più e i cinque che calano di più rispetto all'anno di confronto;
-  // l'etichetta sta dal lato libero della barra, la linea tratteggiata è «tutti i delitti». Un clic sceglie il reato.
+  // l'etichetta sta dal lato libero della barra, la linea tratteggiata è «tutti i delitti». Un clic porta il reato sulla mappa.
   function renderHeroTypes() {
     const el = $("#types-chart");
     if (!el) return;
-    const iB = Y.indexOf(state.base);
+    const iB = Y.indexOf(REF);
     const items = TYPES.filter((t) => t.id !== "TOT")
       .map((t) => ({ t, lvl: ITALY.rate[t.id][LAST], ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 }))
       .filter((d) => isFinite(d.ch)).sort((a, b) => b.ch - a.ch);
@@ -612,7 +616,7 @@
     const first = items[0], last = items[items.length - 1];
     $("#types-kicker").textContent = `Non tutti · ${items.length} reati`;
     $("#types-title").textContent = `${short(first.t)} ${fmtPct(first.ch)}, ${lower(short(last.t))} ${fmtPct(last.ch)}: i reati non si muovono insieme`;
-    $("#types-sub").textContent = `Variazione delle denunce ogni 100.000 abitanti in Italia, ${Y[LAST]} rispetto al ${state.base}`;
+    $("#types-sub").textContent = `Variazione delle denunce ogni 100.000 abitanti in Italia, ${Y[LAST]} rispetto al ${REF}`;
     const r0 = el.getBoundingClientRect();
     const w = Math.max(260, Math.round(r0.width)), h = Math.min(560, Math.max(240, Math.round(r0.height)));
     const small = w < 420;
@@ -622,7 +626,7 @@
     const zero = Math.round(w * 0.5), half = Math.min(zero - 46, w - zero - 46);
     const x = d3.scaleLinear([-cap, cap], [zero - half, zero + half]);
     const svg = d3.select(el).classed("types", true).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("role", "img")
-      .attr("aria-label", `Variazione delle denunce per reato in Italia, ${Y[LAST]} rispetto al ${state.base}`);
+      .attr("aria-label", `Variazione delle denunce per reato in Italia, ${Y[LAST]} rispetto al ${REF}`);
     svg.selectAll("*").remove();
     svg.append("line").attr("class", "ref").attr("x1", x(totCh)).attr("x2", x(totCh)).attr("y1", m.t - 4).attr("y2", h - m.b);
     svg.append("text").attr("class", "lbl halo").attr("x", x(totCh) + 4).attr("y", m.t - 10).text(`tutti i delitti ${fmtPct(totCh)}`);
@@ -639,9 +643,9 @@
       g.append("text").attr("class", "val rv-fade").attr("x", up ? x1 + 5 : x0 - 5).attr("y", cy + 4)
         .attr("text-anchor", up ? "start" : "end").style("fill", color).style("font-size", small ? "11px" : null).text(fmtPct(d.ch));
       g.append("rect").attr("x", 0).attr("y", cy - rowH / 2).attr("width", w).attr("height", rowH).style("fill", "transparent").style("cursor", "pointer")
-        .on("mousemove", (ev) => showTip(`<b>${esc(d.t.label)}</b><br>${fmtRate(d.lvl)} denunce ogni 100.000 ab. nel ${Y[LAST]}<br>${fmtPct(d.ch)} rispetto al ${state.base}<br><span class="small">Clic: questo reato in tutta la pagina</span>`, ev))
+        .on("mousemove", (ev) => showTip(`<b>${esc(d.t.label)}</b><br>${fmtRate(d.lvl)} denunce ogni 100.000 ab. nel ${Y[LAST]}<br>${fmtPct(d.ch)} rispetto al ${REF}<br><span class="small">Clic: questo reato sulla mappa delle città</span>`, ev))
         .on("mouseleave", hideTip)
-        .on("click", () => setType(d.t.id, false));
+        .on("click", () => { hideTip(); showOnMap(d.t.id); });
     });
     reveal(el);
   }
@@ -706,14 +710,14 @@
   // ------------------------------------------------------------------ quadro nazionale per reato
 
   function renderMix() {
-    const iB = Y.indexOf(state.base);
+    const iB = Y.indexOf(REF);
     const items = TYPES.filter((t) => t.id !== "TOT").map((t) => {
       const it = ITALY.rate[t.id];
       return { t, it, ch: it[LAST] / it[iB] - 1 };
     }).sort((a, b) => b.ch - a.ch);
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
     const up = items.filter((d) => d.ch > 0.03).length, down = items.filter((d) => d.ch < -0.03).length;
-    $("#mix-dek").innerHTML = `Rispetto al ${state.base}, in Italia <strong>${up} reati su ${items.length}</strong> sono in aumento e <strong>${down}</strong> in calo; tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo in tutte le città.`;
+    $("#mix-dek").innerHTML = `Rispetto al ${REF}, in Italia <strong>${up} reati su ${items.length}</strong> sono in aumento e <strong>${down}</strong> in calo; tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
     // scala comune con tetto fisso: la barra si ferma, il numero dice il valore vero
     const cap = Math.min(1.5, Math.max(0.3, Math.ceil(d3.max(items, (d) => Math.abs(d.ch)) * 10) / 10));
     const pos = (v) => 50 + 50 * Math.max(-1, Math.min(1, v / cap));
@@ -723,14 +727,13 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "mrow" + (PARENT[d.t.id] ? " sub" : "");
-      b.setAttribute("aria-pressed", d.t.id === state.type);
       const cls = d.ch > 0.03 ? "up" : d.ch < -0.03 ? "down" : "flat";
       const left = Math.min(50, pos(d.ch)), width = Math.abs(pos(d.ch) - 50);
       b.innerHTML = `<span class="ml">${esc(d.t.label)}</span>` +
         `<span class="mbar" aria-hidden="true"><i class="z"></i><i class="b ${cls} rv-grow" style="left:${left}%;width:${width}%"></i><i class="ref rv-fade" style="left:${pos(totCh)}%"></i></span>` +
         `<span class="mv ${cls}">${fmtPct(d.ch)}</span><svg aria-hidden="true"></svg>`;
-      b.setAttribute("aria-label", `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${state.base}`);
-      b.addEventListener("click", () => setType(d.t.id, true));
+      b.setAttribute("aria-label", `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${REF}. Mostralo sulla mappa`);
+      b.addEventListener("click", () => showOnMap(d.t.id));
       grid.appendChild(b);
     });
     const w = grid.querySelector(".mrow svg").getBoundingClientRect().width || 72;
@@ -749,7 +752,7 @@
   // Mappa: una guglia in piedi su ogni capoluogo. Altezza = tasso, colore = variazione sul riferimento, bordo d'oro = impennata.
   // Sotto le guglie, tre strati di confini (province, regioni, costa) perché la carta si legga anche nel tema scuro.
   function renderMap() {
-    const m = model(state.type);
+    const m = model(state.mapType, state.mapBase);
     const el = $("#map");
     const w = Math.max(280, el.clientWidth);
     // La guglia più alta è un quinto della larghezza; sopra l'Italia resta mezza guglia di cielo, perché le città
@@ -790,7 +793,7 @@
         .on("mouseenter", () => hotCity(d.c.id, true))
         .on("mousemove", (ev) => showTip(cityTip(d, m), ev))
         .on("mouseleave", () => { hideTip(); hotCity(d.c.id, false); })
-        .on("click", () => openCity(d.c));
+        .on("click", () => openCity(d.c, m.t, m.base));
       c.append("path").attr("class", "pin rv-rise").attr("d", pin(x, y, d._len, pw / 2));
       // zona sensibile più larga della guglia, perché le guglie basse si prendano col mouse
       c.append("path").attr("class", "hit").attr("d", pin(x, y + 2, Math.max(d._len, 8) + 4, pw / 2 + 3));
@@ -835,7 +838,7 @@
     const bar = `linear-gradient(to right, ${fall(1)} 0%, ${fall(0.35)} 40%, ${mid} 40%, ${mid} 60%, ${rise(0.35)} 60%, ${rise(1)} 100%)`;
     $("#map-legend").innerHTML = `
       <div class="lg">
-        <div class="lg-t">Colore · variazione ${Y[LAST]} su ${state.base}</div>
+        <div class="lg-t">Colore · variazione ${Y[LAST]} su ${m.base}</div>
         <div class="lg-bar" style="background:${bar}"></div>
         <div class="lg-ticks"><span>−60% o più</span><span>non significativa</span><span>+60% o più</span></div>
       </div>
@@ -863,22 +866,22 @@
     const sp = d.an[LAST] && d.an[LAST].flag === "spike" ? `<br>Impennata nel ${Y[LAST]}: ${fmtPct(d.an[LAST].rr - 1)} sulla media precedente` : "";
     const s = sig(d.cmp);
     const note = s === "flat" ? " (non significativa)" : "";
-    return `<b>${esc(d.c.name)}</b> · ${esc(d.c.region)}<br>${esc(m.label)}: ${fmtRate(d.lvl)} ogni 100.000 ab. (${m.levelNote})<br>${d.rank}° su ${m.ranked.length} · rispetto al ${state.base}: ${fmtPct(d.cmp && d.cmp.pct)}${note}${sp}`;
+    return `<b>${esc(d.c.name)}</b> · ${esc(d.c.region)}<br>${esc(m.label)}: ${fmtRate(d.lvl)} ogni 100.000 ab. (${m.levelNote})<br>${d.rank}° su ${m.ranked.length} · rispetto al ${m.base}: ${fmtPct(d.cmp && d.cmp.pct)}${note}${sp}`;
   }
 
   // ------------------------------------------------------------------ classifica
 
   function renderRanking() {
-    const m = model(state.type);
+    const m = model(state.mapType, state.mapBase);
     const top = m.ranked.slice(0, 10);
     const bottom = m.ranked.slice().sort((a, b) => a.lvl - b.lvl || b.c.pop[LAST] - a.c.pop[LAST]).slice(0, 10);
     const maxL = top[0] ? top[0].lvl : 1;
-    $("#map-dek").textContent = `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${state.base}.${GLOSS[state.type] ? ` ${m.label}: ${GLOSS[state.type]}.` : ""}`;
+    $("#map-dek").textContent = `Sono le città che le classifiche chiamano “più pericolose” e “più sicure”. Qui contiamo le denunce per ${lower(m.label)} ogni 100.000 residenti (${m.levelNote}): un numero che pesa di più dove arrivano ogni giorno pendolari e turisti. Nella mappa l’altezza della guglia dice quanto si denuncia, il colore se le denunce sono salite o scese rispetto al ${m.base}.${GLOSS[m.t] ? ` ${m.label}: ${GLOSS[m.t]}.` : ""}`;
     $("#rank-top-title").textContent = `Più denunce · ${m.levelNote}`;
     $("#rank-bottom-title").textContent = `Meno denunce · ${m.levelNote}`;
     const li = (d, pos) => {
       const few = d.nl < (m.rare ? 10 : 20) ? ` <span class="few">${nf0.format(d.nl)} casi</span>` : "";
-      return `<li data-c="${d.c.id}"><span class="pos">${pos}</span><span class="dotc ${sig(d.cmp)}" title="Rispetto al ${state.base}: ${fmtPct(d.cmp && d.cmp.pct)}"></span><button type="button" data-city="${d.c.id}" title="${esc(d.c.name)}">${esc(d.c.name)}</button>` +
+      return `<li data-c="${d.c.id}"><span class="pos">${pos}</span><span class="dotc ${sig(d.cmp)}" title="Rispetto al ${m.base}: ${fmtPct(d.cmp && d.cmp.pct)}"></span><button type="button" data-city="${d.c.id}" title="${esc(d.c.name)}">${esc(d.c.name)}</button>` +
         `<span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * d.lvl) / maxL}%"></i><b class="rv-fade" style="left:${Math.min(100, (100 * m.itLvl) / maxL)}%"></b></span>` +
         `<span class="val">${fmtRate(d.lvl)}${few}</span></li>`;
     };
@@ -888,12 +891,12 @@
     const zeros = m.ranked.filter((d) => d.lvl === 0).length;
     const topTourist = top.filter((d) => TOURIST.includes(d.c.name)).map((d) => d.c.name);
     let note = `La linea sottile su ogni barra è la media italiana: ${fmtRate(m.itLvl)}. `;
-    if (topTourist.length && TOURIST_GROUPS.includes(TYPE[state.type].group) && !TOURIST_NOT.includes(state.type)) note += `${topTourist.slice(0, 3).join(", ")} ${topTourist.length > 1 ? "sono" : "è"} in alto anche perché ogni giorno ${topTourist.length > 1 ? "accolgono" : "accoglie"} pendolari e turisti che non entrano nel conto dei residenti. `;
+    if (topTourist.length && TOURIST_GROUPS.includes(TYPE[m.t].group) && !TOURIST_NOT.includes(m.t)) note += `${topTourist.slice(0, 3).join(", ")} ${topTourist.length > 1 ? "sono" : "è"} in alto anche perché ogni giorno ${topTourist.length > 1 ? "accolgono" : "accoglie"} pendolari e turisti che non entrano nel conto dei residenti. `;
     if (zeros) note += `${zeros} capoluoghi non hanno avuto nessun caso ${m.rare ? "tra il 2022 e il 2024" : "nel 2024"}, a pari merito in fondo alla classifica. `;
     if (m.rare) note += "Con pochi casi l’anno, una sola differenza sposta molto il tasso: per questo usiamo la media di tre anni.";
     $("#rank-note").textContent = note;
 
-    const iB = state.base;
+    const iB = m.base;
     const rowsHTML = m.ranked.map((d) => `<tr><td class="num">${d.rank}</td><td><a href="#${slug(d.c.name)}" data-city="${d.c.id}">${esc(d.c.name)}</a></td><td>${esc(d.c.region)}</td>` +
       `<td class="num">${fmtRate(d.lvl)}</td><td class="num">${nf0.format(d.nl)}</td><td class="num">${chgHTML(d.cmp)}</td><td class="num">${d.spikes.length || ""}</td></tr>`).join("");
     $("#rank-table").innerHTML = `<thead><tr><th class="num">#</th><th>Città</th><th>Regione</th><th class="num">Ogni 100.000 ab. (${m.levelNote})</th><th class="num">Casi (${m.levelNote})</th><th class="num">Var. su ${iB}</th><th class="num">Impennate dal 2008</th></tr></thead><tbody>${rowsHTML}</tbody>`;
@@ -976,7 +979,7 @@
   }
 
   function renderGrid() {
-    const m = model(state.type);
+    const m = model(state.gridType);
     const nSp = m.rows.filter((r) => r.spikes.length).length;
     $("#grid-dek").textContent = `${m.label}, ogni 100.000 abitanti, dal 2006 al 2024. I punti d’oro sono le impennate: ${nSp} capoluoghi ne hanno avuta almeno una dal 2008. Con la scala uguale per tutte si confrontano i livelli; con la scala propria si vede meglio la forma di ogni curva.`;
     const host = $("#sm");
@@ -997,7 +1000,7 @@
         const hot = r.an[LAST] && r.an[LAST].flag === "spike";
         b.className = "sm" + (hot ? " hot" : "");
         b.dataset.city = r.c.id;
-        b.setAttribute("aria-label", `${r.c.name}: ${fmtRate(r.lvl)} ogni 100.000 abitanti, ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${state.base}. Apri la scheda.`);
+        b.setAttribute("aria-label", `${r.c.name}: ${fmtRate(r.lvl)} ogni 100.000 abitanti, ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${m.base}. Apri la scheda.`);
         const badge = r.spikes.length ? `<span class="badge" title="Impennate dal 2008">${r.spikes.length}</span>` : "";
         b.innerHTML = `<span class="h"><span class="n">${esc(r.c.name)}</span><span class="small">${fmtRate(r.lvl)}</span></span><svg aria-hidden="true"></svg><span class="x"><span>${esc(r.c.region)}</span><span>${badge} ${chgHTML(r.cmp)}</span></span>`;
         grid.appendChild(b);
@@ -1015,7 +1018,7 @@
         hover: (i) => {
           const a = r.an[i];
           const flag = a && a.flag === "spike" ? `<br>Impennata: ${fmtPct(a.rr - 1)} sulla media precedente` : a && a.flag === "fall" ? `<br>Calo netto: ${fmtPct(a.rr - 1)}` : "";
-          return `<b>${esc(r.c.name)}</b> · ${Y[i]}<br>${fmtRate(r.s[i])} ogni 100.000 ab. (Italia ${fmtRate(m.it[i])})<br>${nf0.format(r.c.n[state.type][i])} casi${flag}`;
+          return `<b>${esc(r.c.name)}</b> · ${Y[i]}<br>${fmtRate(r.s[i])} ogni 100.000 ab. (Italia ${fmtRate(m.it[i])})<br>${nf0.format(r.c.n[m.t][i])} casi${flag}`;
         },
       });
     });
@@ -1133,11 +1136,15 @@
     dlg.appendChild(tip);
   }
 
-  function openCity(c) {
+  // La scheda ha il suo reato e il suo anno di confronto: quelli della sezione da cui la si apre (mappa, griglia,
+  // impennata), altrimenti tutti i delitti sul 2019. Scegliere un altro reato dentro la scheda non tocca la pagina.
+  function openCity(c, type = "TOT", base = REF) {
     if (!c) return;
     if (state.city !== c) state.qSel = null;
     state.city = c;
     state.place = null;
+    state.cardType = TYPE[type] ? type : "TOT";
+    state.cardBase = base;
     renderCity();
     showCard();
     try { history.replaceState(null, "", "#" + slug(c.name)); } catch (e) { /* ignorato */ }
@@ -1154,9 +1161,11 @@
     setTimeout(() => { if (state.city === c) renderCity(); }, wait);
   }
 
-  function openProv(e) {
+  function openProv(e, type = "TOT", base = REF) {
     state.city = null;
     state.place = e;
+    state.cardType = TYPE[type] ? type : "TOT";
+    state.cardBase = base;
     renderProv();
     showCard();
     try { history.replaceState(null, "", "#" + placeSlug(e)); } catch (err) { /* ignorato */ }
@@ -1172,7 +1181,7 @@
   function drawCard(series, an, rows, hoverRow) {
     requestAnimationFrame(() => {
       const el = $("#place-chart");
-      if (el) multiLine(el, { series, an, label: `${TYPE[state.type].label} ogni 100.000 abitanti, ${Y[0]}–${Y[LAST]}` });
+      if (el) multiLine(el, { series, an, label: `${TYPE[state.cardType].label} ogni 100.000 abitanti, ${Y[0]}–${Y[LAST]}` });
       const svgs = $("#city-grid").querySelectorAll("svg");
       const w = svgs.length ? svgs[0].getBoundingClientRect().width || 140 : 0;
       svgs.forEach((s, k) => {
@@ -1192,7 +1201,7 @@
         <div class="chart" id="place-chart"></div>
       </div>`;
 
-  const gridHTML = (rows) => rows.map(({ t, row }) => `<button type="button" class="sm" data-type="${t.id}" aria-pressed="${t.id === state.type}" style="${t.id === state.type ? "box-shadow: inset 0 0 0 2px var(--ink)" : ""}"><span class="h"><span class="n" title="${esc(t.label)}">${esc(t.label)}</span></span><svg aria-hidden="true"></svg><span class="x"><span>${fmtRate(row.s[LAST])}</span>${chgHTML(row.cmp)}</span></button>`).join("");
+  const gridHTML = (rows) => rows.map(({ t, row }) => `<button type="button" class="sm" data-type="${t.id}" aria-pressed="${t.id === state.cardType}" style="${t.id === state.cardType ? "box-shadow: inset 0 0 0 2px var(--ink)" : ""}"><span class="h"><span class="n" title="${esc(t.label)}">${esc(t.label)}</span></span><svg aria-hidden="true"></svg><span class="x"><span>${fmtRate(row.s[LAST])}</span>${chgHTML(row.cmp)}</span></button>`).join("");
 
   // I tre reati saliti di più e i tre scesi di più rispetto all'anno base. Con i conteggi contano solo le
   // variazioni che superano la soglia statistica (z ≥ 2), come nelle mappe; senza, i rapporti tra tassi ufficiali.
@@ -1209,7 +1218,7 @@
     const col = (dir, title, none) => {
       const list = pick(dir);
       const items = list.length
-        ? list.map(({ t, row }) => `<li><button type="button" data-type="${t.id}" aria-pressed="${t.id === state.type}">${iconSVG(t.id)}<span class="mn" title="${esc(t.label)}">${esc(t.label)}</span>${chgHTML(row.cmp)}</button><span class="md">${detail(t, row)}</span></li>`).join("")
+        ? list.map(({ t, row }) => `<li><button type="button" data-type="${t.id}" aria-pressed="${t.id === state.cardType}">${iconSVG(t.id)}<span class="mn" title="${esc(t.label)}">${esc(t.label)}</span>${chgHTML(row.cmp)}</button><span class="md">${detail(t, row)}</span></li>`).join("")
         : `<li class="none">${none}</li>`;
       return `<div class="mover ${dir}"><h4>${title}</h4><ol>${items}</ol></div>`;
     };
@@ -1218,7 +1227,7 @@
       : "Variazioni sui tassi ufficiali della provincia, senza test statistico. Furti e rapine nel loro insieme lasciano il posto ai sottotipi.";
     return `<div class="movers">
         <h3>Cosa è salito e cosa è sceso di più</h3>
-        <p class="small">${Y[LAST]} rispetto al ${state.base}. ${how} Tocca un reato per vederlo nel grafico.</p>
+        <p class="small">${Y[LAST]} rispetto al ${state.cardBase}. ${how} Tocca un reato per vederlo nel grafico.</p>
         <div class="movers-cols">
           ${col("up", "Saliti di più", tested ? "Nessun aumento che superi la soglia statistica." : "Nessun reato in aumento.")}
           ${col("down", "Scesi di più", tested ? "Nessun calo che superi la soglia statistica." : "Nessun reato in calo.")}
@@ -1278,7 +1287,7 @@
   // o: { t, where ("a Firenze"), lvl, it, rank, n, unit ("capoluoghi"/"province"), cmp, tourist }
   function verdictHTML(o) {
     if (o.lvl == null) return "";
-    const m = model(o.t), pp = perPeople(o.lvl);
+    const m = model(o.t, state.cardBase), pp = perPeople(o.lvl);
     const gl = GLOSS[o.t] ? `<span class="gl"><b>${esc(m.label)}</b>: ${GLOSS[o.t]}.</span>` : "";
     if (o.lvl === 0) return `<p class="verdict">${esc(m.label)} ${o.where}, ${m.levelNote}: nessuna denuncia. In Italia ${fmtRate(o.it)} ogni 100.000 abitanti${m.rare ? " all’anno" : ""}.${gl}</p>`;
     let s = o.t === "TOT"
@@ -1291,7 +1300,7 @@
     if (c && c.pct != null && isFinite(c.pct)) {
       // reati rari nelle province senza conteggi: c.win è "media 2022–2024 su 2017–2019"
       const win = c.win ? c.win.replace(/^media /, "").split(" su ") : null;
-      const since = win ? `Tra il ${win[1]} e il ${win[0]}, in media,` : `Rispetto al ${state.base}${state.base === 2019 ? ", prima del Covid," : ""}`;
+      const since = win ? `Tra il ${win[1]} e il ${win[0]}, in media,` : `Rispetto al ${state.cardBase}${state.cardBase === 2019 ? ", prima del Covid," : ""}`;
       s += Math.round(c.pct * 100) === 0 ? `${since} le denunce per abitante sono rimaste le stesse.`
         : sig(c) === "flat" ? (Math.abs(c.pct) < 0.1
           ? `${since} le denunce per abitante sono più o meno le stesse (${fmtPct(c.pct)}): una differenza così piccola può dipendere dal caso.`
@@ -1310,29 +1319,29 @@
   function renderCity() {
     const c = state.city;
     if (!c) return;
-    const m = model(state.type);
+    const m = model(state.cardType, state.cardBase);
     const r = m.rows.find((d) => d.c.id === c.id);
     $("#city-kicker").textContent = `Capoluogo · ${c.region} · ${c.area} · ${nf0.format(c.pop[LAST])} residenti`;
     $("#city-name").textContent = c.name;
     const s = sig(r.cmp);
     const sigText = s === "flat" ? "variazione non significativa" : s === "up" ? "aumento significativo" : s === "down" ? "calo significativo" : "";
-    const tm = model("TOT"), tr = tm.rows.find((d) => d.c.id === c.id);
+    const tm = model("TOT", state.cardBase), tr = tm.rows.find((d) => d.c.id === c.id);
     // la provincia intorno, quando data/province.json è caricato
     const pid = CITY_PROV[c.id], P = PROV && pid ? PROV[pid] : null;
-    const pm = P ? provModel(state.type) : null, pr = pm ? pm.byId.get(pid) : null;
+    const pm = P ? provModel(state.cardType) : null, pr = pm ? pm.byId.get(pid) : null;
     const provFact = pr ? `<div class="fact"><div class="fv">${fmtRate(pr.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti in tutta la provincia di ${esc(P.name)} (${m.levelNote}) · ${pr.rank}° su ${pm.ranked.length} province</div></div>` : "";
-    const rows = TYPES.map((t) => ({ t, row: model(t.id).rows.find((d) => d.c.id === c.id) }));
-    const iB = Y.indexOf(state.base);
-    const movers = moversHTML(rows, (t) => `${nf0.format(c.n[t.id][LAST] ?? 0)} casi nel ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} nel ${state.base}`, true);
+    const rows = TYPES.map((t) => ({ t, row: model(t.id, state.cardBase).rows.find((d) => d.c.id === c.id) }));
+    const iB = Y.indexOf(state.cardBase);
+    const movers = moversHTML(rows, (t) => `${nf0.format(c.n[t.id][LAST] ?? 0)} casi nel ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} nel ${state.cardBase}`, true);
     const q = QUART[c.id] || null; // quartieri, se la città li ha e sono arrivati
-    const verdict = verdictHTML({ t: state.type, where: (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.type].group) && !TOURIST_NOT.includes(state.type) });
+    const verdict = verdictHTML({ t: state.cardType, where: (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.cardType].group) && !TOURIST_NOT.includes(state.cardType) });
     $("#city-body").innerHTML = `
       ${verdict}
       <div class="card-head">
       <div class="facts">
         <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti (${m.levelNote}) · ${r.rank ? r.rank + "° su " + m.ranked.length : ""} · Italia ${fmtRate(m.itLvl)}</div></div>
-        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))}: ${Y[LAST]} rispetto al ${state.base}${sigText ? " · " + sigText : ""}</div></div>
-        ${state.type !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">tutti i delitti ogni 100.000 abitanti nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}</div></div>` : ""}
+        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))}: ${Y[LAST]} rispetto al ${state.cardBase}${sigText ? " · " + sigText : ""}</div></div>
+        ${state.cardType !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">tutti i delitti ogni 100.000 abitanti nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}</div></div>` : ""}
         ${provFact}
         ${percFact(c.perc, "di " + esc(c.name))}
       </div>
@@ -1340,17 +1349,17 @@
       </div>
       ${movers}
       ${chartBlock(m.label + " a " + c.name, `<span><i class="k-city"></i>${esc(c.name)}</span>${P ? `<span><i class="k-prov"></i>provincia di ${esc(P.name)}</span>` : ""}<span><i class="k-it"></i>Italia</span><span><i class="k-gold"></i>impennata</span>`)}
-      <p class="note">${spikeNote((t) => model(t).rows.find((d) => d.c.id === c.id))}</p>
+      <p class="note">${spikeNote((t) => model(t, state.cardBase).rows.find((d) => d.c.id === c.id))}</p>
       ${q ? quartHTML(q) : ""}
       <h3 class="subhead">Tutti i reati a ${esc(c.name)}</h3>
-      <p class="small">Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per selezionarlo in tutta la pagina.</p>
+      <p class="small">Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.</p>
       <div class="sm-grid" id="city-grid"></div>
       <h3 class="subhead">${esc(m.label)}: i numeri anno per anno</h3>
       <div class="tablewrap"><table><thead><tr><th>Anno</th><th class="num">Casi</th><th class="num">Ogni 100.000 ab.</th>${P ? `<th class="num">Provincia</th>` : ""}<th class="num">Italia</th><th>Nota</th></tr></thead><tbody>
         ${Y.map((yr, i) => {
           const a = r.an[i];
           const note = COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `Impennata (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `Calo netto (${fmtPct(a.rr - 1)})` : "";
-          return `<tr><td>${yr}</td><td class="num">${c.n[state.type][i] == null ? "–" : nf0.format(c.n[state.type][i])}</td><td class="num">${fmtRate(r.s[i])}</td>${P ? `<td class="num">${fmtRate(pr.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
+          return `<tr><td>${yr}</td><td class="num">${c.n[state.cardType][i] == null ? "–" : nf0.format(c.n[state.cardType][i])}</td><td class="num">${fmtRate(r.s[i])}</td>${P ? `<td class="num">${fmtRate(pr.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
       <p class="small src">Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria (conteggi per comune capoluogo e tassi per provincia); popolazione residente ISTAT; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana.</p>`;
@@ -1401,11 +1410,11 @@
 
   const qcache = new Map();
   function quartModel(q) {
-    const key = [q.id, state.qLayer, state.type, state.base].join("|");
+    const key = [q.id, state.qLayer, state.cardType, state.cardBase].join("|");
     if (qcache.has(key)) return qcache.get(key);
     const yrs = q.d.meta.years, L = yrs.length - 1, layer = QL[state.qLayer];
-    const iB = Math.max(0, yrs.indexOf(state.base));
-    const t = state.type, rare = TYPE[t].rare, cm = model(t);
+    const iB = Math.max(0, yrs.indexOf(state.cardBase));
+    const t = state.cardType, rare = TYPE[t].rare, cm = model(t, state.cardBase);
     const crow = cm.rows.find((d) => d.c.id === q.id);
     const rows = q.areas.map((a) => {
       const r = { a, pop: a.pop[L], few: a.pop[L] < QFEW, lvl: null, s: null, cmp: null, an: null, n: null, nl: null };
@@ -1491,7 +1500,7 @@
     if (m.layer.crime) {
       const s = sig(r.cmp), note = s === "flat" ? " (non significativa)" : "";
       return head + `${esc(TYPE[m.t].label)}: ${r.few ? "meno di 1.000 residenti, nessun tasso" : `${fmtRate(r.lvl)} ogni 100.000 residenti`} (${nf0.format(r.nl)} casi, ${m.cm.levelNote})` +
-        (r.rank ? `<br>${r.rank}° su ${m.ranked.length} · rispetto al ${state.base}: ${fmtPct(r.cmp && r.cmp.pct)}${note}` : "") + `<br>${nf0.format(r.pop)} residenti`;
+        (r.rank ? `<br>${r.rank}° su ${m.ranked.length} · rispetto al ${state.cardBase}: ${fmtPct(r.cmp && r.cmp.pct)}${note}` : "") + `<br>${nf0.format(r.pop)} residenti`;
     }
     return head + `${esc(m.title)}: ${r.lvl == null ? "meno di 1.000 residenti" : m.fmt(r.lvl)}` + (m.layer.id === "pop" ? "" : `<br>${nf0.format(r.pop)} residenti`);
   }
@@ -1566,14 +1575,14 @@
     $("#quart-bottom-title").textContent = m.layer.crime ? "Meno denunce" : "Più basso";
     // il punto: per i reati vale il test statistico, per i residenti basta il segno della variazione (oltre il 3%)
     const dot = (r) => (!r.cmp ? "none" : m.layer.crime ? sig(r.cmp) : r.cmp.pct > 0.03 ? "up" : r.cmp.pct < -0.03 ? "down" : "flat");
-    const li = (r) => `<li data-q="${r.a.id}"${r.a.id === state.qSel ? ' class="sel"' : ""}><span class="pos">${r.rank}</span><span class="dotc ${dot(r)}"${r.cmp ? ` title="Rispetto al ${state.base}: ${fmtPct(r.cmp.pct)}"` : ""}></span><button type="button" data-q="${r.a.id}" title="${esc(r.a.name)}">${esc(r.a.short)}</button>` +
+    const li = (r) => `<li data-q="${r.a.id}"${r.a.id === state.qSel ? ' class="sel"' : ""}><span class="pos">${r.rank}</span><span class="dotc ${dot(r)}"${r.cmp ? ` title="Rispetto al ${state.cardBase}: ${fmtPct(r.cmp.pct)}"` : ""}></span><button type="button" data-q="${r.a.id}" title="${esc(r.a.name)}">${esc(r.a.short)}</button>` +
       `<span class="bar" aria-hidden="true"><i style="width:${(100 * r.lvl) / maxL}%"></i>${m.ref != null ? `<b style="left:${Math.min(100, (100 * m.ref) / maxL)}%"></b>` : ""}</span><span class="val">${m.fmt(r.lvl)}</span></li>`;
     $("#quart-top").innerHTML = top.map(li).join("");
     $("#quart-bottom").innerHTML = bottom.map(li).join("");
     const few = m.rows.length - m.ranked.length;
     let note = m.ref != null ? `La linea sottile su ogni barra è il valore di tutta ${esc(q.d.meta.name)}: ${m.fmt(m.ref)}. ` : "";
-    if (m.layer.crime) note += `Il punto colorato dice se il quartiere è salito o sceso rispetto al ${state.base}. `;
-    else if (m.layer.id === "pop") note += `Il punto colorato dice se i residenti sono cresciuti o calati di oltre il 3% rispetto al ${state.base}. `;
+    if (m.layer.crime) note += `Il punto colorato dice se il quartiere è salito o sceso rispetto al ${state.cardBase}. `;
+    else if (m.layer.id === "pop") note += `Il punto colorato dice se i residenti sono cresciuti o calati di oltre il 3% rispetto al ${state.cardBase}. `;
     if (few) note += `${few} quartieri con meno di ${nf0.format(QFEW)} residenti, parchi o aree industriali, restano fuori dalla classifica.`;
     $("#quart-rank-note").innerHTML = note;
   }
@@ -1591,14 +1600,14 @@
       const s = sig(r.cmp), sigText = s === "flat" ? ", variazione non significativa" : s === "up" ? ", aumento significativo" : s === "down" ? ", calo significativo" : "";
       const spikes = (r.an || []).filter((x) => x && x.flag === "spike").map((x) => x.y);
       const txt = r.few ? `Meno di ${nf0.format(QFEW)} residenti: ${nf0.format(r.n[L] ?? 0)} casi nel ${yrs[L]}, ma nessun tasso ha senso.`
-        : `${nf0.format(r.n[L] ?? 0)} casi di ${esc(lower(TYPE[m.t].label))} nel ${yrs[L]}: ${fmtRate(r.s[L])} ogni 100.000 residenti, contro ${fmtRate(m.crow ? m.crow.s[LAST] : null)} in tutta ${esc(name)} · ${r.rank}° su ${m.ranked.length} quartieri · ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${state.base}${sigText}.${spikes.length ? ` Impennate: ${spikes.join(", ")}.` : ""}`;
+        : `${nf0.format(r.n[L] ?? 0)} casi di ${esc(lower(TYPE[m.t].label))} nel ${yrs[L]}: ${fmtRate(r.s[L])} ogni 100.000 residenti, contro ${fmtRate(m.crow ? m.crow.s[LAST] : null)} in tutta ${esc(name)} · ${r.rank}° su ${m.ranked.length} quartieri · ${fmtPct(r.cmp && r.cmp.pct)} rispetto al ${state.cardBase}${sigText}.${spikes.length ? ` Impennate: ${spikes.join(", ")}.` : ""}`;
       body = `<p class="chart-title">${esc(TYPE[m.t].label)} ogni 100.000 residenti, ${yrs[0]}–${yrs[L]}</p>
         <div class="key" aria-hidden="true"><span><i class="k-city"></i>quartiere</span><span><i class="k-it"></i>${esc(name)}</span><span><i class="k-gold"></i>impennata</span><span><i class="k-covid"></i>2020–21</span></div>
         <svg id="quart-spark" aria-hidden="true"></svg><p class="small qsel-note">${txt}</p>`;
     } else {
       const ch = a.pop[m.iB] ? fmtPct(a.pop[L] / a.pop[m.iB] - 1) : "–";
       body = `<p class="chart-title">Residenti dal ${yrs[0]} al ${yrs[L]}</p><svg id="quart-spark" aria-hidden="true"></svg>
-        <p class="small qsel-note">${nf0.format(a.pop[L])} residenti nel ${yrs[L]}, ${ch} rispetto al ${state.base}; stranieri ${pct(a.str[L], a.pop[L])}, 65 anni e più ${pct(a.old[L], a.pop[L])}, famiglie di una sola persona ${pct(a.single[L], a.fam[L])}.</p>`;
+        <p class="small qsel-note">${nf0.format(a.pop[L])} residenti nel ${yrs[L]}, ${ch} rispetto al ${state.cardBase}; stranieri ${pct(a.str[L], a.pop[L])}, 65 anni e più ${pct(a.old[L], a.pop[L])}, famiglie di una sola persona ${pct(a.single[L], a.fam[L])}.</p>`;
     }
     el.innerHTML = `<div class="qsel">
       <div class="kicker">Quartiere · Municipio ${a.mun} · ${nf2.format(a.km2)} km²</div>
@@ -1632,7 +1641,7 @@
     const crime = m.layer.crime, L = m.L;
     const rows = m.ranked.concat(m.rows.filter((r) => r.lvl == null));
     const head = crime
-      ? `<th class="num">Casi (${m.cm.levelNote})</th><th class="num">Ogni 100.000 res.</th><th class="num">Var. su ${state.base}</th>`
+      ? `<th class="num">Casi (${m.cm.levelNote})</th><th class="num">Ogni 100.000 res.</th><th class="num">Var. su ${state.cardBase}</th>`
       : `<th class="num" title="${esc(m.title)}">${esc(m.layer.label)}${m.layer.pct ? " %" : ""}</th>`;
     $("#quart-table").innerHTML = `<thead><tr><th class="num">#</th><th>Quartiere</th><th class="num">Municipio</th><th class="num">Residenti ${m.yrs[L]}</th>${head}</tr></thead><tbody>` +
       rows.map((r) => `<tr><td class="num">${r.rank || ""}</td><td><button type="button" class="link" data-q="${r.a.id}">${esc(r.a.name)}</button></td><td class="num">${r.a.mun}</td><td class="num">${nf0.format(r.pop)}</td>` +
@@ -1646,9 +1655,9 @@
   // senza, le variazioni sono rapporti tra tassi, segnati con il cerchio vuoto.
   const pcache = new Map();
   function provModel(t) {
-    const key = t + "|" + state.base;
+    const key = t + "|" + state.cardBase;
     if (pcache.has(key)) return pcache.get(key);
-    const iB = Y.indexOf(state.base), rare = TYPE[t].rare, counts = PROV_META.counts;
+    const iB = Y.indexOf(state.cardBase), rare = TYPE[t].rare, counts = PROV_META.counts;
     const rows = Object.keys(PROV).map((id) => {
       const p = PROV[id], s = p.rate[t];
       const win = s.slice(LAST - 2);
@@ -1676,8 +1685,8 @@
     const e = state.place;
     if (!e || !PROV) return;
     const P = PROV[e.prov];
-    const t = state.type;
-    const m = model(t), pm = provModel(t), r = pm.byId.get(e.prov);
+    const t = state.cardType;
+    const m = model(t, state.cardBase), pm = provModel(t), r = pm.byId.get(e.prov);
     const tm = provModel("TOT"), tr = tm.byId.get(e.prov);
     const caps = P.caps.map(cityById).filter(Boolean);
     const cap = caps[0], capRow = m.rows.find((d) => d.c.id === cap.id);
@@ -1693,11 +1702,11 @@
     if (P.region === "Sardegna" && normQ(unit) !== normQ(P.name)) extra.push(`In Sardegna l’ISTAT conta i reati secondo le quattro province storiche. Secondo l’elenco ufficiale dei comuni, tra il 1995 e il 2005 ${esc(e.name)} era in provincia di ${esc(P.name)}: per questo la scheda usa i dati di quella provincia.`);
     if (first > Y[0]) extra.push(`La provincia di ${esc(P.name)} ha dati dal ${first}: prima i suoi comuni erano contati nelle province da cui provengono.`);
     const rows = TYPES.map((tt) => ({ t: tt, row: provModel(tt.id).byId.get(e.prov) }));
-    const iB = Y.indexOf(state.base);
+    const iB = Y.indexOf(state.cardBase);
     const movers = moversHTML(rows, (tt, row) => {
-      if (counts) return `${nf0.format(P.n[tt.id][LAST] ?? 0)} casi in provincia nel ${Y[LAST]}, ${nf0.format(P.n[tt.id][iB] ?? 0)} nel ${state.base}`;
+      if (counts) return `${nf0.format(P.n[tt.id][LAST] ?? 0)} casi in provincia nel ${Y[LAST]}, ${nf0.format(P.n[tt.id][iB] ?? 0)} nel ${state.cardBase}`;
       if (row.cmp.win) return `Media ${Y[LAST - 2]}–${Y[LAST]}: ${fmtRate(d3.mean(row.s.slice(LAST - 2)))} ogni 100.000 ab., contro ${fmtRate(d3.mean(row.s.slice(iB - 2, iB + 1)))} nel ${Y[iB - 2]}–${Y[iB]} (reato raro)`;
-      return `${fmtRate(row.s[LAST])} ogni 100.000 ab. nel ${Y[LAST]}, ${fmtRate(row.s[iB])} nel ${state.base}`;
+      return `${fmtRate(row.s[LAST])} ogni 100.000 ab. nel ${Y[LAST]}, ${fmtRate(row.s[iB])} nel ${state.cardBase}`;
     }, counts);
     $("#city-body").innerHTML = `
       <div class="card-head">
@@ -1711,7 +1720,7 @@
       ${verdictHTML({ t, where: `in provincia di ${esc(P.name)}`, lvl: r.lvl, it: m.itLvl, rank: r.rank, n: pm.ranked.length, unit: "province", cmp: r.cmp })}
       <div class="facts">
         <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti in provincia (${m.levelNote}) · ${r.rank}° su ${pm.ranked.length} province · Italia ${fmtRate(m.itLvl)}</div></div>
-        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))} in provincia: ${r.cmp && r.cmp.win ? r.cmp.win + " (reato raro)" : !r.cmp && m.rare && !counts ? "reato raro, troppo pochi anni per un confronto" : `${Y[LAST]} rispetto al ${state.base}`}${sigText}</div></div>
+        <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))} in provincia: ${r.cmp && r.cmp.win ? r.cmp.win + " (reato raro)" : !r.cmp && m.rare && !counts ? "reato raro, troppo pochi anni per un confronto" : `${Y[LAST]} rispetto al ${state.cardBase}`}${sigText}</div></div>
         ${t !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">tutti i delitti ogni 100.000 abitanti in provincia nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}</div></div>` : ""}
         ${capRow ? `<div class="fact"><div class="fv">${fmtRate(capRow.lvl)}</div><div class="fl">${esc(lower(m.label))} ogni 100.000 abitanti nel solo comune di ${esc(cap.name)}, il capoluogo (${m.levelNote})</div></div>` : ""}
         ${percFact(P.perc, "della provincia")}
@@ -1720,7 +1729,7 @@
       ${chartBlock(m.label + " in provincia di " + P.name, `<span><i class="k-city"></i>provincia di ${esc(P.name)}</span>${capRow ? `<span><i class="k-prov"></i>${esc(cap.name)}, capoluogo</span>` : ""}<span><i class="k-it"></i>Italia</span>${counts ? `<span><i class="k-gold"></i>impennata</span>` : ""}`)}
       ${counts ? `<p class="note">${spikeNote((id) => provModel(id).byId.get(e.prov))}</p>` : ""}
       <h3 class="subhead">Tutti i reati in provincia di ${esc(P.name)}</h3>
-      <p class="small">Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per selezionarlo in tutta la pagina.</p>
+      <p class="small">Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.</p>
       <div class="sm-grid" id="city-grid"></div>
       <h3 class="subhead">${esc(m.label)}: i numeri anno per anno</h3>
       <div class="tablewrap"><table><thead><tr><th>Anno</th>${counts ? `<th class="num">Casi in provincia</th>` : ""}<th class="num">Provincia, ogni 100.000 ab.</th>${capRow ? `<th class="num">${esc(cap.name)}</th>` : ""}<th class="num">Italia</th><th>Nota</th></tr></thead><tbody>
@@ -1867,26 +1876,36 @@
   dlg.addEventListener("click", (ev) => {
     if (ev.target === dlg) { dlg.close(); return; }
     const oc = ev.target.closest("[data-open-city]");
-    if (oc) { openCity(cityById(oc.dataset.openCity)); return; }
+    if (oc) { openCity(cityById(oc.dataset.openCity), state.cardType, state.cardBase); return; }
     // quartieri: scelta dello strato e del quartiere
     const lb = ev.target.closest("#quart-seg button");
     if (lb) { state.qLayer = lb.dataset.ql; renderQuart(QUART[state.city && state.city.id]); return; }
     const qb = ev.target.closest("[data-q]");
     if (qb && state.city && QUART[state.city.id]) { ev.preventDefault(); selectQuart(QUART[state.city.id], +qb.dataset.q); return; }
     const b = ev.target.closest("[data-type]");
-    if (b && dlg.contains(b)) setType(b.dataset.type, false);
+    if (b && dlg.contains(b)) setCardType(b.dataset.type);
   });
 
   // ------------------------------------------------------------------ comandi
 
-  function setType(t, scroll) {
+  // Niente comandi che cambiano tutta la pagina: ognuno vale per la sua sezione.
+  function setMap(t, base) {
+    if (TYPE[t]) state.mapType = t;
+    if (base) state.mapBase = base;
+    $("#map-type").value = state.mapType;
+    renderMap();
+    renderRanking();
+  }
+  // un reato toccato nell'apertura o in «Cosa sale e cosa scende»: lo si vede sulla mappa, e la pagina scende lì
+  function showOnMap(t) {
+    setMap(t);
+    document.getElementById("mappa").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+  function setCardType(t) {
     if (!TYPE[t]) return;
-    state.type = t;
-    $("#type-select").value = t;
-    renderScoped();
+    state.cardType = t;
     if (state.city) renderCity();
     if (state.place) renderProv();
-    if (scroll) document.getElementById("mappa").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
 
   function seg(id, attr, onPick) {
@@ -1899,7 +1918,8 @@
     });
   }
 
-  function renderScoped() {
+  function renderAll() {
+    renderEyechart();
     renderBrief();
     renderNational();
     renderHeroCities();
@@ -1908,11 +1928,6 @@
     renderMap();
     renderRanking();
     renderGrid();
-  }
-
-  function renderAll() {
-    renderEyechart();
-    renderScoped();
     renderSpikes();
     renderPerception();
     if (CARCERI) renderCarceri();
@@ -2314,15 +2329,19 @@
   }
 
   function wire() {
-    const sel = $("#type-select");
+    // il menu dei reati, uguale nella mappa e nella griglia delle città: ognuno cambia solo la sua sezione
     const groups = d3.group(TYPES, (t) => t.group);
-    sel.innerHTML = Array.from(groups, ([g, ts]) => `<optgroup label="${esc(g)}">${ts.map((t) => `<option value="${t.id}">${esc(t.label)}</option>`).join("")}</optgroup>`).join("");
-    sel.value = state.type;
-    sel.addEventListener("change", () => setType(sel.value, false));
+    const typeOptions = Array.from(groups, ([g, ts]) => `<optgroup label="${esc(g)}">${ts.map((t) => `<option value="${t.id}">${esc(t.label)}</option>`).join("")}</optgroup>`).join("");
+    const mapSel = $("#map-type"), gridSel = $("#grid-type");
+    mapSel.innerHTML = gridSel.innerHTML = typeOptions;
+    mapSel.value = state.mapType;
+    gridSel.value = state.gridType;
+    mapSel.addEventListener("change", () => setMap(mapSel.value));
+    gridSel.addEventListener("change", () => { state.gridType = gridSel.value; renderGrid(); });
 
     heroCarousel();
     $("#base-label").textContent = `Confronta il ${Y[LAST]} con il`;
-    seg("#base-seg", "base", (v) => { state.base = +v; renderScoped(); if (state.city) renderCity(); if (state.place) renderProv(); });
+    seg("#base-seg", "base", (v) => setMap(null, +v));
     seg("#spike-year-seg", "year", (v) => { state.spikeYear = +v; state.spikeShown = 12; renderSpikes(); });
     seg("#spike-sort-seg", "ssort", (v) => { state.spikeSort = v; state.spikeShown = 12; renderSpikes(); });
     seg("#sort-seg", "sort", (v) => { state.sort = v; renderGrid(); });
@@ -2334,18 +2353,21 @@
     combo($("#finder-input"), $("#finder-list"), true);
     combo($("#city-search"), $("#city-list"), false);
 
-    // clic su città (classifica, tabella, small multiples) e su schede impennate
+    // clic su città (classifica, tabella, small multiples) e su schede impennate: la scheda si apre sul reato
+    // della sezione da cui viene il clic, e la pagina sotto resta com'è
     document.addEventListener("click", (ev) => {
       const card = ev.target.closest(".card[data-city]");
       if (card) {
-        if (card.dataset.type !== state.type) setType(card.dataset.type, false);
-        openCity(CITIES.find((c) => c.id === card.dataset.city));
+        openCity(CITIES.find((c) => c.id === card.dataset.city), card.dataset.type);
         return;
       }
       const el = ev.target.closest("[data-city]");
       if (el && !dlg.contains(el)) {
         ev.preventDefault();
-        openCity(CITIES.find((c) => c.id === el.dataset.city));
+        const c = CITIES.find((x) => x.id === el.dataset.city);
+        if (el.closest("#mappa")) openCity(c, state.mapType, state.mapBase);
+        else if (el.closest("#citta")) openCity(c, state.gridType);
+        else openCity(c);
       }
     });
 
@@ -2360,13 +2382,13 @@
       t = setTimeout(() => { if (Math.abs(innerWidth - lastW) > 20) { lastW = innerWidth; renderAll(); } }, 180);
     });
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
-    // menu in testata: segna la sezione in vista (l'ultima il cui inizio è salito sotto le due barre incollate)
+    // menu in testata: segna la sezione in vista (l'ultima il cui inizio è salito sotto la barra incollata)
     // e, quando la riga delle voci scorre di lato (telefono), tiene la voce segnata in vista.
     const menu = $(".masthead .menu");
     if (menu) {
       const links = [...menu.querySelectorAll('a[href^="#"]')];
       const targets = links.map((a) => document.getElementById(a.hash.slice(1)));
-      const bars = [$(".masthead"), $(".controls")];
+      const bars = [$(".masthead")];
       let current = null;
       const more = () => menu.toggleAttribute("data-more", menu.scrollWidth - menu.clientWidth - menu.scrollLeft > 4);
       const spy = () => {
@@ -2393,27 +2415,17 @@
       const home = $(".wordmark a");
       if (home) home.addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
     }
-    // Telefono: una barra sola. Sotto i 560px la testata incollata accoglie anche il menu dei reati e la ricerca
-    // (gli stessi elementi, spostati con i loro ascoltatori: niente doppioni) e le sezioni diventano un menu a
-    // tendina che segue la sezione in vista. La lente apre la ricerca su tutta la barra. La barra dei comandi,
-    // rimasta vuota, sparisce (vc.css).
+    // Una barra sola, a ogni larghezza. La lente in fondo apre la ricerca del comune al posto delle voci; sotto i
+    // 560px le sezioni diventano un menu a tendina che segue la sezione in vista (vc.css).
     const tools = $(".bar-tools"), secSel = $("#section-select"), findBtn = $("#bar-find");
     if (tools && secSel && findBtn) {
-      const mast = $(".masthead"), typeCtl = $("#type-select").closest(".control"), findCtl = $(".control-search"), ctlWrap = $(".controls .wrap");
-      const input = $("#city-search"), phone = matchMedia("(max-width: 560px)");
+      const mast = $(".masthead"), input = $("#city-search");
       const searching = (on) => {
         mast.classList.toggle("searching", on);
         findBtn.setAttribute("aria-expanded", on);
         findBtn.setAttribute("aria-label", on ? "Chiudi la ricerca" : "Cerca un comune");
         if (on) input.focus();
       };
-      const place = () => {
-        const to = phone.matches ? tools : ctlWrap, before = phone.matches ? findBtn : null;
-        if (typeCtl.parentNode !== to) { to.insertBefore(typeCtl, before); to.insertBefore(findCtl, before); }
-        if (!phone.matches) searching(false);
-      };
-      phone.addEventListener("change", place);
-      place();
       findBtn.addEventListener("click", () => searching(!mast.classList.contains("searching")));
       // Esc: il primo chiude l'elenco (lo fa la ricerca, con preventDefault), il secondo la ricerca
       input.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !ev.defaultPrevented && mast.classList.contains("searching")) { searching(false); findBtn.focus(); } });
