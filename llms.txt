@@ -1,0 +1,161 @@
+# Atlante della sicurezza
+
+> Strumento civico gratuito sui reati denunciati in Italia, con soli dati ufficiali: ISTAT 2006–2024 per i 108 comuni capoluogo e la scheda di ogni comune italiano (per i non capoluoghi, i dati della provincia), più Eurostat per i rimpatri. Mostra dove si denuncia di più e di meno, quali reati salgono e quali scendono, le impennate improvvise e quanto le persone si sentono a rischio. Di Jacopo Ottaviani, data journalist.
+
+Numeri principali (calcolati dai dati del sito, aggiornati al 2026-10-16):
+
+- Nel 2024 in Italia sono stati denunciati 2.399.347 delitti, 4.070 ogni 100.000 abitanti: −14% rispetto al 2006 (4.746), +6% rispetto al 2019 (3.854).
+- I capoluoghi con più delitti denunciati per abitante nel 2024: Firenze (11.429 ogni 100.000), Milano (10.301 ogni 100.000), Bologna (9.950 ogni 100.000). Con meno: Potenza (2.386), Enna (2.498), Andria (2.515).
+- Dal 2019 al 2024, in Italia, sono cresciute soprattutto le denunce per delitti informatici (+69%), violenze sessuali (+41%) e truffe e frodi informatiche (+37%); sono calate quelle per usura (−33%), furti su auto in sosta (−24%) e stupefacenti (−14%).
+- Nel 2024 il 23,2% delle famiglie italiane sente a rischio di criminalità la zona in cui vive (nel 2022 il 20,4%).
+- A fine 2025 gli stranieri erano il 31,7% dei detenuti nelle carceri italiane e il 9,1% dei residenti; il confronto non misura la propensione a delinquere (vedi l’approfondimento sulle carceri).
+- Nel 2025 l’Italia ha ordinato a 21.295 cittadini di paesi non UE di lasciare il territorio e ne ha rimpatriati 4.780: circa 22 ogni 100.
+
+Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all’autorità giudiziaria, non tutti i reati commessi; molti reati non vengono denunciati e la propensione a denunciare cambia da reato a reato. I tassi sono ogni 100.000 residenti, quindi pesano di più dove arrivano ogni giorno pendolari, studenti e turisti. Il tasso dice quanto si denuncia in una città, non quanto rischia chi ci abita.
+
+## Pagine
+
+- [Home](https://atlantedellasicurezza.it/): mappa e classifica dei 108 capoluoghi, reati che salgono e scendono, impennate, piccoli grafici città per città, ricerca di ogni comune italiano.
+- [Le città](https://atlantedellasicurezza.it/citta/): classifica dei 108 capoluoghi per delitti denunciati ogni 100.000 abitanti nel 2024, con una pagina per città.
+- [Approfondimenti](https://atlantedellasicurezza.it/approfondimenti/): i temi che le denunce da sole non chiariscono.
+- [Gli stranieri nelle carceri italiane](https://atlantedellasicurezza.it/approfondimenti/carceri.html): Quanti sono gli stranieri nelle carceri italiane, da quali paesi vengono, per quali reati e in quale posizione giuridica, accanto alla loro quota tra i residenti: dati ufficiali ISTAT su fonte del Ministero della Giustizia.
+- [Rimpatri: quanti vengono ordinati, quanti eseguiti](https://atlantedellasicurezza.it/approfondimenti/rimpatri.html): Quanti cittadini di paesi non UE l’Italia ordina di rimpatriare e quanti rimpatria davvero, paese per paese dal 2008: dati Eurostat su fonte del Ministero dell’Interno.
+- [Quanto ci sentiamo in pericolo, e quanto lo siamo](https://atlantedellasicurezza.it/approfondimenti/percezione.html): La paura della criminalità accanto ai reati denunciati: la serie nazionale dal 2006, le grandi città e le province italiane, con dati ufficiali ISTAT ed EU-SILC.
+- [Quanti reati restano senza un autore](https://atlantedellasicurezza.it/approfondimenti/autori-ignoti.html): Di quanti delitti denunciati si conosce l’autore, reato per reato, nelle grandi città e provincia per provincia: dati ufficiali ISTAT su fonte del Ministero dell’Interno.
+- [I minorenni denunciati e arrestati](https://atlantedellasicurezza.it/approfondimenti/minori.html): Quanti minorenni sono denunciati o arrestati in Italia, per quali reati e quanto pesano tra tutte le persone denunciate, dal 2004 a oggi: dati ufficiali ISTAT su fonte del Ministero dell’Interno.
+- [Il progetto](https://atlantedellasicurezza.it/progetto/): perché esiste l’atlante, l’autore, le domande frequenti, metodologia e fonti.
+
+## Le città
+
+- [Agrigento](https://atlantedellasicurezza.it/citta/agrigento.html): 3.824 delitti denunciati ogni 100.000 abitanti nel 2024, 88° su 108
+- [Alessandria](https://atlantedellasicurezza.it/citta/alessandria.html): 4.178 delitti denunciati ogni 100.000 abitanti nel 2024, 74° su 108
+- [Ancona](https://atlantedellasicurezza.it/citta/ancona.html): 3.960 delitti denunciati ogni 100.000 abitanti nel 2024, 83° su 108
+- [Andria](https://atlantedellasicurezza.it/citta/andria.html): 2.515 delitti denunciati ogni 100.000 abitanti nel 2024, 106° su 108
+- [Aosta](https://atlantedellasicurezza.it/citta/aosta.html): 4.112 delitti denunciati ogni 100.000 abitanti nel 2024, 77° su 108
+- [Arezzo](https://atlantedellasicurezza.it/citta/arezzo.html): 4.418 delitti denunciati ogni 100.000 abitanti nel 2024, 65° su 108
+- [Ascoli Piceno](https://atlantedellasicurezza.it/citta/ascoli-piceno.html): 3.600 delitti denunciati ogni 100.000 abitanti nel 2024, 94° su 108
+- [Asti](https://atlantedellasicurezza.it/citta/asti.html): 5.041 delitti denunciati ogni 100.000 abitanti nel 2024, 43° su 108
+- [Avellino](https://atlantedellasicurezza.it/citta/avellino.html): 4.974 delitti denunciati ogni 100.000 abitanti nel 2024, 46° su 108
+- [Bari](https://atlantedellasicurezza.it/citta/bari.html): 4.617 delitti denunciati ogni 100.000 abitanti nel 2024, 60° su 108
+- [Barletta](https://atlantedellasicurezza.it/citta/barletta.html): 2.762 delitti denunciati ogni 100.000 abitanti nel 2024, 104° su 108
+- [Belluno](https://atlantedellasicurezza.it/citta/belluno.html): 3.655 delitti denunciati ogni 100.000 abitanti nel 2024, 92° su 108
+- [Benevento](https://atlantedellasicurezza.it/citta/benevento.html): 4.157 delitti denunciati ogni 100.000 abitanti nel 2024, 75° su 108
+- [Bergamo](https://atlantedellasicurezza.it/citta/bergamo.html): 7.322 delitti denunciati ogni 100.000 abitanti nel 2024, 13° su 108
+- [Biella](https://atlantedellasicurezza.it/citta/biella.html): 6.323 delitti denunciati ogni 100.000 abitanti nel 2024, 17° su 108
+- [Bologna](https://atlantedellasicurezza.it/citta/bologna.html): 9.950 delitti denunciati ogni 100.000 abitanti nel 2024, 3° su 108
+- [Bolzano](https://atlantedellasicurezza.it/citta/bolzano.html): 7.967 delitti denunciati ogni 100.000 abitanti nel 2024, 8° su 108
+- [Brescia](https://atlantedellasicurezza.it/citta/brescia.html): 6.198 delitti denunciati ogni 100.000 abitanti nel 2024, 19° su 108
+- [Brindisi](https://atlantedellasicurezza.it/citta/brindisi.html): 3.803 delitti denunciati ogni 100.000 abitanti nel 2024, 89° su 108
+- [Cagliari](https://atlantedellasicurezza.it/citta/cagliari.html): 5.163 delitti denunciati ogni 100.000 abitanti nel 2024, 38° su 108
+- [Caltanissetta](https://atlantedellasicurezza.it/citta/caltanissetta.html): 4.114 delitti denunciati ogni 100.000 abitanti nel 2024, 76° su 108
+- [Campobasso](https://atlantedellasicurezza.it/citta/campobasso.html): 3.892 delitti denunciati ogni 100.000 abitanti nel 2024, 86° su 108
+- [Caserta](https://atlantedellasicurezza.it/citta/caserta.html): 5.277 delitti denunciati ogni 100.000 abitanti nel 2024, 36° su 108
+- [Catania](https://atlantedellasicurezza.it/citta/catania.html): 7.487 delitti denunciati ogni 100.000 abitanti nel 2024, 12° su 108
+- [Catanzaro](https://atlantedellasicurezza.it/citta/catanzaro.html): 5.009 delitti denunciati ogni 100.000 abitanti nel 2024, 45° su 108
+- [Chieti](https://atlantedellasicurezza.it/citta/chieti.html): 4.335 delitti denunciati ogni 100.000 abitanti nel 2024, 69° su 108
+- [Como](https://atlantedellasicurezza.it/citta/como.html): 5.399 delitti denunciati ogni 100.000 abitanti nel 2024, 31° su 108
+- [Cosenza](https://atlantedellasicurezza.it/citta/cosenza.html): 4.642 delitti denunciati ogni 100.000 abitanti nel 2024, 54° su 108
+- [Cremona](https://atlantedellasicurezza.it/citta/cremona.html): 5.035 delitti denunciati ogni 100.000 abitanti nel 2024, 44° su 108
+- [Crotone](https://atlantedellasicurezza.it/citta/crotone.html): 3.384 delitti denunciati ogni 100.000 abitanti nel 2024, 98° su 108
+- [Cuneo](https://atlantedellasicurezza.it/citta/cuneo.html): 4.825 delitti denunciati ogni 100.000 abitanti nel 2024, 49° su 108
+- [Enna](https://atlantedellasicurezza.it/citta/enna.html): 2.498 delitti denunciati ogni 100.000 abitanti nel 2024, 107° su 108
+- [Fermo](https://atlantedellasicurezza.it/citta/fermo.html): 3.566 delitti denunciati ogni 100.000 abitanti nel 2024, 95° su 108
+- [Ferrara](https://atlantedellasicurezza.it/citta/ferrara.html): 6.073 delitti denunciati ogni 100.000 abitanti nel 2024, 22° su 108
+- [Firenze](https://atlantedellasicurezza.it/citta/firenze.html): 11.429 delitti denunciati ogni 100.000 abitanti nel 2024, 1° su 108
+- [Foggia](https://atlantedellasicurezza.it/citta/foggia.html): 5.318 delitti denunciati ogni 100.000 abitanti nel 2024, 35° su 108
+- [Forlì](https://atlantedellasicurezza.it/citta/forli.html): 4.283 delitti denunciati ogni 100.000 abitanti nel 2024, 70° su 108
+- [Frosinone](https://atlantedellasicurezza.it/citta/frosinone.html): 6.073 delitti denunciati ogni 100.000 abitanti nel 2024, 21° su 108
+- [Genova](https://atlantedellasicurezza.it/citta/genova.html): 5.662 delitti denunciati ogni 100.000 abitanti nel 2024, 29° su 108
+- [Gorizia](https://atlantedellasicurezza.it/citta/gorizia.html): 3.906 delitti denunciati ogni 100.000 abitanti nel 2024, 85° su 108
+- [Grosseto](https://atlantedellasicurezza.it/citta/grosseto.html): 4.556 delitti denunciati ogni 100.000 abitanti nel 2024, 63° su 108
+- [Imperia](https://atlantedellasicurezza.it/citta/imperia.html): 4.639 delitti denunciati ogni 100.000 abitanti nel 2024, 55° su 108
+- [Isernia](https://atlantedellasicurezza.it/citta/isernia.html): 4.339 delitti denunciati ogni 100.000 abitanti nel 2024, 67° su 108
+- [L'Aquila](https://atlantedellasicurezza.it/citta/l-aquila.html): 3.455 delitti denunciati ogni 100.000 abitanti nel 2024, 97° su 108
+- [La Spezia](https://atlantedellasicurezza.it/citta/la-spezia.html): 4.264 delitti denunciati ogni 100.000 abitanti nel 2024, 71° su 108
+- [Latina](https://atlantedellasicurezza.it/citta/latina.html): 5.057 delitti denunciati ogni 100.000 abitanti nel 2024, 42° su 108
+- [Lecce](https://atlantedellasicurezza.it/citta/lecce.html): 5.320 delitti denunciati ogni 100.000 abitanti nel 2024, 34° su 108
+- [Lecco](https://atlantedellasicurezza.it/citta/lecco.html): 4.638 delitti denunciati ogni 100.000 abitanti nel 2024, 57° su 108
+- [Livorno](https://atlantedellasicurezza.it/citta/livorno.html): 5.956 delitti denunciati ogni 100.000 abitanti nel 2024, 23° su 108
+- [Lodi](https://atlantedellasicurezza.it/citta/lodi.html): 4.649 delitti denunciati ogni 100.000 abitanti nel 2024, 52° su 108
+- [Lucca](https://atlantedellasicurezza.it/citta/lucca.html): 4.062 delitti denunciati ogni 100.000 abitanti nel 2024, 80° su 108
+- [Macerata](https://atlantedellasicurezza.it/citta/macerata.html): 2.944 delitti denunciati ogni 100.000 abitanti nel 2024, 103° su 108
+- [Mantova](https://atlantedellasicurezza.it/citta/mantova.html): 6.309 delitti denunciati ogni 100.000 abitanti nel 2024, 18° su 108
+- [Massa](https://atlantedellasicurezza.it/citta/massa.html): 4.617 delitti denunciati ogni 100.000 abitanti nel 2024, 59° su 108
+- [Matera](https://atlantedellasicurezza.it/citta/matera.html): 3.233 delitti denunciati ogni 100.000 abitanti nel 2024, 99° su 108
+- [Messina](https://atlantedellasicurezza.it/citta/messina.html): 3.089 delitti denunciati ogni 100.000 abitanti nel 2024, 102° su 108
+- [Milano](https://atlantedellasicurezza.it/citta/milano.html): 10.301 delitti denunciati ogni 100.000 abitanti nel 2024, 2° su 108
+- [Modena](https://atlantedellasicurezza.it/citta/modena.html): 7.098 delitti denunciati ogni 100.000 abitanti nel 2024, 14° su 108
+- [Monza](https://atlantedellasicurezza.it/citta/monza.html): 5.159 delitti denunciati ogni 100.000 abitanti nel 2024, 39° su 108
+- [Napoli](https://atlantedellasicurezza.it/citta/napoli.html): 6.529 delitti denunciati ogni 100.000 abitanti nel 2024, 16° su 108
+- [Novara](https://atlantedellasicurezza.it/citta/novara.html): 5.090 delitti denunciati ogni 100.000 abitanti nel 2024, 41° su 108
+- [Nuoro](https://atlantedellasicurezza.it/citta/nuoro.html): 3.165 delitti denunciati ogni 100.000 abitanti nel 2024, 101° su 108
+- [Oristano](https://atlantedellasicurezza.it/citta/oristano.html): 2.661 delitti denunciati ogni 100.000 abitanti nel 2024, 105° su 108
+- [Padova](https://atlantedellasicurezza.it/citta/padova.html): 7.600 delitti denunciati ogni 100.000 abitanti nel 2024, 11° su 108
+- [Palermo](https://atlantedellasicurezza.it/citta/palermo.html): 5.384 delitti denunciati ogni 100.000 abitanti nel 2024, 32° su 108
+- [Parma](https://atlantedellasicurezza.it/citta/parma.html): 5.757 delitti denunciati ogni 100.000 abitanti nel 2024, 25° su 108
+- [Pavia](https://atlantedellasicurezza.it/citta/pavia.html): 7.834 delitti denunciati ogni 100.000 abitanti nel 2024, 10° su 108
+- [Perugia](https://atlantedellasicurezza.it/citta/perugia.html): 5.350 delitti denunciati ogni 100.000 abitanti nel 2024, 33° su 108
+- [Pesaro](https://atlantedellasicurezza.it/citta/pesaro.html): 3.735 delitti denunciati ogni 100.000 abitanti nel 2024, 91° su 108
+- [Pescara](https://atlantedellasicurezza.it/citta/pescara.html): 5.710 delitti denunciati ogni 100.000 abitanti nel 2024, 28° su 108
+- [Piacenza](https://atlantedellasicurezza.it/citta/piacenza.html): 5.195 delitti denunciati ogni 100.000 abitanti nel 2024, 37° su 108
+- [Pisa](https://atlantedellasicurezza.it/citta/pisa.html): 8.503 delitti denunciati ogni 100.000 abitanti nel 2024, 6° su 108
+- [Pistoia](https://atlantedellasicurezza.it/citta/pistoia.html): 4.097 delitti denunciati ogni 100.000 abitanti nel 2024, 78° su 108
+- [Pordenone](https://atlantedellasicurezza.it/citta/pordenone.html): 4.046 delitti denunciati ogni 100.000 abitanti nel 2024, 81° su 108
+- [Potenza](https://atlantedellasicurezza.it/citta/potenza.html): 2.386 delitti denunciati ogni 100.000 abitanti nel 2024, 108° su 108
+- [Prato](https://atlantedellasicurezza.it/citta/prato.html): 5.723 delitti denunciati ogni 100.000 abitanti nel 2024, 27° su 108
+- [Ragusa](https://atlantedellasicurezza.it/citta/ragusa.html): 3.210 delitti denunciati ogni 100.000 abitanti nel 2024, 100° su 108
+- [Ravenna](https://atlantedellasicurezza.it/citta/ravenna.html): 4.638 delitti denunciati ogni 100.000 abitanti nel 2024, 56° su 108
+- [Reggio Calabria](https://atlantedellasicurezza.it/citta/reggio-calabria.html): 3.827 delitti denunciati ogni 100.000 abitanti nel 2024, 87° su 108
+- [Reggio Emilia](https://atlantedellasicurezza.it/citta/reggio-emilia.html): 5.802 delitti denunciati ogni 100.000 abitanti nel 2024, 24° su 108
+- [Rieti](https://atlantedellasicurezza.it/citta/rieti.html): 3.933 delitti denunciati ogni 100.000 abitanti nel 2024, 84° su 108
+- [Rimini](https://atlantedellasicurezza.it/citta/rimini.html): 8.273 delitti denunciati ogni 100.000 abitanti nel 2024, 7° su 108
+- [Roma](https://atlantedellasicurezza.it/citta/roma.html): 7.912 delitti denunciati ogni 100.000 abitanti nel 2024, 9° su 108
+- [Rovigo](https://atlantedellasicurezza.it/citta/rovigo.html): 4.831 delitti denunciati ogni 100.000 abitanti nel 2024, 48° su 108
+- [Salerno](https://atlantedellasicurezza.it/citta/salerno.html): 5.733 delitti denunciati ogni 100.000 abitanti nel 2024, 26° su 108
+- [Sassari](https://atlantedellasicurezza.it/citta/sassari.html): 3.485 delitti denunciati ogni 100.000 abitanti nel 2024, 96° su 108
+- [Savona](https://atlantedellasicurezza.it/citta/savona.html): 5.151 delitti denunciati ogni 100.000 abitanti nel 2024, 40° su 108
+- [Siena](https://atlantedellasicurezza.it/citta/siena.html): 4.337 delitti denunciati ogni 100.000 abitanti nel 2024, 68° su 108
+- [Siracusa](https://atlantedellasicurezza.it/citta/siracusa.html): 4.895 delitti denunciati ogni 100.000 abitanti nel 2024, 47° su 108
+- [Sondrio](https://atlantedellasicurezza.it/citta/sondrio.html): 4.635 delitti denunciati ogni 100.000 abitanti nel 2024, 58° su 108
+- [Taranto](https://atlantedellasicurezza.it/citta/taranto.html): 3.740 delitti denunciati ogni 100.000 abitanti nel 2024, 90° su 108
+- [Teramo](https://atlantedellasicurezza.it/citta/teramo.html): 3.633 delitti denunciati ogni 100.000 abitanti nel 2024, 93° su 108
+- [Terni](https://atlantedellasicurezza.it/citta/terni.html): 4.685 delitti denunciati ogni 100.000 abitanti nel 2024, 51° su 108
+- [Torino](https://atlantedellasicurezza.it/citta/torino.html): 9.085 delitti denunciati ogni 100.000 abitanti nel 2024, 5° su 108
+- [Trani](https://atlantedellasicurezza.it/citta/trani.html): 3.994 delitti denunciati ogni 100.000 abitanti nel 2024, 82° su 108
+- [Trapani](https://atlantedellasicurezza.it/citta/trapani.html): 4.600 delitti denunciati ogni 100.000 abitanti nel 2024, 62° su 108
+- [Trento](https://atlantedellasicurezza.it/citta/trento.html): 4.613 delitti denunciati ogni 100.000 abitanti nel 2024, 61° su 108
+- [Treviso](https://atlantedellasicurezza.it/citta/treviso.html): 4.240 delitti denunciati ogni 100.000 abitanti nel 2024, 73° su 108
+- [Trieste](https://atlantedellasicurezza.it/citta/trieste.html): 4.649 delitti denunciati ogni 100.000 abitanti nel 2024, 53° su 108
+- [Udine](https://atlantedellasicurezza.it/citta/udine.html): 5.606 delitti denunciati ogni 100.000 abitanti nel 2024, 30° su 108
+- [Varese](https://atlantedellasicurezza.it/citta/varese.html): 4.760 delitti denunciati ogni 100.000 abitanti nel 2024, 50° su 108
+- [Venezia](https://atlantedellasicurezza.it/citta/venezia.html): 9.109 delitti denunciati ogni 100.000 abitanti nel 2024, 4° su 108
+- [Verbania](https://atlantedellasicurezza.it/citta/verbania.html): 4.262 delitti denunciati ogni 100.000 abitanti nel 2024, 72° su 108
+- [Vercelli](https://atlantedellasicurezza.it/citta/vercelli.html): 4.409 delitti denunciati ogni 100.000 abitanti nel 2024, 66° su 108
+- [Verona](https://atlantedellasicurezza.it/citta/verona.html): 6.679 delitti denunciati ogni 100.000 abitanti nel 2024, 15° su 108
+- [Vibo Valentia](https://atlantedellasicurezza.it/citta/vibo-valentia.html): 4.540 delitti denunciati ogni 100.000 abitanti nel 2024, 64° su 108
+- [Vicenza](https://atlantedellasicurezza.it/citta/vicenza.html): 6.147 delitti denunciati ogni 100.000 abitanti nel 2024, 20° su 108
+- [Viterbo](https://atlantedellasicurezza.it/citta/viterbo.html): 4.084 delitti denunciati ogni 100.000 abitanti nel 2024, 79° su 108
+
+## Dati aperti
+
+- [data/vc.json](https://atlantedellasicurezza.it/data/vc.json): delitti denunciati per capoluogo, tipo di reato e anno; popolazione; tassi nazionali; percezione del rischio.
+- [data/province.json](https://atlantedellasicurezza.it/data/province.json): tassi di delittuosità per provincia, tipo di reato e anno.
+- [data/carceri.json](https://atlantedellasicurezza.it/data/carceri.json): detenuti adulti presenti a fine anno, per cittadinanza, regione, reato, età e posizione giuridica.
+- [data/rimpatri.json](https://atlantedellasicurezza.it/data/rimpatri.json): ordini di lasciare il territorio e rimpatri eseguiti, per cittadinanza.
+- [data/autori.json](https://atlantedellasicurezza.it/data/autori.json): delitti commessi nell’anno e denunciati, e quanti con autore noto, per tipo (Italia e dodici grandi comuni) e per provincia.
+- [data/minori.json](https://atlantedellasicurezza.it/data/minori.json): segnalazioni di minorenni e di tutte le persone denunciate e arrestate, per tipo di delitto, in Italia e nelle regioni.
+- [Codice e script dei dati su GitHub](https://github.com/JacopoOttaviani/atlante-della-sicurezza): chiunque può rifare i conti.
+
+## Fonti
+
+- ISTAT, Delitti denunciati dalle forze di polizia all’autorità giudiziaria (73_67_DF_DCCV_DELITTIPS_1 e _9), su dati del Ministero dell’Interno (banca dati SDI/SSD)
+- ISTAT, popolazione residente (164_164_DF_DCIS_RICPOPRES2011_24, 22_289)
+- ISTAT, Aspetti della vita quotidiana: famiglie per percezione del rischio di criminalità (DF_DCSS_BEST_PPC_1_GC); EU-SILC (33_291)
+- ISTAT, detenuti adulti presenti nelle carceri (73_173_DF_DCCV_DETENUTI_1…6), su dati del Ministero della Giustizia
+- ISTAT, delitti di cui si è scoperto l’autore (73_67_DF_DCCV_DELITTIPS_2, _5, _6, _7), su dati del Ministero dell’Interno
+- ISTAT, segnalazioni di persone e di minorenni denunciati e arrestati (73_342_DF_DCCV_SEGNALAZPS_1 e _2), su dati del Ministero dell’Interno
+- Eurostat, migr_eiord e migr_eirtn, su dati del Ministero dell’Interno
+
+## Autore
+
+- [Jacopo Ottaviani](https://jacopoottaviani.com/): data journalist e informatico, ICFJ Knight Fellow. [LinkedIn](https://www.linkedin.com/in/jacopo-ottaviani/)

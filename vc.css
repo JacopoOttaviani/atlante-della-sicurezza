@@ -1173,8 +1173,23 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
 #perc-prov svg { --stag: 6ms; }
 #perc-prov .lbl { --t0: 0.7s; --stag: 0ms; }
 
+/* autori ignoti: due anni a confronto per ogni reato (pallino vuoto il primo, pieno l'ultimo), la carta delle province
+   con le due classifiche accanto. Le schede in fondo a ogni approfondimento sono quattro, su due colonne. */
+.dumb-key .k-a { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+.dumb-key .k-b { background: var(--fall); }
+.dd-cards.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.autori-provgrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 44px; align-items: start; }
+.autori-provgrid .legend { display: flex; margin-top: 12px; }
+.pmap svg { width: 100%; height: auto; display: block; }
+.pmap .pv { stroke: var(--surface); stroke-width: 0.6px; stroke-linejoin: round; --stag: 6ms; }
+.pmap .pv.hot { stroke: var(--ink); stroke-width: 1.5px; }
+.pmap .coast { fill: none; stroke: var(--mid); stroke-width: 0.6px; stroke-linejoin: round; pointer-events: none; }
+.autori-rank li[title] { cursor: default; }
+#autori-city-table caption { caption-side: bottom; text-align: left; padding-top: 8px; font-size: var(--step--1); color: var(--muted); }
+#autori-city-table th[scope="row"] { text-align: left; font-weight: 600; white-space: nowrap; }
+
 @media (max-width: 920px) {
-  .dd-split, .dd-cards, .dd-cards.two { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .dd-split, .dd-cards, .dd-cards.two, .dd-cards.four, .autori-provgrid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
 @media (max-width: 560px) {
   .dd-head { padding-block: 24px 22px; }
@@ -1184,4 +1199,50 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
   .rc-list li { grid-template-columns: minmax(0, 1fr) auto 40px; gap: 4px 10px; }
   .rc-list .rc-bars { grid-column: 1 / -1; grid-row: 2; }
   .rc-list .rc-head span:nth-child(2) { display: none; }
+}
+
+/* ---------------------------------------------------------------- approfondimenti: la foto delle schede */
+/* Ogni scheda apre con una foto nello stesso filtro del film della home. La parte tonale di .vh-media video
+   (grayscale, contrast 1.5, brightness 1.06, blur) è già nel file, cotta da scripts/make_dd_shots.py: un filter qui
+   spegnerebbe anche il verde. Sopra restano gli strati di .vh-media, con gli stessi valori: la grana (opacità 0.2,
+   piegata nel canale alfa), la vignetta, la riga che scorre e le righe, il verde dei monitor in multiply sulla foto.
+   La foto si sceglie dal data-dd: una scheda senza file in img/dd/ resta com'era. Al passaggio del mouse la riga scorre. */
+.dd-card {
+  --cctv:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.26 -0.06'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.7) 100%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0) 100%),
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+}
+.dd-card:is([data-dd="carceri"], [data-dd="rimpatri"], [data-dd="percezione"], [data-dd="autori"], [data-dd="minori"])::before {
+  content: "";
+  flex: none;
+  margin: -18px -20px 4px;
+  aspect-ratio: 2 / 1;
+  border-radius: 7px 7px 0 0;
+  background-color: #b4cdc2;
+  background-size: 180px 180px, 100% 100%, 100% 24%, 100% 100%, cover;
+  background-position: 0 0, 0 0, 0 -30%, 0 0, var(--shot-pos, 50% 50%);
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, normal, normal, normal, multiply;
+}
+.dd-card[data-dd="carceri"]::before    { background-image: var(--cctv), url("img/dd/carceri.jpg"); }
+.dd-card[data-dd="rimpatri"]::before   { background-image: var(--cctv), url("img/dd/rimpatri.jpg"); }
+.dd-card[data-dd="percezione"]::before { background-image: var(--cctv), url("img/dd/percezione.jpg"); --shot-pos: 50% 60%; }
+.dd-card[data-dd="autori"]::before     { background-image: var(--cctv), url("img/dd/autori.jpg"); --shot-pos: 50% 70%; }
+.dd-card[data-dd="minori"]::before     { background-image: var(--cctv), url("img/dd/minori.jpg"); --shot-pos: 50% 35%; }
+.dd-card:hover::before, .dd-card:focus-visible::before { animation: dd-roll 4s linear infinite; }
+@keyframes dd-roll {
+  from { background-position: 0 0, 0 0, 0 -30%, 0 0, var(--shot-pos, 50% 50%); }
+  to   { background-position: 0 0, 0 0, 0 130%, 0 0, var(--shot-pos, 50% 50%); }
+}
+/* due colonne (.four) o una sola su tablet: la scheda è larga, la foto si fa più bassa */
+@media (min-width: 921px) {
+  .dd-cards.four .dd-card[data-dd]::before { aspect-ratio: 5 / 2; }
+}
+@media (max-width: 920px) and (min-width: 561px) {
+  .dd-card[data-dd]::before { aspect-ratio: 3 / 1; }
+}
+@media (max-width: 560px) {
+  .dd-card[data-dd]::before { margin: -16px -16px 4px; }
 }

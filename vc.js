@@ -83,10 +83,12 @@
   // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
   // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT" };
   let CARCERI = null;
   let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
+  let AUTORI = null; // delitti con autore noto (data/autori.json), per il suo approfondimento e la sua scheda
+  let MINORI = null; // minorenni denunciati e arrestati (data/minori.json), idem
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
   let PROV = null, PROV_META = null, UNITS = null, INDEX = [], CITY_PROV = {}, placesPromise = null, placesFailed = false;
 
@@ -513,7 +515,7 @@
     el.innerHTML = groups.map((g) => {
       const n = Math.round(g.v);
       const cells = d3.range(100).map((i) => `<rect class="rv-pop${i < n ? " on" : ""}" style="--i:${i}" x="${(i % 10) * 10 + 0.75}" y="${Math.floor(i / 10) * 10 + 0.75}" width="8.5" height="8.5" rx="1.5"/>`).join("");
-      return `<figure class="waffle"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(g.aria)}">${cells}</svg><figcaption><span class="wv">${nf1.format(g.v)}<small> stranieri</small></span><span class="wl">${g.label}</span></figcaption></figure>`;
+      return `<figure class="waffle"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(g.aria)}">${cells}</svg><figcaption><span class="wv">${nf1.format(g.v)}<small> ${g.unit || "stranieri"}</small></span><span class="wl">${g.label}</span></figcaption></figure>`;
     }).join("");
     reveal(el, el.querySelectorAll(".waffle"));
   }
@@ -646,6 +648,14 @@
       const sy = Object.keys(ITALY.silc).map(Number).filter((y) => Y.includes(y)), sv = sy.map((y) => ITALY.silc[y]), tot = ITALY.rate.TOT;
       const a = sy[d3.maxIndex(sv)], b = sy[d3.minIndex(sv)];
       if (a < b) fill("percezione", fmtPct(ITALY.silc[b] / ITALY.silc[a] - 1), `famiglie che segnalano criminalità nella propria zona, dal ${a} al ${b}; i delitti denunciati per abitante, nello stesso periodo: ${fmtPct(tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1)}`);
+    }
+    if (AUTORI) {
+      const A = AUTORI, L = A.meta.years.length - 1, t = A.italia.TOT[L], f = A.italia.THEFT[L];
+      fill("autori", `${nf0.format(Math.round(100 - t))} su 100`, `delitti denunciati nel ${A.meta.last} rimasti senza un autore noto entro l’anno; tra i furti, ${nf0.format(Math.round(100 - f))} su 100`);
+    }
+    if (MINORI) {
+      const M = MINORI, Ym = M.meta.years, L = Ym.length - 1, i0 = Ym.indexOf(M.meta.share_from);
+      fill("minori", `${nf1.format(minShare("STREETROB", L))}%`, `delle segnalazioni per rapina in strada nel ${M.meta.last} riguarda un minorenne; nel ${M.meta.share_from}, ${pctA("il", minShare("STREETROB", i0))}`);
     }
   }
 
@@ -2231,6 +2241,8 @@
     if (PROVP && has("perc-prov")) renderPercProv();
     if (CARCERI && has("carceri-facts")) renderCarceri();
     if (RIMP && has("rimpatri-facts")) renderRimpatri();
+    if (AUTORI && has("autori-facts")) renderAutori();
+    if (MINORI && has("minori-facts")) renderMinori();
     renderDeepCards();
     if (state.city) renderCity();
     if (state.place) renderProv();
@@ -2702,6 +2714,341 @@
   }
 
   // i comandi delle sezioni sui reati: ci sono solo nella home
+  // ------------------------------------------------------------------ grafici condivisi da autori ignoti e minori
+
+  // Due anni a confronto, una riga per voce: il pallino vuoto è il primo anno, quello pieno l'ultimo, la riga li unisce.
+  // rows = [{ name, a, b, tip }], già nell'ordine voluto; o = { label, unit, keys: [primo, ultimo], fmt, max }.
+  function dumbbell(el, rows, o) {
+    const fmt = o.fmt || ((v) => nf1.format(v));
+    const w = Math.max(300, el.clientWidth), rowH = 26, m = { t: 30, r: 44, b: 10, l: Math.min(210, Math.round(w * 0.42)) }, h = m.t + rows.length * rowH + m.b;
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", o.label);
+    svg.selectAll("*").remove();
+    const top = o.max ?? Math.ceil(d3.max(rows, (r) => Math.max(r.a ?? 0, r.b ?? 0)) / 10) * 10;
+    const x = d3.scaleLinear([0, top || 1], [m.l, w - m.r]);
+    const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${m.t - 8})`).call(d3.axisTop(x).ticks(w < 480 ? 3 : 5).tickSize(-(h - m.t - m.b + 8)).tickFormat((v) => v + "%"));
+    xa.select(".domain").remove();
+    xa.selectAll(".tick line").style("stroke", "var(--grid)");
+    svg.append("text").attr("class", "lbl").attr("x", m.l - 10).attr("y", 10).attr("text-anchor", "end").text(o.unit);
+    rows.forEach((r, i) => {
+      const yy = m.t + i * rowH + rowH / 2, room = Math.floor((m.l - 20) / 6.2);
+      svg.append("text").attr("class", r.strong ? "lbl-strong" : "lbl").attr("x", m.l - 10).attr("y", yy + 4).attr("text-anchor", "end")
+        .text(r.name.length > room ? r.name.slice(0, room - 1) + "…" : r.name).append("title").text(r.name);
+      if (r.a != null && r.b != null) {
+        svg.append("line").attr("class", "rv-grow").style("--i", i).style("--t0", "0.15s").style("transform-origin", r.a <= r.b ? "0 50%" : "100% 50%")
+          .attr("x1", x(r.a)).attr("x2", x(r.b)).attr("y1", yy).attr("y2", yy).style("stroke", "var(--rule)").style("stroke-width", 3);
+      }
+      if (r.a != null) svg.append("circle").attr("class", "rv-pop").style("--i", i).attr("cx", x(r.a)).attr("cy", yy).attr("r", 4.5).style("fill", "var(--surface)").style("stroke", "var(--ink-2)").style("stroke-width", 1.5);
+      if (r.b != null) svg.append("circle").attr("class", "rv-pop").style("--i", i).style("--t0", "0.5s").attr("cx", x(r.b)).attr("cy", yy).attr("r", 5.5).style("fill", "var(--fall)").style("stroke", "var(--surface)").style("stroke-width", 1.5);
+      if (r.b != null) svg.append("text").attr("class", "lbl halo rv-fade").style("--i", i).style("--t0", "0.7s").attr("x", x(Math.max(r.a ?? 0, r.b)) + 9).attr("y", yy + 4).text(fmt(r.b));
+      svg.append("rect").attr("x", 0).attr("y", yy - rowH / 2).attr("width", w).attr("height", rowH).style("fill", "transparent")
+        .on("mousemove", (ev) => showTip(r.tip, ev)).on("mouseleave", hideTip);
+    });
+    reveal(el);
+    if (!el.previousElementSibling || !el.previousElementSibling.classList.contains("dumb-key")) {
+      el.insertAdjacentHTML("beforebegin", `<div class="dumb-key" aria-hidden="true"><span><i class="k-a"></i>${esc(o.keys[0])}</span><span><i class="k-b"></i>${esc(o.keys[1])}</span></div>`);
+    }
+  }
+
+  // Una classifica a barre, come quella delle regioni nelle carceri: rows = [{ name, v, few, title }], ref = la linea dell'Italia.
+  function barList(ol, rows, o) {
+    const max = o.max || d3.max(rows, (r) => r.v) || 1, fmt = o.fmt || ((v) => nf1.format(v) + "%");
+    ol.innerHTML = rows.map((r) => `<li${r.title ? ` title="${esc(r.title)}"` : ""}><span class="name" title="${esc(r.name)}">${esc(r.name)}</span><span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * r.v) / max}%"></i>${o.ref != null ? `<b class="rv-fade" style="left:${(100 * o.ref) / max}%"></b>` : ""}</span><span class="val">${r.v == null ? "–" : fmt(r.v)}${r.few ? '<span class="few"> *</span>' : ""}</span></li>`).join("");
+    reveal(ol, ol.querySelectorAll("li"));
+  }
+
+  // La carta delle province su cui l'ISTAT pubblica i delitti: i confini sono quelli di oggi (data/italia.topo.json),
+  // ma in Sardegna i dati sono per le quattro province storiche, quindi le province di oggi si uniscono a quella da cui vengono.
+  const SARD_OLD = { 112: "090", 113: "090", 114: "091", 116: "091", 115: "095", 117: "092", 118: "092", 119: "092" };
+  // by = "reg" unisce le province per regione, per la carta dei minori
+  function provShapes(by = "prov") {
+    provShapes.cache = provShapes.cache || {};
+    if (provShapes.cache[by]) return provShapes.cache[by];
+    const obj = TOPO.objects[Object.keys(TOPO.objects)[0]], groups = new Map();
+    obj.geometries.forEach((g) => {
+      const code = g.properties.prov_istat_code, k = by === "reg" ? g.properties.reg_istat_code : SARD_OLD[+code] || code;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(g);
+    });
+    provShapes.cache[by] = { obj, groups, land: topojson.feature(TOPO, obj) };
+    return provShapes.cache[by];
+  }
+  // vals = Map(codice ISTAT della provincia, a tre cifre, o della regione, a due -> { v, tip }); o = { by, label, legend, fmt }
+  function provMap(el, legend, vals, o) {
+    const { obj, groups, land } = provShapes(o.by);
+    const w = Math.max(260, el.clientWidth), h = Math.round(w * 1.18);
+    const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[6, 6], [w - 6, h - 6]], land);
+    const path = d3.geoPath(proj);
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", o.label);
+    svg.selectAll("*").remove();
+    const vs = [...vals.values()].map((d) => d.v).filter((v) => v != null);
+    const step = d3.max(vs) - d3.min(vs) > 15 ? 5 : 1, lo = Math.floor(d3.min(vs) / step) * step, hi = Math.ceil(d3.max(vs) / step) * step;
+    const col = d3.scaleSequential(d3.interpolateLab(css("--land"), css("--fall"))).domain([lo - (hi - lo) * 0.08, hi]);
+    const g = svg.append("g");
+    const shapes = [...vals.entries()].filter(([k]) => groups.has(k)).map(([k, d]) => ({ k, d, geo: topojson.merge(TOPO, groups.get(k)) }));
+    g.selectAll("path").data(shapes).join("path").attr("class", "pv rv-fade").style("--i", (_, i) => i).attr("d", (s) => path(s.geo))
+      .style("fill", (s) => (s.d.v == null ? "var(--land)" : col(s.d.v)))
+      .on("mouseenter", function () { d3.select(this).raise().classed("hot", true); })
+      .on("mousemove", (ev, s) => showTip(s.d.tip, ev))
+      .on("mouseleave", function () { d3.select(this).classed("hot", false); hideTip(); });
+    svg.append("path").attr("class", "coast").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a === b)));
+    reveal(el);
+    const fmt = o.fmt || ((v) => nf0.format(v) + "%");
+    const bar = `linear-gradient(to right, ${[0, 0.25, 0.5, 0.75, 1].map((t) => col(lo + t * (hi - lo))).join(", ")})`;
+    legend.innerHTML = `<div class="lg"><div class="lg-t">${esc(o.legend)}</div><div class="lg-bar" style="background:${bar}"></div><div class="lg-ticks"><span>${fmt(lo)}</span><span>${fmt((lo + hi) / 2)}</span><span>${fmt(hi)}</span></div></div>`;
+  }
+
+  // ------------------------------------------------------------------ autori ignoti
+
+  async function loadAutori() {
+    try {
+      const r = await fetch(ROOT + "data/autori.json");
+      if (!r.ok) throw new Error(r.status);
+      AUTORI = await r.json();
+      addSources(AUTORI.meta.sources, "autori");
+      const sel = $("#autori-city-type");
+      if (sel) {
+        sel.innerHTML = AUTORI.types.filter((t) => TYPE[t]).map((t) => `<option value="${t}">${esc(TYPE[t].label)}</option>`).join("");
+        sel.value = state.autoriType;
+        sel.addEventListener("change", () => { state.autoriType = sel.value; renderAutoriCities(); });
+      }
+      if (has("autori-facts")) renderAutori();
+      renderDeepCards();
+    } catch (e) {
+      if (has("autori-facts")) $("#autori-facts").innerHTML = `<p class="note">I dati sugli autori dei delitti non si sono caricati (${esc(e.message)}).</p>`;
+      console.error(e);
+    }
+  }
+
+  // «quattro su cinque», «quasi tre su quattro»: la frazione semplice più vicina a una quota (0–1)
+  const FRACW = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci"];
+  function fracWords(q) {
+    let best = null;
+    for (let n = 2; n <= 10; n++) for (let k = 1; k < n; k++) {
+      const err = Math.abs(k / n - q);
+      if (!best || err < best.err - 0.012) best = { k, n, err };
+    }
+    return { k: best.k, n: best.n, pre: best.err < 0.01 ? "" : best.k / best.n > q ? "quasi " : "più di " };
+  }
+  const tLabel = (t) => (TYPE[t] ? TYPE[t].label : t);
+  // nomi brevi per le righe dei grafici, dove lo spazio è poco; il nome intero resta nel suggerimento
+  const T_SHORT = { THEFT: "Furti", BURGTHEF: "Furti in casa", PICKTHEF: "Borseggi", BAGTHEF: "Scippi", CARTHEF: "Furti d’auto", VEHITHEF: "Furti su auto",
+    ROBBER: "Rapine", HOUSEROB: "Rapine in casa", SWINCYB: "Truffe e frodi", CYBERCRIM: "Delitti informatici" };
+  const tShort = (t) => T_SHORT[t] || tLabel(t);
+  // l'articolo davanti a una percentuale: «il 5,4%» ma «l’8,2%», «nell’11,3%»
+  const ELIDE = /^(8|1(?![0-9])|11(?![0-9]))/;
+  const pctA = (prep, v) => { const s = nf1.format(v); return (ELIDE.test(s) ? { il: "l’", nel: "nell’", al: "all’", del: "dell’", dal: "dall’" }[prep] : prep + " ") + s + "%"; };
+
+  function renderAutori() {
+    const A = AUTORI, Ya = A.meta.years, L = Ya.length - 1, last = A.meta.last, it = A.italia;
+    const v = (t, i = L) => (it[t] ? it[t][i] : null);
+    const tot = v("TOT"), un = fracWords(1 - tot / 100);
+    const lead = `${un.pre}${un.k === 1 ? "un delitto" : FRACW[un.k] + " delitti"} su ${FRACW[un.n]} ${un.k === 1 ? "resta" : "restano"} senza un autore noto`;
+    $("#autori-lead").textContent = lead.charAt(0).toUpperCase() + lead.slice(1);
+    $("#autori-lead-sub").textContent = `Ogni quadratino è un delitto su cento commessi nel ${last} e denunciati. In blu quelli di cui si conosce l’autore.`;
+    renderWaffle($("#autori-waffle"), [["TOT", "tutti i delitti"], ["THEFT", "furti"], ["CULPINJU", "lesioni dolose"]].filter(([t]) => v(t) != null).map(([t, name]) => ({
+      v: v(t), unit: "su 100", label: `${name}, ${last}`, aria: `${nf1.format(v(t))} ${name} su 100 con autore noto nel ${last}`,
+    })));
+    $("#autori-note-1").textContent = `Nei furti l’autore è noto solo ${pctA("nel", v("THEFT"))} dei casi: chi ruba di solito non si fa vedere, e spesso la vittima se ne accorge dopo. Nelle lesioni dolose la quota sale ${pctA("al", v("CULPINJU"))}, nelle violenze sessuali ${pctA("al", v("RAPE"))}: chi le subisce spesso conosce chi aggredisce, o lo vede in faccia.`;
+
+    // le città, sugli ultimi tre anni sommati: le servono i fatti in apertura, la classifica e la tabella
+    const K = d3.range(Math.max(0, L - 2), L + 1), span = `${Ya[K[0]]}–${last}`;
+    const pool = (c, t) => { const n = d3.sum(K, (i) => c.tot[t][i] || 0), k = d3.sum(K, (i) => c.noto[t][i] || 0); return { n, k, v: n ? (100 * k) / n : null }; };
+    const cityTot = A.citta.map((c) => ({ c, ...pool(c, "TOT") })).sort((a, b) => a.v - b.v);
+    const cLo = cityTot[0], cHi = cityTot[cityTot.length - 1];
+    $("#autori-facts").innerHTML = `
+      <div class="fact"><div class="fv">${nf1.format(tot)}%</div><div class="fl">dei delitti commessi e denunciati nel ${last} ha un autore noto entro l’anno. Nel ${Ya[0]} era ${pctA("il", v("TOT", 0))}.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(v("THEFT"))}%</div><div class="fl">dei furti. Per i furti in casa ${pctA("il", v("BURGTHEF"))}, per i furti d’auto ${pctA("il", v("CARTHEF"))}.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(v("INTENHOM"))}%</div><div class="fl">degli omicidi volontari ha un autore noto entro il 31 dicembre. Chi viene scoperto l’anno dopo non entra nel conto.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(cLo.v)}%</div><div class="fl">dei delitti con autore noto a ${esc(cLo.c.name)} tra il ${Ya[K[0]]} e il ${last}, la quota più bassa tra le dodici grandi città. La più alta è a ${esc(cHi.c.name)}: ${nf1.format(cHi.v)}%.</div></div>`;
+
+    // reato per reato: il primo anno e l'ultimo, dalla quota più alta alla più bassa
+    const rows = A.types.filter((t) => t !== "TOT" && v(t) != null).map((t) => ({
+      name: tShort(t), a: v(t, 0), b: v(t), tip: `<b>${esc(tLabel(t))}</b><br>autore noto: ${nf1.format(v(t))}% nel ${last}, ${nf1.format(v(t, 0))}% nel ${Ya[0]}${GLOSS[t] ? `<br><span class="small">${esc(GLOSS[t])}</span>` : ""}`,
+    })).sort((a, b) => b.b - a.b);
+    rows.push({ name: tLabel("TOT"), a: v("TOT", 0), b: tot, strong: true, tip: `<b>Tutti i delitti</b><br>autore noto: ${nf1.format(tot)}% nel ${last}, ${nf1.format(v("TOT", 0))}% nel ${Ya[0]}` });
+    $("#autori-types-sub").textContent = `Italia, delitti commessi nel ${Ya[0]} e nel ${last}, dalla quota più alta alla più bassa; in fondo tutti i delitti insieme.`;
+    dumbbell($("#autori-types"), rows, { label: `Delitti con autore noto ogni 100, per tipo, ${Ya[0]} e ${last}`, unit: "ogni 100 delitti", keys: [String(Ya[0]), String(last)], max: 100 });
+    $("#autori-types-note").textContent = "In cima stanno spaccio e ricettazione: si scoprono quasi solo durante un controllo, con l’autore già davanti, quindi la quota dice quanto si controlla. In fondo i furti, soprattutto di auto e sulle auto in sosta, i danneggiamenti e i delitti informatici: chi li commette quasi mai si fa vedere.";
+
+    // nel tempo: un riquadro per tipo, ognuno con la sua scala
+    if (has("autori-sm")) {
+      const types = ["TOT"].concat(A.types.filter((t) => t !== "TOT" && v(t) != null));
+      sparkGrid($("#autori-sm"), types, {
+        years: Ya,
+        head: (t) => `<span class="n" title="${esc(tLabel(t))}">${esc(tLabel(t))}</span><span class="chg">${nf1.format(v(t))}%</span>`,
+        foot: (t) => `<span>${Ya[0]}: ${nf1.format(v(t, 0))}%</span><span>${last}</span>`,
+        lines: (t) => [{ values: it[t], color: "var(--fall)" }],
+        tip: (t, i) => `<b>${esc(tLabel(t))}</b> · ${Ya[i]}<br>${it[t][i] == null ? "nessun dato" : nf1.format(it[t][i]) + "% con autore noto"}`,
+      });
+    }
+
+    renderAutoriCities();
+
+    // tabella: i tipi di delitto per riga, le città per colonna
+    const head = `<thead><tr><th scope="col">Delitto</th>${A.citta.map((c) => `<th scope="col" class="num">${esc(c.name)}</th>`).join("")}<th scope="col" class="num">Italia</th></tr></thead>`;
+    const body = A.types.filter((t) => v(t) != null).map((t) => `<tr><th scope="row">${esc(tLabel(t))}</th>${A.citta.map((c) => {
+      const p = pool(c, t);
+      return `<td class="num">${p.v == null ? "–" : nf1.format(p.v) + (p.n < 20 ? "*" : "")}</td>`;
+    }).join("")}<td class="num">${nf1.format(d3.mean(K, (i) => it[t][i]))}</td></tr>`).join("");
+    $("#autori-city-table").innerHTML = `<caption>Delitti con autore noto ogni 100 commessi e denunciati, ${span}; l’asterisco indica meno di 20 delitti nei tre anni. Per l’Italia, media delle quote annuali.</caption>${head}<tbody>${body}</tbody>`;
+
+    // province: media delle quote degli ultimi tre anni
+    const P = A.province, ids = Object.keys(P);
+    const mean = (p, key) => d3.mean(K, (i) => p[key][i]);
+    const prov = ids.map((id) => ({ id, p: P[id], v: mean(P[id], "pct"), f: mean(P[id], "furti") })).filter((d) => d.v != null);
+    const itK = d3.mean(K, (i) => it.TOT[i]);
+    $("#autori-prov-sub").textContent = `Delitti con autore noto ogni 100 commessi e denunciati, sul totale dei delitti, media ${span}. Più è scuro, più spesso l’autore è noto.`;
+    if (has("autori-map")) {
+      provMap($("#autori-map"), $("#autori-legend"), new Map(prov.map((d) => [d.p.cap.slice(0, 3), { v: d.v, tip: `<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf1.format(d.v)}% dei delitti con autore noto<br><span class="small">media ${span}; nel ${last}: ${nf1.format(d.p.pct[L])}%</span>${d.f != null ? `<br><span class="small">furti: ${nf0.format(d.f)} delitti denunciati su 100</span>` : ""}` }])),
+        { label: `Carta delle province: delitti con autore noto ogni 100, media ${span}`, legend: `Delitti con autore noto ogni 100, ${span}` });
+    }
+    const byV = prov.slice().sort((a, b) => b.v - a.v), n = 8, mx = byV[0].v;
+    const item = (d) => ({ name: d.p.name.split("/")[0], v: d.v, title: `${d.p.name}: ${nf1.format(d.v)}% (${span})` });
+    barList($("#autori-prov-top"), byV.slice(0, n).map(item), { max: mx, ref: itK });
+    barList($("#autori-prov-bottom"), byV.slice(-n).reverse().map(item), { max: mx, ref: itK });
+    const withF = prov.filter((d) => d.f != null), r = pearson(withF.map((d) => d.f), withF.map((d) => d.v));
+    const big = ["Milano", "Roma", "Napoli", "Torino"].map((nm) => prov.find((d) => d.p.name === nm)).filter(Boolean);
+    $("#autori-prov-note").textContent = `La linea nelle barre è l’Italia (${nf1.format(itK)}%). Le province delle grandi città hanno le quote più basse: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
+      `Il motivo principale sono i furti: dove pesano di più sul totale dei delitti, l’autore si conosce meno spesso (correlazione ${nf2.format(r).replace("-", "−")} tra le ${withF.length} province). In Sardegna i colori seguono le quattro province storiche su cui l’ISTAT pubblica i dati; i confini disegnati sono quelli di oggi.`;
+  }
+
+  function renderAutoriCities() {
+    const A = AUTORI, Ya = A.meta.years, L = Ya.length - 1, last = A.meta.last, t = state.autoriType;
+    if (!has("autori-cities") || !A.types.includes(t)) return;
+    const K = d3.range(Math.max(0, L - 2), L + 1), span = `${Ya[K[0]]}–${last}`;
+    const rows = A.citta.map((c) => {
+      const n = d3.sum(K, (i) => c.tot[t][i] || 0), k = d3.sum(K, (i) => c.noto[t][i] || 0);
+      return { name: c.name, v: n ? (100 * k) / n : null, few: n < 20, title: `${c.name}: ${nf0.format(k)} delitti con autore noto su ${nf0.format(n)}, ${span}` };
+    }).filter((r) => r.v != null).sort((a, b) => b.v - a.v);
+    const itK = d3.mean(K, (i) => A.italia[t][i]);
+    $("#autori-city-title").textContent = `${tLabel(t)}: delitti con autore noto ogni 100`;
+    $("#autori-city-sub").textContent = `Delitti commessi e denunciati tra il ${Ya[K[0]]} e il ${last}, sommati. La linea è l’Italia (${nf1.format(itK)}%, media delle quote annuali).` + (rows.some((r) => r.few) ? " L’asterisco indica meno di 20 delitti nei tre anni." : "");
+    barList($("#autori-cities"), rows, { max: Math.max(d3.max(rows, (r) => r.v), itK) * 1.02, ref: itK });
+  }
+
+  // ------------------------------------------------------------------ minori
+
+  async function loadMinori() {
+    try {
+      const r = await fetch(ROOT + "data/minori.json");
+      if (!r.ok) throw new Error(r.status);
+      MINORI = await r.json();
+      addSources(MINORI.meta.sources, "minori");
+      const sel = $("#minori-reg-type");
+      if (sel) {
+        sel.innerHTML = minoriTypes().map((t) => `<option value="${t}">${esc(tLabel(t))}</option>`).join("");
+        sel.value = state.minoriType;
+        sel.addEventListener("change", () => { state.minoriType = sel.value; renderMinoriRegions(); });
+      }
+      if (has("minori-facts")) renderMinori();
+      renderDeepCards();
+    } catch (e) {
+      if (has("minori-facts")) $("#minori-facts").innerHTML = `<p class="note">I dati sui minorenni non si sono caricati (${esc(e.message)}).</p>`;
+      console.error(e);
+    }
+  }
+
+  // minorenni ogni 100 persone segnalate, per il tipo t nell'anno di indice i (null prima del 2014, quando manca il totale)
+  const minShare = (t, i) => { const m = MINORI.italia.min[t][i], n = MINORI.italia.tot[t][i]; return m != null && n ? (100 * m) / n : null; };
+  // i delitti con abbastanza segnalazioni di minorenni perché la quota regga: almeno 20 nel 2014 o nell'ultimo anno
+  function minoriTypes() {
+    const M = MINORI, Ym = M.meta.years, i0 = Ym.indexOf(M.meta.share_from), L = Ym.length - 1;
+    return M.types.filter((t) => (TYPE[t] || t === "TOT") && M.italia.tot[t][L] && Math.max(M.italia.min[t][i0] || 0, M.italia.min[t][L] || 0) >= 20);
+  }
+  // «una su quattro», «più di una su otto»
+  function oneIn(q) {
+    const r = 100 / q, n = Math.round(r);
+    return { n, w: FRACW[n] || nf0.format(n), pre: Math.abs(r - n) / n < 0.03 ? "" : r > n ? "quasi " : "più di " };
+  }
+
+  function renderMinori() {
+    const M = MINORI, Ym = M.meta.years, L = Ym.length - 1, last = M.meta.last, y0 = M.meta.share_from, i0 = Ym.indexOf(y0);
+    const mn = M.italia.min, sh = minShare;
+
+    // apertura: le rapine in strada, il delitto dove la quota è cresciuta di più
+    const s1 = sh("STREETROB", L), s0 = sh("STREETROB", i0), a = oneIn(s1), b = oneIn(s0);
+    $("#minori-lead").textContent = `${a.pre ? a.pre.charAt(0).toUpperCase() + a.pre.slice(1) + "una" : "Una"} segnalazione su ${a.w} per rapina in strada riguarda un minorenne`;
+    $("#minori-lead-sub").textContent = `Nel ${y0} era ${b.pre}una su ${b.w}. Ogni quadratino è una segnalazione su cento; in blu quelle che riguardano un minorenne.`;
+    renderWaffle($("#minori-waffle"), [
+      { v: sh("TOT", L), unit: "su 100", label: `tutti i delitti, ${last}`, aria: `${nf1.format(sh("TOT", L))} segnalazioni su 100 riguardano un minorenne, tutti i delitti, ${last}` },
+      { v: s0, unit: "su 100", label: `rapine in strada, ${y0}`, aria: `${nf1.format(s0)} segnalazioni su 100 per rapina in strada riguardano un minorenne nel ${y0}` },
+      { v: s1, unit: "su 100", label: `rapine in strada, ${last}`, aria: `${nf1.format(s1)} segnalazioni su 100 per rapina in strada riguardano un minorenne nel ${last}` },
+    ]);
+    $("#minori-note-1").textContent = `Le segnalazioni di minorenni per furto sono scese da ${nf0.format(mn.THEFT[i0])} nel ${y0} a ${nf0.format(mn.THEFT[L])} nel ${last}, ma sono scese anche quelle degli adulti: tra tutte le persone segnalate per furto, i minorenni sono passati ${pctA("dal", sh("THEFT", i0))} ${pctA("al", sh("THEFT", L))}. ` +
+      `Per le rapine in strada le segnalazioni di minorenni sono passate da ${nf0.format(mn.STREETROB[i0])} a ${nf0.format(mn.STREETROB[L])}, e la quota ${pctA("dal", s0)} ${pctA("al", s1)}: lì i minorenni pesano davvero di più.`;
+    $("#minori-facts").innerHTML = `
+      <div class="fact"><div class="fv">${nf0.format(mn.TOT[L])}</div><div class="fl">segnalazioni di minorenni nel ${last}: ${pctA("il", sh("TOT", L))} di quelle di tutte le persone denunciate o arrestate. Nel ${y0} erano ${nf0.format(mn.TOT[i0])}, ${pctA("il", sh("TOT", i0))}.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sh("ROBBER", L))}%</div><div class="fl">delle segnalazioni per rapina riguarda un minorenne. Nel ${y0} era ${pctA("il", sh("ROBBER", i0))}.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sh("CULPINJU", L))}%</div><div class="fl">delle segnalazioni per lesioni dolose riguarda un minorenne. Nel ${y0} era ${pctA("il", sh("CULPINJU", i0))}.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sh("THEFT", L))}%</div><div class="fl">delle segnalazioni per furto riguarda un minorenne: qui la quota è scesa, ${pctA("dal", sh("THEFT", i0))} del ${y0}.</div></div>`;
+
+    // reato per reato: la quota nel 2014 e nell'ultimo anno
+    const types = minoriTypes().filter((t) => t !== "TOT");
+    const tip = (t) => `<b>${esc(tLabel(t))}</b><br>${[i0, L].map((i) => `${Ym[i]}: ${nf0.format(mn[t][i] || 0)} minorenni su ${nf0.format(M.italia.tot[t][i] || 0)} segnalazioni, ${sh(t, i) == null ? "–" : nf1.format(sh(t, i)) + "%"}`).join("<br>")}`;
+    const rows = types.map((t) => ({ t, name: tShort(t), a: sh(t, i0), b: sh(t, L), tip: tip(t) })).sort((p, q) => q.b - p.b);
+    rows.push({ t: "TOT", name: tLabel("TOT"), a: sh("TOT", i0), b: sh("TOT", L), strong: true, tip: tip("TOT") });
+    $("#minori-types-sub").textContent = `Italia, ${y0} e ${last}, dalla quota più alta alla più bassa; in fondo tutti i delitti insieme. Mancano i delitti con meno di 20 segnalazioni di minorenni in entrambi gli anni.`;
+    dumbbell($("#minori-types"), rows, { label: `Minorenni ogni 100 persone segnalate, per tipo di delitto, ${y0} e ${last}`, unit: "ogni 100 segnalazioni", keys: [String(y0), String(last)] });
+    const moves = rows.filter((r) => r.t !== "TOT").map((r) => ({ ...r, d: r.b - r.a }));
+    const up = moves.slice().sort((p, q) => q.d - p.d).slice(0, 3), down = moves.filter((r) => r.d < 0).sort((p, q) => p.d - q.d).slice(0, 3);
+    const say = (r) => `${lower(tShort(r.t))} (da ${nf1.format(r.a)} a ${nf1.format(r.b)})`;
+    $("#minori-types-note").textContent = `La quota è cresciuta di più per ${up.map(say).join(", ")}.` + (down.length ? ` È scesa per ${down.map(say).join(", ")}.` : "") + " Per i delitti più rari pochi casi spostano molto la quota: i numeri sono nel riquadro che compare passando sopra una riga.";
+
+    // nel tempo: la quota dal 2014, i numeri dal 2004
+    const ys = Ym.slice(i0), shs = (t) => ys.map((_, k) => sh(t, i0 + k));
+    $("#minori-trend-sub").textContent = `Segnalazioni di minorenni ogni 100 segnalazioni di tutte le persone, ${y0}–${last}`;
+    seriesChart($("#minori-trend"), {
+      years: ys, label: `Minorenni ogni 100 persone segnalate, ${y0}–${last}`, height: 250, covid: true, yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
+      series: [
+        { name: "rapine", values: shs("ROBBER"), color: "var(--fall)", width: 2.5, at: 2017, dy: -10 },
+        { name: "lesioni dolose", values: shs("CULPINJU"), color: "var(--ink)", at: 2016, dy: -10 },
+        { name: "furti", values: shs("THEFT"), color: "var(--muted)", dash: "4 3", at: 2015, dy: 16, dyEnd: 16 },
+        { name: "tutti i delitti", values: shs("TOT"), color: "var(--ink-2)", at: 2015, dy: 16 },
+      ],
+    });
+    $("#minori-counts-sub").textContent = `Segnalazioni di minorenni denunciati o arrestati, ${Ym[0]}–${last}`;
+    seriesChart($("#minori-counts"), {
+      years: Ym, label: `Segnalazioni di minorenni, ${Ym[0]}–${last}`, height: 250, covid: true, yMin: 0,
+      series: [{ name: "minorenni segnalati", values: mn.TOT, color: "var(--fall)", width: 2.5, label: false }],
+      tip: (i) => `<b>${Ym[i]}</b><br>${nf0.format(mn.TOT[i])} segnalazioni di minorenni` + (sh("TOT", i) != null ? `<br>${nf1.format(sh("TOT", i))}% di tutte le persone segnalate` : ""),
+    });
+    if (has("minori-sm")) {
+      $("#minori-sm-sub").textContent = `Segnalazioni di minorenni per tipo di delitto, ${Ym[0]}–${last}; per i tipi di furto e di rapina dal 2006. Ogni riquadro ha la sua scala.`;
+      const first = (t) => mn[t].findIndex((x) => x != null);
+      sparkGrid($("#minori-sm"), ["TOT"].concat(types), {
+        years: Ym,
+        head: (t) => `<span class="n" title="${esc(tLabel(t))}">${esc(tLabel(t))}</span><span class="chg">${nf0.format(mn[t][L])}</span>`,
+        foot: (t) => `<span>${Ym[first(t)]}: ${nf0.format(mn[t][first(t)])}</span><span>${last}</span>`,
+        lines: (t) => [{ values: mn[t], color: "var(--fall)" }],
+        tip: (t, i) => `<b>${esc(tLabel(t))}</b> · ${Ym[i]}<br>${mn[t][i] == null ? "nessun dato" : nf0.format(mn[t][i]) + " segnalazioni di minorenni"}${sh(t, i) != null ? `<br>${nf1.format(sh(t, i))}% di tutte le persone segnalate` : ""}`,
+      });
+    }
+    renderMinoriRegions();
+  }
+
+  function renderMinoriRegions() {
+    const M = MINORI, ry = M.meta.region_years, Lr = ry.length - 1, last = M.meta.last, t = state.minoriType;
+    if (!has("minori-regions") || !M.types.includes(t)) return;
+    const K = d3.range(Math.max(0, Lr - 2), Lr + 1);
+    const pool = (o) => { const m = d3.sum(K, (i) => o.min[t][i] || 0), n = d3.sum(K, (i) => o.tot[t][i] || 0); return { m, n, v: n ? (100 * m) / n : null }; };
+    const Ym = M.meta.years, off = Ym.indexOf(ry[0]);
+    const itm = d3.sum(K, (i) => M.italia.min[t][off + i] || 0), itn = d3.sum(K, (i) => M.italia.tot[t][off + i] || 0), itv = itn ? (100 * itm) / itn : null;
+    const rows = M.regioni.map((r) => ({ r, ...pool(r) })).filter((d) => d.v != null).sort((p, q) => q.v - p.v);
+    const span = `tra il ${ry[K[0]]} e il ${last}`;
+    $("#minori-reg-title").textContent = `${tLabel(t)}: minorenni ogni 100 persone segnalate`;
+    $("#minori-reg-sub").textContent = `Segnalazioni ${span}, sommate. La linea è l’Italia (${nf1.format(itv)}%).` + (rows.some((d) => d.m < 20) ? " L’asterisco indica meno di 20 segnalazioni di minorenni nei tre anni." : "");
+    barList($("#minori-regions"), rows.map((d) => ({ name: d.r.name, v: d.v, few: d.m < 20, title: `${d.r.name}: ${nf0.format(d.m)} minorenni su ${nf0.format(d.n)} segnalazioni, ${ry[K[0]]}–${last}` })), { max: Math.max(rows[0].v, itv) * 1.02, ref: itv });
+    if (has("minori-map")) {
+      provMap($("#minori-map"), $("#minori-legend"), new Map(rows.map((d) => [d.r.istat, { v: d.v, tip: `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minorenni ogni 100 persone segnalate<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} su ${nf0.format(d.n)}</span>` }])),
+        { by: "reg", label: `Carta delle regioni: minorenni ogni 100 persone segnalate, ${tLabel(t)}`, legend: `Minorenni ogni 100 segnalati, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" });
+    }
+    // nella nota solo le regioni con almeno 20 segnalazioni di minorenni: con meno casi la quota è poco solida
+    const solid = rows.filter((d) => d.m >= 20), hi = solid.slice(0, 2), lo = solid.slice(-2).reverse(), nm = (d) => `${d.r.name} (${nf1.format(d.v)}%)`;
+    $("#minori-reg-note").textContent = (solid.length >= 4 ? `Le quote più alte sono in ${hi.map(nm).join(" e ")}, le più basse in ${lo.map(nm).join(" e ")}` + (solid.length < rows.length ? ", tra le regioni con almeno 20 segnalazioni di minorenni" : "") + ". " : "") + `La quota non dice dove i ragazzi delinquono di più: dipende anche da quanti delitti commettono gli adulti e da quanti giovani vivono in ogni regione.`;
+  }
+
   function wireHome() {
     // il menu dei reati, uguale nella mappa e nella griglia delle città: ognuno cambia solo la sua sezione
     const groups = d3.group(TYPES, (t) => t.group);
@@ -2869,6 +3216,8 @@
       if (has("carceri-facts") || has("brief") || $('[data-dd="carceri"]') || allSources) loads.push(loadCarceri());
       if (has("rimpatri-facts") || has("brief") || $('[data-dd="rimpatri"]') || allSources) loads.push(loadRimpatri());
       if (has("perc-prov")) loads.push(loadPercProv());
+      if (has("autori-facts") || $('[data-dd="autori"]') || allSources) loads.push(loadAutori());
+      if (has("minori-facts") || $('[data-dd="minori"]') || allSources) loads.push(loadMinori());
       if (allSources) QINDEX.forEach((id) => loadQuart(id));
       let h = location.hash.slice(1);
       try { h = decodeURIComponent(h); } catch (e) { /* ignorato */ }

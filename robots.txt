@@ -1,0 +1,7 @@
+# Atlante della sicurezza: tutti i crawler sono benvenuti, compresi quelli dei motori di ricerca
+# e degli assistenti AI (Googlebot, Bingbot, GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot…).
+# Le pagine di prova (*-options.html) hanno il loro noindex. llms.txt riassume il sito per gli LLM.
+User-agent: *
+Allow: /
+
+Sitemap: https://atlantedellasicurezza.it/sitemap.xml

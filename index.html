@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Atlante della sicurezza</title>
+<title>Atlante della sicurezza: reati denunciati città per città, 2006–2024</title>
 <meta name="description" content="Atlante della sicurezza: quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT 2006–2024 sui 108 comuni capoluogo, con classifiche, mappa e impennate.">
+<link rel="canonical" href="https://atlantedellasicurezza.it/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Jacopo Ottaviani">
 <!-- Icone della pagina (scheda del browser, preferiti, schermata iniziale): le disegna scripts/make_icons.py. -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
@@ -35,7 +38,113 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=48">
+<link rel="stylesheet" href="vc.css?v=50">
+<!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://atlantedellasicurezza.it/#website",
+      "url": "https://atlantedellasicurezza.it/",
+      "name": "Atlante della sicurezza",
+      "alternateName": "Atlante",
+      "description": "Quanti reati si denunciano davvero nelle città italiane e come cambiano: dati ufficiali ISTAT 2006–2024 sui 108 comuni capoluogo e la scheda di ogni comune italiano.",
+      "inLanguage": "it",
+      "creator": {
+        "@type": "Person",
+        "@id": "https://atlantedellasicurezza.it/progetto/#autore",
+        "name": "Jacopo Ottaviani",
+        "url": "https://jacopoottaviani.com/"
+      },
+      "publisher": {
+        "@type": "Person",
+        "@id": "https://atlantedellasicurezza.it/progetto/#autore",
+        "name": "Jacopo Ottaviani",
+        "url": "https://jacopoottaviani.com/"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://atlantedellasicurezza.it/#pagina",
+      "url": "https://atlantedellasicurezza.it/",
+      "name": "Atlante della sicurezza: reati denunciati città per città, 2006–2024",
+      "inLanguage": "it",
+      "isPartOf": {
+        "@id": "https://atlantedellasicurezza.it/#website"
+      },
+      "about": {
+        "@id": "https://atlantedellasicurezza.it/#dati"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://atlantedellasicurezza.it/img/og-image.jpg",
+        "width": 1200,
+        "height": 630
+      }
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://atlantedellasicurezza.it/#dati",
+      "name": "Reati denunciati nei 108 comuni capoluogo italiani, 2006–2024",
+      "description": "Delitti denunciati dalle forze di polizia all’autorità giudiziaria nei 108 comuni capoluogo di provincia, per tipo di reato (24 voci più il totale) e anno dal 2006 al 2024, con la popolazione residente, i tassi ogni 100.000 abitanti, i tassi nazionali e provinciali e la quota di famiglie che sentono a rischio di criminalità la zona in cui vivono. Rielaborazione di dati ufficiali ISTAT su fonte del Ministero dell’Interno.",
+      "url": "https://atlantedellasicurezza.it/",
+      "inLanguage": "it",
+      "isAccessibleForFree": true,
+      "temporalCoverage": "2006/2024",
+      "spatialCoverage": {
+        "@type": "Country",
+        "name": "Italia"
+      },
+      "creator": {
+        "@type": "Person",
+        "@id": "https://atlantedellasicurezza.it/progetto/#autore",
+        "name": "Jacopo Ottaviani",
+        "url": "https://jacopoottaviani.com/"
+      },
+      "sourceOrganization": {
+        "@type": "Organization",
+        "name": "ISTAT, Istituto nazionale di statistica",
+        "url": "https://www.istat.it/"
+      },
+      "isBasedOn": "https://esploradati.istat.it/",
+      "keywords": [
+        "reati denunciati",
+        "criminalità",
+        "sicurezza",
+        "tasso di delittuosità",
+        "comuni capoluogo",
+        "ISTAT",
+        "Italia"
+      ],
+      "variableMeasured": [
+        "Delitti denunciati",
+        "Delitti denunciati ogni 100.000 abitanti",
+        "Popolazione residente",
+        "Famiglie che percepiscono rischio di criminalità nella zona in cui abitano (%)"
+      ],
+      "distribution": [
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://atlantedellasicurezza.it/data/vc.json"
+        },
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://atlantedellasicurezza.it/data/province.json"
+        },
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://atlantedellasicurezza.it/data/comuni.json"
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <!-- vc:content -->
@@ -182,7 +291,7 @@
         <div class="combo combo-big" id="finder-combo">
           <label for="finder-input" class="vh">Il tuo comune</label>
           <svg class="combo-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <input type="search" id="finder-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-list" aria-describedby="finder-hint" placeholder="Es. Scandicci, Bari, Bozen" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <input type="search" id="finder-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-list" aria-describedby="finder-hint" placeholder="Es. Roma, Rovereto, Foggia" autocomplete="off" spellcheck="false" enterkeyhint="search">
           <ul class="combo-list" id="finder-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
         </div>
         <p class="finder-hint" id="finder-hint">Tutti i comuni italiani. Per i 108 capoluoghi i dati sono del comune; per gli altri l’ISTAT pubblica solo quelli della provincia, e la scheda lo dice.</p>
@@ -326,7 +435,7 @@
       <header>
         <div class="kicker">Approfondimenti</div>
         <h2 id="dd-band-title">Oltre le denunce</h2>
-        <p class="dek">Tre domande che i reati denunciati, da soli, non bastano a chiarire: chi c’è in carcere, quanti rimpatri vengono davvero eseguiti, quanto la paura segue i reati. Ognuna ha la sua pagina. <a href="approfondimenti/">Tutti gli approfondimenti</a>.</p>
+        <p class="dek">Cinque domande che i reati denunciati, da soli, non bastano a chiarire: chi c’è in carcere, quanti rimpatri vengono davvero eseguiti, quanto la paura segue i reati, di quanti delitti si conosce l’autore, quanto pesano i minorenni tra le persone denunciate. Ognuna ha la sua pagina. <a href="approfondimenti/">Tutti gli approfondimenti</a>.</p>
       </header>
       <div class="dd-cards">
         <a class="dd-card" href="approfondimenti/carceri.html" data-dd="carceri">
@@ -350,6 +459,20 @@
           <p>La paura della criminalità accanto ai reati denunciati: in Italia, nelle grandi città e provincia per provincia.</p>
           <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
         </a>
+        <a class="dd-card" href="approfondimenti/autori-ignoti.html" data-dd="autori">
+          <span class="kicker">Autori ignoti</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Quanti reati restano senza un autore</h3>
+          <p>Di quanti delitti denunciati si conosce l’autore: reato per reato, nelle grandi città e provincia per provincia.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/minori.html" data-dd="minori">
+          <span class="kicker">Minori</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>I minorenni denunciati e arrestati</h3>
+          <p>Quanti sono tra le persone denunciate, per quali reati e come è cambiato dal 2004, regione per regione.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
       </div>
     </div>
   </section>
@@ -358,7 +481,7 @@
 <footer class="colophon">
   <div class="wrap">
     <div class="credit">
-      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a> · <a href="progetto/">Il progetto, metodologia e fonti</a></p>
+      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a> · <a href="progetto/">Il progetto, metodologia e fonti</a> · <a href="citta/">I 108 capoluoghi, città per città</a></p>
       <div class="cta">
         <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
           <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
@@ -395,6 +518,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=45"></script>
+<script src="vc.js?v=47"></script>
 </body>
 </html>
