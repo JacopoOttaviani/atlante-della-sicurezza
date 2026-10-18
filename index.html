@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=40">
+<link rel="stylesheet" href="vc.css?v=41">
 </head>
 <body>
 <!-- vc:content -->
@@ -44,7 +44,6 @@
     <h1 class="wordmark"><a href="#" aria-label="Atlante della sicurezza: torna all'inizio"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></a></h1>
     <nav class="menu" aria-label="Sezioni della pagina">
       <ul>
-        <li><a href="#in-breve">In breve</a></li>
         <li><a href="#mappa">Mappa</a></li>
         <li><a href="#mix">Reati</a></li>
         <li><a href="#impennate">Impennate</a></li>
@@ -52,6 +51,7 @@
         <li><a href="#carceri">Carceri</a></li>
         <li><a href="#rimpatri">Rimpatri</a></li>
         <li><a href="#percezione">Percezione</a></li>
+        <li><a href="#domande">FAQ</a></li>
         <li><a href="#metodo">Metodologia e fonti</a></li>
       </ul>
     </nav>
@@ -92,6 +92,13 @@
             <li><span class="fig">…</span><span class="cap">Caricamento dei dati ISTAT</span></li>
           </ol>
           <p class="hero-note">Uno strumento per leggere i dati ufficiali sui reati da vicino: città per città, reato per reato, anno per anno. Le impennate, cioè gli aumenti improvvisi, sono segnate in oro.</p>
+          <div class="mix-key hero-key">
+            <span class="lead">Nei grafici</span>
+            <span><i class="k-up"></i>rosso: in aumento</span>
+            <span><i class="k-down"></i>blu: in calo</span>
+            <span><i class="k-flat"></i>grigio: differenza troppo piccola per dire che qualcosa sia cambiato</span>
+            <span><i class="k-gold"></i>oro: impennata, un aumento improvviso</span>
+          </div>
         </div>
         <!-- Tre grafici su una striscia, uno per ogni pezzo del titolo: l'Italia nel tempo, le città (non ovunque),
              i reati (non tutti). Avanza da sola ogni otto secondi, si ferma con il mouse sopra; frecce, punti e dito
@@ -150,24 +157,6 @@
           <ul class="combo-list" id="finder-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
         </div>
         <p class="finder-hint" id="finder-hint">Tutti i comuni italiani. Per i 108 capoluoghi i dati sono del comune; per gli altri l’ISTAT pubblica solo quelli della provincia, e la scheda lo dice.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="block brief" id="in-breve" aria-labelledby="brief-title">
-    <div class="wrap">
-      <header>
-        <div class="kicker">In breve</div>
-        <h2 id="brief-title">Le domande che tutti si fanno</h2>
-        <p class="dek">Le risposte in poche righe, con gli stessi dati ufficiali dei grafici qui sotto. Ogni risposta porta alla sezione che la spiega.</p>
-      </header>
-      <div class="qa" id="brief"></div>
-      <div class="mix-key brief-key">
-        <span class="lead">Nei grafici</span>
-        <span><i class="k-up"></i>rosso: in aumento</span>
-        <span><i class="k-down"></i>blu: in calo</span>
-        <span><i class="k-flat"></i>grigio: differenza troppo piccola per dire che qualcosa sia cambiato</span>
-        <span><i class="k-gold"></i>oro: impennata, un aumento improvviso</span>
       </div>
     </div>
   </section>
@@ -419,6 +408,18 @@
     </div>
   </section>
 
+  <!-- Domande frequenti, in fondo: una riga per domanda, la risposta si apre al tocco. Le scrive vc.js (renderBrief). -->
+  <section class="block" id="domande" aria-labelledby="faq-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Domande frequenti</div>
+        <h2 id="faq-title">Le domande che tutti si fanno</h2>
+        <p class="dek">Le risposte in poche righe, con gli stessi dati ufficiali dei grafici di questa pagina. Tocca una domanda per leggere la risposta: ognuna porta alla sezione che la spiega.</p>
+      </header>
+      <div class="faq" id="brief"></div>
+    </div>
+  </section>
+
   <section class="block" id="metodo" aria-labelledby="method-title">
     <div class="wrap">
       <header>
@@ -489,6 +490,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=39"></script>
+<script src="vc.js?v=40"></script>
 </body>
 </html>

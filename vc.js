@@ -411,9 +411,9 @@
     $("#eyechart").innerHTML = rows.map(([f, c]) => `<li><span class="fig">${f}</span><span class="cap">${c}</span></li>`).join("");
   }
 
-  // ------------------------------------------------------------------ in breve
+  // ------------------------------------------------------------------ domande frequenti
 
-  // Le domande che chiunque si fa, con una risposta in poche righe. Ogni cifra viene dagli stessi calcoli delle
+  // Le domande che chiunque si fa, in fondo alla pagina: una riga per domanda, la risposta in poche righe si apre al tocco. Ogni cifra viene dagli stessi calcoli delle
   // sezioni sotto, confrontate con il 2019; carceri e rimpatri compaiono quando i loro dati sono arrivati.
   const shortLabel = (t) => lower(t.label.replace(/ \(.*\)$/, ""));
   // numeri che si leggono con la vocale davanti (uno, otto, undici, ottanta…): "dell’8%", "l’11%", "all’83° posto"
@@ -426,7 +426,7 @@
     if (!host) return;
     const tot = ITALY.rate.TOT, iB = Y.indexOf(REF), tm = model("TOT");
     const cards = [];
-    const card = (q, a, href, go) => cards.push(`<article class="brief-q rv-up"><h3>${q}</h3><p>${a}</p><a class="go" href="${href}">${go} <span aria-hidden="true">→</span></a></article>`);
+    const card = (q, a, href, go) => cards.push(`<details class="faq-q rv-up"><summary><h3>${q}</h3></summary><div class="faq-a"><p>${a}</p><a class="go" href="${href}">${go} <span aria-hidden="true">→</span></a></div></details>`);
 
     // cosa sale e cosa scende, in Italia
     const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 })).filter((d) => isFinite(d.ch));
@@ -494,8 +494,11 @@
       `Per confrontare città grandi e piccole si contano le denunce ogni 100.000 abitanti: i ${nf0.format(tot[LAST])} dell’Italia nel ${Y[LAST]} sono circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno.`,
       "#metodo", "Come leggere questi numeri");
 
+    // si ridisegna quando arrivano carceri e rimpatri o cambia la larghezza: le risposte aperte restano aperte
+    const open = new Set(Array.from(host.querySelectorAll("details[open] h3"), (x) => x.textContent));
     host.innerHTML = cards.join("");
-    reveal(host, host.querySelectorAll(".brief-q"));
+    host.querySelectorAll("details").forEach((d) => { if (open.has(d.querySelector("h3").textContent)) d.open = true; });
+    reveal(host, host.querySelectorAll(".faq-q"));
   }
 
   function renderNational() {

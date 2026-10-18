@@ -626,18 +626,27 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .finder-hint { font-size: var(--step--1); color: var(--muted); margin: 10px 0 0; max-width: 56ch; }
 .finder-hint.warn { color: var(--ink); }
 
-/* ---------------------------------------------------------------- in breve */
-/* Le domande di chiunque, una per riquadro: domanda, risposta in poche righe, la sezione che la spiega. */
-.finder + .brief { border-top: 0; }
-.qa { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 14px; }
-.brief-q { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px 14px; }
-.brief-q h3 { font-size: var(--step-1); font-weight: 700; line-height: 1.25; margin: 0 0 8px; text-wrap: balance; }
-.brief-q p { font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.45; color: var(--ink-2); margin: 0 0 14px; }
-.brief-q .go { margin-top: auto; align-self: flex-start; font-size: var(--step--1); font-weight: 700; color: var(--ink); text-decoration: none; }
-.brief-q .go:hover { text-decoration: underline; }
-.brief-key { margin: 20px 0 0; }
-.brief-key .lead { font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.06em; }
-.brief-key .k-gold { width: 14px; height: 10px; background: var(--gold); border-radius: 2px; }
+/* la mappa segue la ricerca del comune: la riga sotto la ricerca basta, niente doppio filo */
+.finder + section.block { border-top: 0; }
+/* la legenda dei colori, sotto la nota dell'apertura: vale per tutti i grafici che seguono */
+.hero-key { margin: 18px 0 0; max-width: var(--measure); }
+.hero-key .lead { font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.06em; }
+.hero-key .k-gold { width: 14px; height: 10px; background: var(--gold); border-radius: 2px; }
+
+/* ---------------------------------------------------------------- domande frequenti */
+/* In fondo alla pagina: una riga per domanda, con un + che diventa − quando la risposta è aperta. */
+.faq { max-width: 860px; border-top: 1px solid var(--rule); }
+.faq-q { border-bottom: 1px solid var(--rule); }
+.faq-q summary { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 16px 2px; cursor: pointer; list-style: none; }
+.faq-q summary::-webkit-details-marker { display: none; }
+.faq-q summary h3 { margin: 0; font-size: var(--step-1); font-weight: 700; line-height: 1.3; text-wrap: balance; }
+.faq-q summary::after { content: "+"; flex: none; font-size: 1.5rem; font-weight: 400; line-height: 1; color: var(--gold-ink); }
+.faq-q[open] summary::after { content: "−"; }
+.faq-q summary:hover h3 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.faq-a { padding: 0 2px 20px; max-width: 70ch; }
+.faq-a p { font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.5; color: var(--ink-2); margin: 0 0 10px; }
+.faq-a .go { font-size: var(--step--1); font-weight: 700; color: var(--ink); text-decoration: none; }
+.faq-a .go:hover { text-decoration: underline; }
 
 /* scheda del comune: la frase d'apertura e la spiegazione del reato scelto */
 .verdict { font-family: var(--font-body); font-size: var(--step-1); line-height: 1.45; color: var(--ink); max-width: 70ch; margin: 0 0 20px; }
