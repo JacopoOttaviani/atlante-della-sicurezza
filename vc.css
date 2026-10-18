@@ -1062,3 +1062,100 @@ button.link { all: unset; cursor: pointer; text-decoration: underline; text-deco
 button.link:hover { text-decoration-thickness: 2px; }
 button.link:focus-visible { outline: 2px solid var(--focus); }
 @media (max-width: 920px) { .quart-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------------------------------------------------------------- approfondimenti */
+/* Carceri, rimpatri e percezione hanno ognuno la sua pagina in approfondimenti/: una testata chiara come l'apertura
+   della home con i link tra i tre, poi le stesse sezioni (section.block) e in fondo le schede degli altri due.
+   Le schede (.dd-card) stanno anche nella home, nella fascia «Oltre le denunce»; la cifra la scrive vc.js. */
+.dd-head { background: var(--surface); border-bottom: 1px solid var(--rule); padding-block: 34px 30px; }
+.dd-head + section.block { border-top: 0; }
+.dd-crumb { margin: 0 0 12px; font-size: var(--step--1); color: var(--muted); }
+.dd-crumb a { color: var(--ink-2); text-decoration-color: var(--rule); }
+.dd-head h1 { font-family: var(--font-body); font-weight: 400; font-size: clamp(2rem, 3.6vw, 3rem); line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 16px; max-width: 28ch; text-wrap: balance; }
+.dd-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.dd-nav a { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); font-size: var(--step--1); font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.dd-nav a:hover { color: var(--ink); border-color: var(--ink-2); }
+.dd-nav a[aria-current] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+.dd-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.dd-cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.dd-card { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px 16px; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; color: inherit; text-decoration: none; transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+.dd-card:hover, .dd-card:focus-visible { border-color: var(--ink-2); transform: translateY(-2px); box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.45); }
+.dd-card .kicker { align-self: flex-start; }
+.dd-card .dd-num { display: block; border-top: 2px solid var(--ink); padding-top: 8px; margin-top: 2px; }
+.dd-card .dd-num:has(.dd-fig:empty) { display: none; }
+.dd-card .dd-fig { display: block; font-size: var(--step-3); font-weight: 750; font-stretch: 108%; line-height: 1.05; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.dd-card .dd-cap { display: block; margin-top: 4px; font-size: var(--step--1); color: var(--ink-2); }
+.dd-card h2, .dd-card h3 { margin: 6px 0 0; font-size: var(--step-1); font-weight: 700; font-stretch: 100%; letter-spacing: 0; line-height: 1.25; text-wrap: balance; }
+.dd-card p { margin: 0; font-family: var(--font-body); font-size: var(--step-0); color: var(--ink-2); }
+.dd-card .dd-go { margin-top: auto; padding-top: 8px; font-size: var(--step--1); font-weight: 700; }
+.dd-card:hover .dd-go { text-decoration: underline; }
+
+/* carceri: cento quadratini per gruppo, accanto il riquadro che spiega perché il confronto non misura la propensione a delinquere */
+.dd-split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 44px; align-items: start; margin-bottom: 30px; }
+.dd-callout { border-left: 3px solid var(--ink); padding: 2px 0 2px 18px; max-width: var(--measure); }
+.dd-callout h3 { margin: 0 0 8px; font-size: var(--step-1); font-weight: 700; line-height: 1.3; text-wrap: balance; }
+.dd-callout p { margin: 0 0 10px; font-family: var(--font-body); font-size: var(--step-0); color: var(--ink-2); }
+.waffles { display: flex; gap: 24px 36px; }
+.waffle { margin: 0; flex: 1 1 0; min-width: 0; max-width: 220px; }
+.waffle svg { width: 100%; height: auto; display: block; }
+.waffle rect { fill: var(--rule); --stag: 7ms; }
+.waffle rect.on { fill: var(--fall); }
+.waffle figcaption { margin-top: 10px; }
+.waffle .wv { display: block; font-size: var(--step-3); font-weight: 750; font-stretch: 108%; line-height: 1; font-variant-numeric: tabular-nums; }
+.waffle .wv small { font-size: var(--step-0); font-weight: 600; color: var(--ink-2); }
+.waffle .wl { display: block; margin-top: 4px; font-size: var(--step--1); color: var(--ink-2); }
+.dd-sm .sm { cursor: default; }
+.dd-sm .sm:hover { background: var(--surface); }
+.dumb-key .k-perc { background: var(--ink); }
+.dumb-key .k-crime { background: var(--muted); }
+
+/* rimpatri: una riga per paese, ordini (chiaro) e rimpatri (pieno) sulla stessa scala */
+.rc-key { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 6px 0 10px; font-size: var(--step--1); color: var(--ink-2); }
+.rc-key i { display: inline-block; width: 18px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.rc-key .k-o { background: var(--mid); }
+.rc-key .k-r { background: var(--fall); }
+.rc-key .k-ol, .rc-key .k-rl { height: 0; border-radius: 0; border-top: 2px solid var(--ink-2); vertical-align: middle; }
+.rc-key .k-rl { border-top: 2.5px solid var(--fall); }
+.rc-list { list-style: none; margin: 0; padding: 0; max-width: 1000px; }
+.rc-list li { display: grid; grid-template-columns: minmax(96px, 160px) minmax(0, 1fr) 132px 60px; gap: 12px; align-items: center; padding-block: 5px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; --stag: 25ms; }
+.rc-list li:not(.rc-head):hover { background: var(--surface); box-shadow: 0 0 0 4px var(--surface); }
+.rc-list .rc-head { padding-block: 0 6px; border-bottom-color: var(--rule); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.rc-list .num { text-align: right; }
+.rc-list .name { font-size: var(--step--1); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-bars { position: relative; height: 16px; }
+.rc-bars i { position: absolute; left: 0; border-radius: 0 3px 3px 0; }
+.rc-bars .o { top: 0; bottom: 0; background: var(--mid); }
+.rc-bars .r { top: 3px; bottom: 3px; background: var(--fall); --t0: 0.3s; }
+.rc-list .val { text-align: right; white-space: nowrap; font-size: var(--step--1); color: var(--ink-2); }
+.rc-list .val b { color: var(--ink); font-weight: 700; }
+.rc-list .k { text-align: right; font-weight: 700; }
+.rc-list .few { color: var(--muted); font-weight: 400; }
+.rc-table td[rowspan] { vertical-align: top; }
+.rc-table tr.rc-o td { border-top: 1px solid var(--rule); }
+
+/* percezione: due classifiche delle stesse città, unite da una linea */
+.slope svg { --stag: 18ms; }
+.slope .sl .ln { stroke: var(--mid); stroke-width: 1.25px; }
+.slope .sl .hit { stroke: transparent; stroke-width: 12px; }
+.slope .sl circle { fill: var(--mid); }
+.slope .sl.hi .ln { stroke: var(--ink-2); stroke-width: 2px; }
+.slope .sl.hi circle { fill: var(--ink-2); }
+.slope .sl.hi .lbl, .slope .sl.on .lbl { fill: var(--ink); font-weight: 700; }
+.slope .sl.on .ln { stroke: var(--ink); stroke-width: 2.5px; }
+.slope .sl.on circle { fill: var(--ink); }
+#perc-prov svg { --stag: 6ms; }
+#perc-prov .lbl { --t0: 0.7s; --stag: 0ms; }
+
+@media (max-width: 920px) {
+  .dd-split, .dd-cards, .dd-cards.two { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+@media (max-width: 560px) {
+  .dd-head { padding-block: 24px 22px; }
+  .dd-card { padding: 16px 16px 14px; }
+  .waffles { gap: 20px; }
+  .waffle .wv { font-size: var(--step-2); }
+  .rc-list li { grid-template-columns: minmax(0, 1fr) auto 40px; gap: 4px 10px; }
+  .rc-list .rc-bars { grid-column: 1 / -1; grid-row: 2; }
+  .rc-list .rc-head span:nth-child(2) { display: none; }
+}

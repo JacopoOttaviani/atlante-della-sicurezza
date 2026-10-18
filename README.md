@@ -5,6 +5,8 @@ Strumento civico sui reati denunciati nei 108 comuni capoluogo italiani, 2006–
 ## File
 
 - `index.html`, `vc.css`, `vc.js`: la pagina (D3 da cdnjs, nessun build).
+- `approfondimenti/`: le pagine che approfondiscono tre temi, fuori dalla home: `carceri.html` (gli stranieri tra i detenuti, accanto alla loro quota tra i residenti), `rimpatri.html` (ordini di lasciare l'Italia e rimpatri eseguiti, paese per paese), `percezione.html` (la paura della criminalità accanto ai reati denunciati: Italia, grandi città, province) e `index.html`, che le raccoglie. Usano gli stessi `../vc.css` e `../vc.js`: `vc.js` trova i dati accanto a sé e disegna solo le sezioni che la pagina contiene. Nella home restano tre schede, nella fascia «Oltre le denunce».
+- `progetto/index.html`: sul progetto, sull'autore, le domande frequenti, metodologia e fonti.
 - `data/vc.json`: conteggi per comune, tipo di reato e anno; popolazione media annua; tassi nazionali; percezione.
 - `data/comuni.json`: tutti i comuni dell'elenco ufficiale ISTAT, con la sigla, la provincia di cui l'ISTAT pubblica i delitti e, per i capoluoghi, il codice usato in `vc.json`; per la mappa di posizione nella scheda, il baricentro di ogni comune (confini ISTAT rielaborati da openpolis, lo stesso file di `build_data.py`). Serve alla ricerca.
 - `data/province.json`: tassi ufficiali di delittuosità per provincia, tipo di reato e anno (2006–2024), percezione del rischio per provincia (2022–2024) e, se l'API li ha restituiti, i conteggi. Serve alle schede dei comuni che non sono capoluogo.
@@ -31,7 +33,7 @@ cd atlante-della-sicurezza && rm -rf scripts/.cache && python3 scripts/build_dat
 
 I rimpatri si aggiornano a parte con `python3 scripts/build_rimpatri.py`, dopo aver svuotato `scripts/.cache`: l'ultimo anno pubblicato da Eurostat entra da solo. I quartieri di Milano con `python3 scripts/build_quartieri_milano.py`, dopo `build_data.py`.
 
-Dopo ogni modifica a `vc.css` o `vc.js`, alzare il numero in `?v=N` nei due riferimenti di `index.html`, così i browser non usano la copia in cache.
+Dopo ogni modifica a `vc.css` o `vc.js`, alzare il numero in `?v=N` nei due riferimenti di `index.html` e di tutte le pagine in `approfondimenti/` e `progetto/` (stesso numero ovunque), così i browser non usano la copia in cache.
 
 Lo script verifica che i tassi calcolati riproducano quelli pubblicati da ISTAT per i grandi comuni (`DCCV_DELITTIPS_8`) e si ferma se lo scarto supera l'1%. Quando ISTAT pubblica il 2025, basta estendere `YEARS` in `build_data.py`.
 

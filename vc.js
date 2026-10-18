@@ -73,6 +73,10 @@
   const TOURIST_GROUPS = ["Totale", "Furti", "Rapine"];
   const TOURIST_NOT = ["BURGTHEF", "HOUSEROB"]; // furti e rapine in casa: le vittime sono i residenti
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  // Gli approfondimenti stanno una cartella più in basso e usano questo stesso file: i dati si cercano accanto a vc.js,
+  // non accanto alla pagina. Ogni pagina ha solo alcune sezioni, e has() dice se una c'è.
+  const ROOT = (() => { try { return new URL(".", document.currentScript.src).href; } catch (e) { return ""; } })();
+  const has = (id) => !!document.getElementById(id);
 
   let Y, LAST, TYPES, TYPE, CITIES, ITALY, TOPO, META;
   // Ogni sezione ha il suo stato e cambia solo sé stessa: reato e anno di confronto della mappa, reato della griglia,
@@ -81,6 +85,7 @@
   const REF = 2019;
   const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null };
   let CARCERI = null;
+  let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
   let PROV = null, PROV_META = null, UNITS = null, INDEX = [], CITY_PROV = {}, placesPromise = null, placesFailed = false;
@@ -394,6 +399,125 @@
       .on("mouseleave", () => { guide.style("display", "none"); hideTip(); });
   }
 
+  // ------------------------------------------------------------------ grafici degli approfondimenti
+
+  // Più serie su anni qualsiasi: o.series = [{ name, values, color, width, dash, at, dy, anchor }], allineate a o.years.
+  // Il nome di ogni serie sta sopra la sua linea (nel primo anno, o nell'anno at; label: false lo toglie, se c'è una legenda),
+  // il valore finale in grassetto accanto all'ultimo punto. Con o.gap lo spazio tra le prime due serie è ombreggiato,
+  // con o.ref c'è una linea tratteggiata di riferimento (100 negli indici).
+  const yearTicks = (a, b) => [a, ...d3.range(Math.ceil((a + 3) / 5) * 5, b - 2, 5), b];
+  function seriesChart(el, o) {
+    const yrs = o.years, L = yrs.length - 1, fmt = o.fmt || ((v) => nf0.format(v));
+    const w = Math.max(280, el.clientWidth), h = o.height || (w < 480 ? 210 : 250);
+    const m = { t: 18, r: o.mr ?? 18, b: 24, l: o.ml || 48 };
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", o.label || "");
+    svg.selectAll("*").remove();
+    const x = d3.scaleLinear([yrs[0], yrs[L]], [m.l, w - m.r]);
+    const all = o.series.flatMap((s) => s.values).filter((v) => v != null);
+    const y = d3.scaleLinear([o.yMin ?? 0, o.yMax ?? d3.max(all) * 1.12], [h - m.b, m.t]).nice(4);
+    const step = x(yrs[1]) - x(yrs[0]);
+    if (o.covid && yrs.includes(2020) && yrs.includes(2021)) {
+      svg.append("rect").attr("x", x(2020) - step / 2).attr("width", step * 2).attr("y", m.t).attr("height", h - m.t - m.b).style("fill", "var(--covid)");
+      svg.append("text").attr("class", "lbl").attr("x", x(2020.5)).attr("y", m.t + 10).attr("text-anchor", "middle").text("Covid");
+    }
+    const ya = svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`)
+      .call(d3.axisLeft(y).ticks(4).tickSize(-(w - m.l - m.r)).tickFormat((v) => (o.yFmt ? o.yFmt(v) : nf0.format(v))));
+    ya.select(".domain").remove();
+    ya.selectAll(".tick line").style("stroke", "var(--grid)");
+    const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
+      .call(d3.axisBottom(x).tickValues(o.xTicks || yearTicks(yrs[0], yrs[L])).tickFormat(d3.format("d")).tickSize(4));
+    xa.select(".domain").style("stroke", "var(--rule)");
+    if (o.ref != null) svg.append("line").attr("x1", m.l).attr("x2", w - m.r).attr("y1", y(o.ref)).attr("y2", y(o.ref)).style("stroke", "var(--ink-2)").style("stroke-dasharray", "2 3");
+    const line = d3.line().defined((v) => v != null).x((_, i) => x(yrs[i])).y((v) => y(v));
+    if (o.gap) {
+      const [a, b] = o.series;
+      svg.append("path").attr("class", "area rv-fade")
+        .attr("d", d3.area().defined((_, i) => a.values[i] != null && b.values[i] != null).x((_, i) => x(yrs[i])).y0((_, i) => y(b.values[i])).y1((_, i) => y(a.values[i]))(yrs))
+        .style("fill", "var(--muted)").style("fill-opacity", 0.1);
+    }
+    o.series.forEach((s, k) => {
+      svg.append("path").attr("class", s.dash ? "rv-fade" : "rv-draw").attr("pathLength", s.dash ? null : 1).style("--t0", `${k * 0.15}s`).attr("d", line(s.values))
+        .style("fill", "none").style("stroke", s.color).style("stroke-width", s.width || 2).style("stroke-dasharray", s.dash || null)
+        .style("stroke-linejoin", "round").style("stroke-linecap", "round");
+    });
+    // etichette dopo tutte le linee, così l'alone le stacca da ognuna
+    o.series.forEach((s) => {
+      const idx = s.values.map((v, i) => (v != null ? i : -1)).filter((i) => i >= 0);
+      if (!idx.length) return;
+      const iL = idx[idx.length - 1], iA = s.at != null ? yrs.indexOf(s.at) : -1, iN = iA >= 0 && s.values[iA] != null ? iA : idx[0];
+      svg.append("circle").attr("class", "mark rv-pop").attr("cx", x(yrs[iL])).attr("cy", y(s.values[iL])).attr("r", 4).style("fill", s.color).style("stroke", "var(--surface)").style("stroke-width", 2);
+      svg.append("text").attr("class", "lbl-strong halo mark rv-fade").attr("x", x(yrs[iL]) - 6).attr("y", y(s.values[iL]) + (s.dyEnd ?? -10)).attr("text-anchor", "end").text(fmt(s.values[iL]));
+      if (s.name && s.label !== false) {
+        svg.append("text").attr("class", "lbl halo mark rv-fade").attr("x", x(yrs[iN]) + (s.anchor === "middle" ? 0 : 4)).attr("y", y(s.values[iN]) + (s.dy ?? -10))
+          .attr("text-anchor", s.anchor || "start").style("fill", s.color).text(s.name);
+      }
+    });
+    const guide = svg.append("line").attr("y1", m.t).attr("y2", h - m.b).style("stroke", "var(--rule)").style("display", "none");
+    const dots = o.series.map((s) => svg.append("circle").attr("r", 4).style("fill", s.color).style("stroke", "var(--surface)").style("stroke-width", 2).style("display", "none"));
+    const off = () => { guide.style("display", "none"); dots.forEach((d) => d.style("display", "none")); hideTip(); };
+    svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", w - m.l - m.r).attr("height", h - m.t - m.b).style("fill", "transparent")
+      .on("mousemove", (ev) => {
+        const i = yrs.indexOf(Math.round(x.invert(d3.pointer(ev)[0])));
+        if (i < 0 || o.series.every((s) => s.values[i] == null)) { off(); return; }
+        guide.style("display", null).attr("x1", x(yrs[i])).attr("x2", x(yrs[i]));
+        o.series.forEach((s, k) => { const v = s.values[i]; dots[k].style("display", v == null ? "none" : null).attr("cx", x(yrs[i])).attr("cy", v == null ? 0 : y(v)); });
+        showTip(o.tip ? o.tip(i) : `<b>${yrs[i]}</b><br>` + o.series.filter((s) => s.values[i] != null).map((s) => `${esc(s.tipName || s.name)}: ${fmt(s.values[i])}`).join("<br>"), ev);
+      })
+      .on("mouseleave", off);
+    reveal(el);
+    return { x, y, svg };
+  }
+
+  // Una griglia di piccoli grafici, ognuno con la propria scala: i paesi dei rimpatri, le cittadinanze dei detenuti.
+  // o.lines(r) dà le linee di un riquadro, la prima è la principale: sotto ha la sua area o, con o.gap, l'ombra fino alla seconda.
+  function sparkGrid(host, rows, o) {
+    const yrs = o.years, L = yrs.length - 1;
+    host.innerHTML = rows.map((r) => `<div class="sm"><span class="h">${o.head(r)}</span><svg aria-hidden="true"></svg><span class="x">${o.foot(r)}</span></div>`).join("");
+    const panels = host.querySelectorAll(".sm");
+    if (!panels.length) return;
+    const w = panels[0].querySelector("svg").getBoundingClientRect().width || 150, h = 64, pad = { t: 6, r: 6, b: 4, l: 2 };
+    const def = (v) => v != null;
+    panels.forEach((el, k) => {
+      const r = rows[k], lines = o.lines(r), [a, b] = lines;
+      const svg = d3.select(el.querySelector("svg")).classed("spark", true).attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
+      const x = d3.scaleLinear([yrs[0], yrs[L]], [pad.l, w - pad.r]);
+      const yy = d3.scaleLinear([0, d3.max(lines.flatMap((l) => l.values), (v) => v || 0) || 1], [h - pad.b, pad.t]);
+      const step = x(yrs[1]) - x(yrs[0]);
+      if (yrs.includes(2020)) svg.append("rect").attr("x", x(2020) - step / 2).attr("width", step * 2).attr("y", pad.t - 4).attr("height", h - pad.t - pad.b + 4).style("fill", "var(--covid)");
+      svg.append("line").attr("x1", pad.l).attr("x2", w - pad.r).attr("y1", yy(0)).attr("y2", yy(0)).style("stroke", "var(--rule)");
+      const area = o.gap && b
+        ? d3.area().defined((_, i) => def(a.values[i]) && def(b.values[i])).x((_, i) => x(yrs[i])).y0((_, i) => yy(a.values[i])).y1((_, i) => yy(b.values[i]))(yrs)
+        : d3.area().defined(def).x((_, i) => x(yrs[i])).y0(yy(0)).y1((v) => yy(v))(a.values);
+      svg.append("path").attr("class", "area rv-fade").attr("d", area).style("fill", o.gap ? "var(--muted)" : a.color).style("fill-opacity", o.gap ? 0.16 : 0.12);
+      lines.slice().reverse().forEach((l) => {
+        svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).attr("d", d3.line().defined(def).x((_, i) => x(yrs[i])).y((v) => yy(v))(l.values))
+          .style("fill", "none").style("stroke", l.color).style("stroke-width", l.width || 1.75).style("stroke-linejoin", "round");
+      });
+      const dots = lines.map((l) => svg.append("circle").attr("r", 3.5).style("fill", l.color).style("stroke", "var(--surface)").style("stroke-width", 1.5).style("display", "none"));
+      const off = () => { dots.forEach((d) => d.style("display", "none")); hideTip(); };
+      svg.append("rect").attr("width", w).attr("height", h).style("fill", "transparent")
+        .on("mousemove", (ev) => {
+          const i = Math.max(0, Math.min(L, Math.round(x.invert(d3.pointer(ev)[0]) - yrs[0])));
+          if (lines.every((l) => l.values[i] == null)) { off(); return; }
+          lines.forEach((l, j) => dots[j].style("display", l.values[i] == null ? "none" : null).attr("cx", x(yrs[i])).attr("cy", l.values[i] == null ? 0 : yy(l.values[i])));
+          showTip(o.tip(r, i), ev);
+        })
+        .on("mouseleave", off);
+    });
+    reveal(host, panels);
+  }
+
+  // Cento quadratini per gruppo: quanti stranieri ogni 100 detenuti e ogni 100 residenti, uno accanto all'altro.
+  function renderWaffle(el, groups) {
+    el.innerHTML = groups.map((g) => {
+      const n = Math.round(g.v);
+      const cells = d3.range(100).map((i) => `<rect class="rv-pop${i < n ? " on" : ""}" style="--i:${i}" x="${(i % 10) * 10 + 0.75}" y="${Math.floor(i / 10) * 10 + 0.75}" width="8.5" height="8.5" rx="1.5"/>`).join("");
+      return `<figure class="waffle"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(g.aria)}">${cells}</svg><figcaption><span class="wv">${nf1.format(g.v)}<small> stranieri</small></span><span class="wl">${g.label}</span></figcaption></figure>`;
+    }).join("");
+    reveal(el, el.querySelectorAll(".waffle"));
+  }
+
   // ------------------------------------------------------------------ apertura
 
   function renderEyechart() {
@@ -413,8 +537,9 @@
 
   // ------------------------------------------------------------------ domande frequenti
 
-  // Le domande che chiunque si fa, in fondo alla pagina: una riga per domanda, la risposta in poche righe si apre al tocco. Ogni cifra viene dagli stessi calcoli delle
-  // sezioni sotto, confrontate con il 2019; carceri e rimpatri compaiono quando i loro dati sono arrivati.
+  // Le domande che chiunque si fa, nella pagina del progetto: una riga per domanda, la risposta in poche righe si apre al tocco. Ogni cifra viene dagli stessi calcoli
+  // delle sezioni della home, confrontate con il 2019; carceri e rimpatri compaiono quando i loro dati sono arrivati. I link sono scritti come dalla home e si
+  // risolvono sulla radice del sito (ROOT), così portano nello stesso posto da qualunque pagina.
   const shortLabel = (t) => lower(t.label.replace(/ \(.*\)$/, ""));
   // numeri che si leggono con la vocale davanti (uno, otto, undici, ottanta…): "dell’8%", "l’11%", "all’83° posto"
   const vowelNum = (n) => n === 1 || n === 11 || /^8/.test(String(n));
@@ -426,7 +551,7 @@
     if (!host) return;
     const tot = ITALY.rate.TOT, iB = Y.indexOf(REF), tm = model("TOT");
     const cards = [];
-    const card = (q, a, href, go) => cards.push(`<details class="faq-q rv-up"><summary><h3>${q}</h3></summary><div class="faq-a"><p>${a}</p><a class="go" href="${href}">${go} <span aria-hidden="true">→</span></a></div></details>`);
+    const card = (q, a, href, go) => cards.push(`<details class="faq-q rv-up"><summary><h3>${q}</h3></summary><div class="faq-a"><p>${a}</p><a class="go" href="${ROOT + href}">${go} <span aria-hidden="true">→</span></a></div></details>`);
 
     // cosa sale e cosa scende, in Italia
     const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 })).filter((d) => isFinite(d.ch));
@@ -463,7 +588,7 @@
         `No: la paura si muove molto più dei reati. Tra il ${ya} e il ${yb} le famiglie che segnalano criminalità o vandalismo nella propria zona sono scese dal ${nf1.format(ITALY.silc[ya])}% al ${nf1.format(ITALY.silc[yb])}%, mentre i delitti denunciati per abitante sono ${moved(crime, "cresciuti", "calati")}. ` +
         (ylast > yb ? `Nel ${ylast} la quota è risalita al ${nf1.format(ITALY.silc[ylast])}%${Math.abs(after) < 0.05 ? ", con le denunce quasi ferme" : ""}. ` : "") +
         (mr && mr.rank ? `${esc(most.name)} è la grande città dove più famiglie sentono a rischio la propria zona (${nf1.format(most.perc["2024"])}%), ma per denunce è ${vowelNum(mr.rank) ? "all’" : "al "}${mr.rank}° posto su ${tm.ranked.length}.` : ""),
-        "#percezione", "Percezione e realtà");
+        "approfondimenti/percezione.html", "Percezione e realtà, l’approfondimento");
     }
 
     // stranieri in carcere
@@ -476,7 +601,7 @@
         `Questi dati non bastano per dirlo. A fine ${last} gli stranieri erano il ${nf1.format(share(L))}% dei detenuti (nel ${Yc[0]} il ${nf1.format(share(0))}%)${res ? ` e il ${nf1.format(res.quota)}% dei residenti` : ""}. ` +
         "Ma il confronto è sbilanciato: tra i detenuti ci sono anche persone senza permesso di soggiorno, che tra i residenti non compaiono; gli stranieri sono in media più giovani, e i giovani adulti finiscono in carcere più spesso in ogni paese; " +
         `senza casa o lavoro stabile, poi, si resta più spesso in cella in attesa di giudizio: è senza condanna definitiva il ${nf1.format(nonDef(C.posizione.str) * 100)}% dei detenuti stranieri, contro il ${nf1.format(nonDef(C.posizione.it) * 100)}% degli italiani.`,
-        "#carceri", "Chi è in carcere");
+        "approfondimenti/carceri.html", "Gli stranieri in carcere, l’approfondimento");
     }
 
     // rimpatri
@@ -485,20 +610,43 @@
       card("Quante persone vengono davvero rimpatriate?",
         `Circa ${Math.round((100 * R) / O)} ogni 100 di quelle a cui viene ordinato di andarsene. Nel ${D.meta.last} l’Italia ha ordinato a ${nf0.format(O)} cittadini di paesi fuori dall’Unione europea di lasciare il territorio, e ne ha rimpatriati ${nf0.format(R)}. ` +
         "Ordini e rimpatri dello stesso anno non riguardano sempre le stesse persone; sul divario pesano, tra l’altro, gli accordi con i singoli paesi e i posti nei centri di trattenimento.",
-        "#rimpatri", "Rimpatri");
+        "approfondimenti/rimpatri.html", "Ordini e rimpatri paese per paese");
     }
 
     // che cosa contano i numeri
     card("Questi numeri contano tutti i reati?",
       "No, solo quelli denunciati alle forze di polizia. Molti reati non vengono mai denunciati, e quanto si denuncia cambia da reato a reato: un furto d’auto quasi sempre, per l’assicurazione; una violenza in famiglia molto meno. " +
       `Per confrontare città grandi e piccole si contano le denunce ogni 100.000 abitanti: i ${nf0.format(tot[LAST])} dell’Italia nel ${Y[LAST]} sono circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno.`,
-      "#metodo", "Come leggere questi numeri");
+      "progetto/#metodo", "Come leggere questi numeri");
 
     // si ridisegna quando arrivano carceri e rimpatri o cambia la larghezza: le risposte aperte restano aperte
     const open = new Set(Array.from(host.querySelectorAll("details[open] h3"), (x) => x.textContent));
     host.innerHTML = cards.join("");
     host.querySelectorAll("details").forEach((d) => { if (open.has(d.querySelector("h3").textContent)) d.open = true; });
     reveal(host, host.querySelectorAll(".faq-q"));
+  }
+
+  // Le schede degli approfondimenti, nella home e nella pagina che li raccoglie: una cifra per ognuno, appena i suoi dati ci sono.
+  function renderDeepCards() {
+    const fill = (k, fig, cap) => document.querySelectorAll(`[data-dd="${k}"]`).forEach((el) => {
+      const f = el.querySelector(".dd-fig"), c = el.querySelector(".dd-cap");
+      if (f) f.textContent = fig;
+      if (c) c.textContent = cap;
+    });
+    if (CARCERI) {
+      const C = CARCERI, L = C.meta.years.length - 1, last = C.meta.last, ra = (C.residenti && C.residenti.anni) || {};
+      const rk = [last, last - 1].find((y) => ra[String(y)]);
+      fill("carceri", `${nf1.format((100 * C.serie.str[L]) / C.serie.tot[L])}%`, `dei detenuti a fine ${last} è straniero${rk ? `; tra i residenti, il ${nf1.format(ra[String(rk)].quota)}%` : ""}`);
+    }
+    if (RIMP) {
+      const D = RIMP, L = D.meta.years.length - 1, R = D.totale.rimpatri[L], O = D.totale.ordini[L];
+      fill("rimpatri", `${nf0.format(Math.round((100 * R) / O))} su 100`, `ordini di lasciare l’Italia diventati rimpatri nel ${D.meta.last}: ${nf0.format(R)} su ${nf0.format(O)}`);
+    }
+    if (ITALY && ITALY.silc) {
+      const sy = Object.keys(ITALY.silc).map(Number).filter((y) => Y.includes(y)), sv = sy.map((y) => ITALY.silc[y]), tot = ITALY.rate.TOT;
+      const a = sy[d3.maxIndex(sv)], b = sy[d3.minIndex(sv)];
+      if (a < b) fill("percezione", fmtPct(ITALY.silc[b] / ITALY.silc[a] - 1), `famiglie che segnalano criminalità nella propria zona, dal ${a} al ${b}; i delitti denunciati per abitante, nello stesso periodo: ${fmtPct(tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1)}`);
+    }
   }
 
   function renderNational() {
@@ -1118,6 +1266,139 @@
     const hiP = pts.slice().sort((p, q) => q.y - p.y)[0], loC = pts.slice().sort((p, q) => p.x - q.x)[0];
     $("#perc-note").textContent = `Nelle ${pts.length} grandi città misurate dall’ISTAT, il legame tra delitti denunciati e paura è ${Math.abs(r) < 0.3 ? "debole" : Math.abs(r) < 0.6 ? "moderato" : "forte"} (correlazione ${nf2.format(r)}). ${hiP.c.name} è la città dove più famiglie si sentono a rischio (${nf1.format(hiP.y)}%), con ${nf0.format(hiP.x)} delitti ogni 100.000 abitanti. Il dato sulla percezione viene dall’indagine ISTAT Aspetti della vita quotidiana.`;
     reveal(el);
+    if (has("perc-index")) renderPercIndex();
+    if (has("perc-slope")) renderPercSlope();
+  }
+
+  // Fatto 100 il primo anno in comune, le due serie sullo stesso asse: la quota di famiglie che segnalano criminalità o
+  // vandalismo nella zona (EU-SILC) e i delitti denunciati per abitante. Si vede subito quale delle due si muove di più.
+  function renderPercIndex() {
+    const tot = ITALY.rate.TOT, sy = Object.keys(ITALY.silc).map(Number).sort((a, b) => a - b);
+    const y0 = Math.max(Y[0], sy[0]), y1 = Math.max(Y[LAST], sy[sy.length - 1]);
+    const yrs = d3.range(y0, y1 + 1);
+    const crime = yrs.map((y) => (Y.includes(y) ? (100 * tot[Y.indexOf(y)]) / tot[Y.indexOf(y0)] : null));
+    const silc = yrs.map((y) => (ITALY.silc[y] != null ? (100 * ITALY.silc[y]) / ITALY.silc[y0] : null));
+    const all = crime.concat(silc).filter((v) => v != null);
+    $("#perc-index-sub").textContent = `Le due serie fatte 100 nel ${y0}: una curva che scende a 50 si è dimezzata, una che sale a 150 è cresciuta della metà.`;
+    seriesChart($("#perc-index"), {
+      years: yrs, label: `Famiglie che segnalano criminalità nella zona e delitti denunciati per abitante, ${y0} = 100`,
+      yMin: 0, yMax: Math.max(140, d3.max(all) * 1.08), ref: 100, covid: true, height: 280,
+      series: [
+        { name: "famiglie che segnalano criminalità", values: silc, color: "var(--ink)", width: 2.5, label: false },
+        { name: "delitti denunciati", values: crime, color: "var(--muted)", width: 2, label: false },
+      ],
+      tip: (i) => `<b>${yrs[i]}</b>` + (silc[i] != null ? `<br>famiglie che segnalano criminalità: ${nf1.format(ITALY.silc[yrs[i]])}% (indice ${nf0.format(silc[i])})` : "") +
+        (crime[i] != null ? `<br>delitti denunciati: ${nf0.format(tot[Y.indexOf(yrs[i])])} ogni 100.000 ab. (indice ${nf0.format(crime[i])})` : ""),
+    });
+  }
+
+  // Le grandi città in due classifiche dello stesso anno: a sinistra per delitti denunciati ogni 100.000 abitanti, a destra
+  // per famiglie che giudicano a rischio la propria zona. Le linee più inclinate sono le città dove paura e denunce non vanno insieme.
+  function renderPercSlope() {
+    const py = CITIES.some((c) => c.perc && c.perc[String(Y[LAST])] != null) ? String(Y[LAST]) : "2024", iy = Y.indexOf(+py);
+    const pts = CITIES.filter((c) => c.perc && c.perc[py] != null).map((c) => ({ c, x: (c.n.TOT[iy] / c.pop[iy]) * 1e5, y: c.perc[py] }));
+    const byX = pts.slice().sort((a, b) => b.x - a.x), byY = pts.slice().sort((a, b) => b.y - a.y);
+    pts.forEach((d) => { d.rx = byX.indexOf(d) + 1; d.ry = byY.indexOf(d) + 1; });
+    const n = pts.length, hi = new Set(pts.slice().sort((a, b) => Math.abs(b.rx - b.ry) - Math.abs(a.rx - a.ry)).slice(0, 6).map((d) => d.c.id));
+    const el = $("#perc-slope");
+    const w = Math.max(300, el.clientWidth), rowH = 18, m = { t: 30, b: 8 }, h = m.t + n * rowH + m.b;
+    const lw = Math.min(150, Math.round(w * 0.34)), x0 = lw, x1 = w - lw, yy = (r) => m.t + (r - 0.5) * rowH;
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", `Le ${n} grandi città ordinate per delitti denunciati e per rischio percepito nel ${py}`);
+    svg.selectAll("*").remove();
+    svg.append("text").attr("class", "lbl-strong").attr("x", x0).attr("y", 12).attr("text-anchor", "middle").text("denunce");
+    svg.append("text").attr("class", "lbl-strong").attr("x", x1).attr("y", 12).attr("text-anchor", "middle").text("paura");
+    const tipOf = (d) => `<b>${esc(d.c.name)}</b> · ${py}<br>${d.rx}ª su ${n} per delitti denunciati: ${nf0.format(d.x)} ogni 100.000 abitanti<br>${d.ry}ª per famiglie che sentono a rischio la zona: ${nf1.format(d.y)}%`;
+    pts.slice().sort((a, b) => hi.has(a.c.id) - hi.has(b.c.id)).forEach((d, k) => {
+      const g = svg.append("g").attr("class", "sl rv-fade" + (hi.has(d.c.id) ? " hi" : "")).style("--i", k).style("cursor", "pointer")
+        .on("mouseenter", function () { this.classList.add("on"); this.parentNode.appendChild(this); })
+        .on("mousemove", (ev) => showTip(tipOf(d), ev))
+        .on("mouseleave", function () { this.classList.remove("on"); hideTip(); })
+        .on("click", () => { hideTip(); openCity(d.c); });
+      g.append("line").attr("class", "hit").attr("x1", x0).attr("x2", x1).attr("y1", yy(d.rx)).attr("y2", yy(d.ry));
+      g.append("line").attr("class", "ln").attr("x1", x0).attr("x2", x1).attr("y1", yy(d.rx)).attr("y2", yy(d.ry));
+      g.append("circle").attr("cx", x0).attr("cy", yy(d.rx)).attr("r", 3.5);
+      g.append("circle").attr("cx", x1).attr("cy", yy(d.ry)).attr("r", 3.5);
+      g.append("text").attr("class", "lbl").attr("x", x0 - 9).attr("y", yy(d.rx) + 4).attr("text-anchor", "end").text(`${d.c.name} ${d.rx}`);
+      g.append("text").attr("class", "lbl").attr("x", x1 + 9).attr("y", yy(d.ry) + 4).text(`${d.ry} ${d.c.name}`);
+    });
+    reveal(el);
+    const up = pts.filter((d) => d.ry < d.rx).sort((a, b) => (b.rx - b.ry) - (a.rx - a.ry))[0], down = pts.filter((d) => d.ry > d.rx).sort((a, b) => (b.ry - b.rx) - (a.ry - a.rx))[0];
+    if (up && down) $("#perc-slope-note").textContent = `Nel ${py} ${up.c.name} è ${up.rx}ª per denunce e ${up.ry}ª per paura; ${down.c.name}, al contrario, è ${down.rx}ª per denunce e ${down.ry}ª per paura. Tocca una città per aprirne la scheda.`;
+  }
+
+  // Le province: la quota di famiglie che sentono a rischio la propria zona e i delitti denunciati ogni 100.000 abitanti,
+  // entrambi come media degli anni in cui c'è la percezione (oggi 2022-2024). Le stime per provincia vengono da un'indagine
+  // campionaria e da sole oscillano: la media di tre anni le rende più stabili.
+  async function loadPercProv() {
+    try {
+      const r = await fetch(ROOT + "data/province.json");
+      if (!r.ok) throw new Error(r.status);
+      PROVP = await r.json();
+      renderPercProv();
+    } catch (e) {
+      $("#perc-prov-note").textContent = `I dati delle province non si sono caricati (${e.message}).`;
+      console.error(e);
+    }
+  }
+
+  function renderPercProv() {
+    const P = PROVP, yrs = [...new Set(Object.values(P.prov).flatMap((p) => Object.keys(p.perc || {})))].sort();
+    const iy = yrs.map((y) => P.meta.years.indexOf(+y)).filter((i) => i >= 0);
+    const pts = Object.entries(P.prov).map(([id, p]) => ({ id, p, x: d3.mean(iy, (i) => p.rate.TOT[i]), y: d3.mean(yrs, (y) => (p.perc ? p.perc[y] : undefined)) }))
+      .filter((d) => d.x != null && d.y != null);
+    const span = yrs.length > 1 ? `${yrs[0]}–${yrs[yrs.length - 1]}` : yrs[0];
+    $("#perc-prov-sub").textContent = `Le ${pts.length} province, media ${span}. Asse orizzontale: delitti denunciati ogni 100.000 abitanti. Asse verticale: famiglie che giudicano molto o abbastanza a rischio di criminalità la zona in cui vivono. Il cerchio vuoto è l’Italia.`;
+    const el = $("#perc-prov");
+    const w = Math.max(280, el.clientWidth), h = Math.round(Math.min(520, Math.max(300, w * 0.66))), mg = { t: 12, r: 16, b: 44, l: 44 };
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", "Grafico a dispersione: delitti denunciati e rischio percepito nelle province");
+    svg.selectAll("*").remove();
+    const x = d3.scaleLinear([0, d3.max(pts, (d) => d.x) * 1.05], [mg.l, w - mg.r]).nice();
+    const y = d3.scaleLinear([0, d3.max(pts, (d) => d.y) * 1.1], [h - mg.b, mg.t]).nice();
+    const ya = svg.append("g").attr("class", "axis").attr("transform", `translate(${mg.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - mg.l - mg.r)).tickFormat((v) => v + "%"));
+    ya.select(".domain").remove();
+    const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - mg.b})`).call(d3.axisBottom(x).ticks(w < 480 ? 4 : 6).tickSize(-(h - mg.t - mg.b)).tickFormat((v) => nf0.format(v)));
+    xa.select(".domain").remove();
+    svg.selectAll(".axis .tick line").style("stroke", "var(--grid)");
+    svg.append("text").attr("class", "lbl").attr("x", w - mg.r).attr("y", h - 6).attr("text-anchor", "end").text("delitti ogni 100.000 abitanti →");
+    // l'Italia, con le stesse medie
+    const itX = d3.mean(yrs.filter((yy) => Y.includes(+yy)), (yy) => ITALY.rate.TOT[Y.indexOf(+yy)]), itY = d3.mean(yrs, (yy) => ITALY.perc[yy]);
+    const boxes = pts.map((d) => [x(d.x) - 5, y(d.y) - 5, x(d.x) + 5, y(d.y) + 5]);
+    const place = (px, py, text) => {
+      const tw = text.length * 6.2 + 2, th = 12;
+      for (const [lx, ly, anchor] of [[px + 8, py + 4, "start"], [px - 8, py + 4, "end"], [px, py - 9, "middle"], [px, py + 16, "middle"]]) {
+        const bx = anchor === "start" ? lx : anchor === "end" ? lx - tw : lx - tw / 2, b = [bx, ly - th + 2, bx + tw, ly + 2];
+        if (b[0] < 0 || b[2] > w || b[1] < 0 || b[3] > h - mg.b) continue;
+        if (boxes.some((q) => !(b[2] < q[0] || b[0] > q[2] || b[3] < q[1] || b[1] > q[3]))) continue;
+        boxes.push(b);
+        svg.append("text").attr("class", "lbl halo rv-fade").attr("x", lx).attr("y", ly).attr("text-anchor", anchor).text(text).style("pointer-events", "none");
+        return;
+      }
+    };
+    pts.forEach((d, k) => {
+      svg.append("circle").attr("class", "rv-pop").style("--i", k).attr("cx", x(d.x)).attr("cy", y(d.y)).attr("r", 4).style("fill", "var(--ink-2)").style("fill-opacity", 0.75).style("stroke", "var(--surface)").style("stroke-width", 1.5)
+        .on("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf0.format(d.x)} delitti ogni 100.000 ab.<br>${nf1.format(d.y)}% famiglie che sentono a rischio la zona<br><span class="small">media ${span}</span>`, ev))
+        .on("mouseleave", hideTip);
+    });
+    if (itX != null && itY != null) {
+      svg.append("circle").attr("class", "rv-pop").style("--t0", "0.5s").attr("cx", x(itX)).attr("cy", y(itY)).attr("r", 6).style("fill", "none").style("stroke", "var(--ink)").style("stroke-width", 1.5);
+      boxes.push([x(itX) - 7, y(itY) - 7, x(itX) + 7, y(itY) + 7]);
+      place(x(itX), y(itY), "Italia");
+    }
+    const lab = new Map();
+    const add = (list) => list.forEach((d) => lab.set(d.id, d));
+    add(pts.slice().sort((a, b) => b.y - a.y).slice(0, 4));
+    add(pts.slice().sort((a, b) => a.y - b.y).slice(0, 3));
+    add(pts.slice().sort((a, b) => b.x - a.x).slice(0, 3));
+    add(pts.slice().sort((a, b) => a.x - b.x).slice(0, 2));
+    add(pts.filter((d) => ["Roma", "Milano", "Napoli"].includes(d.p.name)));
+    lab.forEach((d) => place(x(d.x), y(d.y), d.p.name.split("/")[0]));
+    reveal(el);
+    const r = pearson(pts.map((d) => d.x), pts.map((d) => d.y));
+    const hiY = pts.slice().sort((a, b) => b.y - a.y)[0], hiX = pts.slice().sort((a, b) => b.x - a.x)[0];
+    $("#perc-prov-note").textContent = `Nelle ${pts.length} province il legame tra delitti denunciati e paura è ${Math.abs(r) < 0.3 ? "debole" : Math.abs(r) < 0.6 ? "moderato" : "forte"} (correlazione ${nf2.format(r)}). ` +
+      `La provincia dove più famiglie sentono a rischio la propria zona è ${hiY.p.name.split("/")[0]} (${nf1.format(hiY.y)}%), con ${nf0.format(hiY.x)} delitti ogni 100.000 abitanti; quella con più denunce è ${hiX.p.name.split("/")[0]} (${nf0.format(hiX.x)}), dove si sente a rischio il ${nf1.format(hiX.y)}% delle famiglie.`;
   }
 
   function pearson(a, b) {
@@ -1402,7 +1683,7 @@
   function loadQuart(id) {
     if (QUART[id] !== undefined) return Promise.resolve(QUART[id]);
     const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-    return Promise.all([get(`data/quartieri/${id}.json`), get(`data/quartieri/${id}.topo.json`)])
+    return Promise.all([get(`${ROOT}data/quartieri/${id}.json`), get(`${ROOT}data/quartieri/${id}.topo.json`)])
       .then(([d, t]) => {
         const obj = t.objects[Object.keys(t.objects)[0]];
         const feats = topojson.feature(t, obj).features;
@@ -1412,7 +1693,7 @@
         const crime = d.areas.length > 0 && d.areas.every((a) => a.n && a.n.TOT);
         QUART[id] = { id, d, t, obj, feats, byId, areas: d.areas, crime };
         if (state.qLayer === "crime" && !crime) state.qLayer = "pop";
-        $("#sources").insertAdjacentHTML("beforeend", d.meta.sources.map((src) => `<li><code>${esc(src.id)}</code> ${esc(src.label)}</li>`).join(""));
+        addSources(d.meta.sources, "quartieri");
         return QUART[id];
       })
       .catch(() => { QUART[id] = null; return null; });
@@ -1768,7 +2049,7 @@
   function loadPlaces() {
     if (placesPromise) return placesPromise;
     const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-    placesPromise = Promise.all([get("data/comuni.json"), get("data/province.json")]).then(([cm, pv]) => {
+    placesPromise = Promise.all([get(ROOT + "data/comuni.json"), get(ROOT + "data/province.json")]).then(([cm, pv]) => {
       if (pv.meta.years.join() !== Y.join()) throw new Error("anni diversi tra vc.json e province.json");
       PROV = pv.prov; PROV_META = pv.meta; UNITS = cm.units;
       INDEX = cm.comuni.map(([name, alt, sigla, prov, city, x, y]) => {
@@ -1782,8 +2063,11 @@
       });
     }).catch((err) => {
       placesFailed = true;
-      $("#finder-hint").textContent = "Non riesco a caricare l’elenco dei comuni: per ora la ricerca trova solo i 108 capoluoghi.";
-      $("#finder-hint").classList.add("warn");
+      const hint = $("#finder-hint");
+      if (hint) {
+        hint.textContent = "Non riesco a caricare l’elenco dei comuni: per ora la ricerca trova solo i 108 capoluoghi.";
+        hint.classList.add("warn");
+      }
       throw err;
     });
     return placesPromise;
@@ -1930,47 +2214,62 @@
     });
   }
 
+  // Ogni pagina disegna solo le sezioni che ha: la home quelle sui reati, ogni approfondimento le sue.
   function renderAll() {
-    renderEyechart();
+    if (has("eyechart")) {
+      renderEyechart();
+      renderNational();
+      renderHeroCities();
+      renderHeroTypes();
+    }
     renderBrief();
-    renderNational();
-    renderHeroCities();
-    renderHeroTypes();
-    renderMix();
-    renderMap();
-    renderRanking();
-    renderGrid();
-    renderSpikes();
-    renderPerception();
-    if (CARCERI) renderCarceri();
-    if (RIMP) renderRimpatri();
+    if (has("mix-grid")) renderMix();
+    if (has("map")) { renderMap(); renderRanking(); }
+    if (has("sm")) renderGrid();
+    if (has("spike-cards")) renderSpikes();
+    if (has("perc-scatter")) renderPerception();
+    if (PROVP && has("perc-prov")) renderPercProv();
+    if (CARCERI && has("carceri-facts")) renderCarceri();
+    if (RIMP && has("rimpatri-facts")) renderRimpatri();
+    renderDeepCards();
     if (state.city) renderCity();
     if (state.place) renderProv();
+  }
+
+  // L'elenco delle fonti in fondo alla pagina: la home le raccoglie tutte, ogni approfondimento solo le sue (data-only).
+  function addSources(list, kind) {
+    const ul = $("#sources");
+    if (!ul || (ul.dataset.only && ul.dataset.only !== kind)) return;
+    ul.insertAdjacentHTML("beforeend", list.map((s) => `<li><code>${esc(s.id)}</code> ${esc(s.label)}</li>`).join(""));
   }
 
   // ------------------------------------------------------------------ carceri
 
   async function loadCarceri() {
     try {
-      const r = await fetch("data/carceri.json");
+      const r = await fetch(ROOT + "data/carceri.json");
       if (!r.ok) throw new Error(r.status);
       CARCERI = await r.json();
       state.treeYear = CARCERI.meta.last;
-      $("#sources").insertAdjacentHTML("beforeend", CARCERI.meta.sources.map((s) => `<li><code>${esc(s.id)}</code> ${esc(s.label)}</li>`).join(""));
+      addSources(CARCERI.meta.sources, "carceri");
       const seg = $("#tree-year-seg");
-      const years = [CARCERI.meta.years[0], 2019, CARCERI.meta.last];
-      seg.innerHTML = years.map((y) => `<button type="button" data-ty="${y}" aria-pressed="${y === state.treeYear}">${y}</button>`).join("");
-      seg.addEventListener("click", (ev) => {
-        const b = ev.target.closest("button");
-        if (!b) return;
-        seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
-        state.treeYear = +b.dataset.ty;
-        renderTreemap();
-      });
-      renderCarceri();
+      if (seg) {
+        const years = [CARCERI.meta.years[0], 2019, CARCERI.meta.last];
+        seg.innerHTML = years.map((y) => `<button type="button" data-ty="${y}" aria-pressed="${y === state.treeYear}">${y}</button>`).join("");
+        seg.addEventListener("click", (ev) => {
+          const b = ev.target.closest("button");
+          if (!b) return;
+          seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+          state.treeYear = +b.dataset.ty;
+          renderTreemap();
+        });
+      }
+      if (has("carceri-facts")) renderCarceri();
       renderBrief();
+      renderDeepCards();
     } catch (e) {
-      $("#carceri-facts").innerHTML = `<p class="note">I dati sulle carceri non si sono caricati (${esc(e.message)}).</p>`;
+      if (has("carceri-facts")) $("#carceri-facts").innerHTML = `<p class="note">I dati sulle carceri non si sono caricati (${esc(e.message)}).</p>`;
+      console.error(e);
     }
   }
 
@@ -1994,14 +2293,37 @@
 
     renderTreemap();
 
-    // andamento quota
+    // la presenza straniera, in apertura: ogni 100 detenuti e ogni 100 residenti, con la frase che lo dice a parole
     const share = Yc.map((y, i) => (100 * C.serie.str[i]) / C.serie.tot[i]);
-    lineChart($("#carceri-trend"), {
-      years: Yc, values: share, xDomain: [Yc[0], last], xTicks: [2010, 2015, 2020, 2025], yMin: 0, yMax: d3.max(share) * 1.15, height: 190, mr: 20,
-      yFmt: (v) => v + "%", color: "var(--fall)",
-      marks: [{ year: Yc[0], text: nf1.format(share[0]) + "%", anchor: "start" }, { year: last, text: nf1.format(share[L]) + "%", strong: true, anchor: "end" }],
-      hover: (i) => `<b>${Yc[i]}</b>: ${nf1.format(share[i])}% stranieri<br>${nf0.format(C.serie.str[i])} su ${nf0.format(C.serie.tot[i])} detenuti a fine anno`,
+    const NUMW = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci", "undici", "dodici", "tredici", "quattordici", "quindici"];
+    const oneIn = (q) => { const r = 100 / q, n = Math.round(r); return { w: NUMW[n] || nf0.format(n), pre: Math.abs(r - n) / n < 0.03 ? "" : r > n ? "quasi " : "più di " }; };
+    if (has("carceri-lead")) {
+      const a = oneIn(quota), b = res ? oneIn(res.quota) : null, t = `${a.pre}un detenuto su ${a.w} è straniero`;
+      $("#carceri-lead").textContent = t.charAt(0).toUpperCase() + t.slice(1) + (b ? `; tra chi vive in Italia, ${b.pre}uno su ${b.w}.` : ".");
+    }
+    if (has("carceri-waffle")) {
+      renderWaffle($("#carceri-waffle"), [
+        { v: quota, label: `ogni 100 detenuti presenti a fine ${last}`, aria: `${nf1.format(quota)} stranieri ogni 100 detenuti a fine ${last}` },
+        ...(res ? [{ v: res.quota, label: `ogni 100 residenti al 1° gennaio ${resKey}`, aria: `${nf1.format(res.quota)} stranieri ogni 100 residenti al 1° gennaio ${resKey}` }] : []),
+      ]);
+    }
+    // quanti, nel tempo: detenuti italiani e stranieri
+    if (has("carceri-counts")) {
+      seriesChart($("#carceri-counts"), {
+        years: Yc, label: `Detenuti italiani e stranieri presenti a fine anno, ${Yc[0]}–${last}`, height: 230,
+        series: [{ name: "italiani", values: C.serie.it, color: "var(--ink)" }, { name: "stranieri", values: C.serie.str, color: "var(--fall)", width: 2.5 }],
+        tip: (i) => `<b>fine ${Yc[i]}</b><br>${nf0.format(C.serie.it[i])} italiani<br>${nf0.format(C.serie.str[i])} stranieri, il ${nf1.format(share[i])}%<br>${nf0.format(C.serie.tot[i])} in tutto, ${nf1.format(C.serie.affollamento[i])} ogni 100 posti`,
+      });
+    }
+    // la quota di stranieri tra i detenuti e tra i residenti
+    const resShare = Yc.map((y) => (resAnni[String(y)] ? resAnni[String(y)].quota : null));
+    seriesChart($("#carceri-trend"), {
+      years: Yc, label: "Quota di stranieri tra i detenuti e tra i residenti", yMax: d3.max(share) * 1.15, height: 230,
+      yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
+      series: [{ name: "tra i detenuti", values: share, color: "var(--fall)", width: 2.5 }, { name: "tra i residenti", values: resShare, color: "var(--ink-2)" }],
+      tip: (i) => `<b>${Yc[i]}</b><br>${nf1.format(share[i])}% dei detenuti a fine anno (${nf0.format(C.serie.str[i])} su ${nf0.format(C.serie.tot[i])})` + (resShare[i] != null ? `<br>${nf1.format(resShare[i])}% dei residenti al 1° gennaio` : ""),
     });
+    if (has("carceri-nat")) renderCarceriNat();
 
     // regioni
     const regs = C.regioni;
@@ -2127,25 +2449,48 @@
     reveal(el);
   }
 
+  // Le cittadinanze nel tempo: un riquadro per paese o gruppo di paesi, come li pubblica l'ISTAT.
+  function renderCarceriNat() {
+    const C = CARCERI, Yc = C.meta.years, L = Yc.length - 1;
+    const pick = (y, cont, id) => { const g = C.albero[String(y)].find((x) => x.name === cont), c = g && g.children.find((x) => x.id === id); return c ? c.n : null; };
+    const rows = C.albero[String(C.meta.last)].flatMap((g) => g.children.map((c) => ({ id: c.id, name: c.name, cont: g.name })))
+      .filter((d) => d.id !== "OTH")
+      .map((d) => ({ ...d, v: Yc.map((y) => pick(y, d.cont, d.id)) }))
+      .sort((a, b) => (b.v[L] || 0) - (a.v[L] || 0));
+    $("#carceri-nat-sub").textContent = `Detenuti stranieri presenti a fine anno, dal ${Yc[0]} al ${Yc[L]}: i paesi che l’ISTAT pubblica uno per uno e, per gli altri, il gruppo. In alto il numero del ${Yc[L]}. Ogni riquadro ha la propria scala: si legge la forma della curva, non il confronto tra riquadri.`;
+    sparkGrid($("#carceri-nat"), rows, {
+      years: Yc,
+      lines: (r) => [{ values: r.v, color: "var(--fall)" }],
+      head: (r) => `<span class="n" title="${esc(r.name)}">${esc(r.name)}</span><span class="small">${r.v[L] == null ? "–" : nf0.format(r.v[L])}</span>`,
+      foot: (r) => { const i0 = r.v.findIndex((v) => v != null); return `<span>${i0 >= 0 && r.v[L] != null ? `${fmtPct(r.v[L] / r.v[i0] - 1)} dal ${Yc[i0]}` : ""}</span><span>picco ${Yc[d3.maxIndex(r.v, (v) => v || 0)]}</span>`; },
+      tip: (r, i) => `<b>${esc(r.name)}</b> · fine ${Yc[i]}<br>${r.v[i] == null ? "dato non disponibile" : `${nf0.format(r.v[i])} detenuti`}`,
+    });
+  }
+
   // ------------------------------------------------------------------ rimpatri
 
   async function loadRimpatri() {
     try {
       const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-      const [data, world] = await Promise.all([get("data/rimpatri.json"), get("data/mondo.topo.json")]);
+      const [data, world] = await Promise.all([get(ROOT + "data/rimpatri.json"), has("rimp-map") ? get(ROOT + "data/mondo.topo.json") : null]);
       RIMP = data;
-      WORLD = topojson.feature(world, world.objects.paesi).features;
+      if (world) WORLD = topojson.feature(world, world.objects.paesi).features;
       state.rimpYear = RIMP.meta.last;
-      $("#sources").insertAdjacentHTML("beforeend", RIMP.meta.sources.map((s) => `<li><code>${esc(s.id)}</code> ${esc(s.label)}</li>`).join(""));
+      addSources(RIMP.meta.sources, "rimpatri");
       const yr = $("#rimp-year");
-      yr.min = RIMP.meta.years[0];
-      yr.max = RIMP.meta.last;
-      yr.value = state.rimpYear;
-      yr.addEventListener("input", () => { state.rimpYear = +yr.value; renderRimpMap(); });
-      renderRimpatri();
+      if (yr) {
+        yr.min = RIMP.meta.years[0];
+        yr.max = RIMP.meta.last;
+        yr.value = state.rimpYear;
+        yr.addEventListener("input", () => { state.rimpYear = +yr.value; renderRimpMap(); });
+      }
+      if (has("rimp-countries")) wireRimpCountries();
+      if (has("rimpatri-facts")) renderRimpatri();
       renderBrief();
+      renderDeepCards();
     } catch (e) {
-      $("#rimpatri-facts").innerHTML = `<p class="note">I dati sui rimpatri non si sono caricati (${esc(e.message)}).</p>`;
+      if (has("rimpatri-facts")) $("#rimpatri-facts").innerHTML = `<p class="note">I dati sui rimpatri non si sono caricati (${esc(e.message)}).</p>`;
+      console.error(e);
     }
   }
 
@@ -2163,10 +2508,10 @@
       <div class="fact"><div class="fv">${nf0.format(R[iMin])}</div><div class="fl">rimpatri nel ${Yr[iMin]}, il minimo della serie${COVID.has(Yr[iMin]) ? ", quando la pandemia ha chiuso le frontiere e quasi azzerato i voli" : ""}.</div></div>
       <div class="fact"><div class="fv">${nf0.format((100 * d3.sum(top, (p) => p.r[L])) / R[L])}%</div><div class="fl">dei rimpatri del ${last} riguarda cittadini di ${names.slice(0, -1).join(", ")} ${/^e/i.test(names[names.length - 1]) ? "ed" : "e"} ${names[names.length - 1]}.</div></div>`;
     renderRimpTrend();
-    renderRimpRatio();
-    renderRimpMap();
-    renderRimpGrid();
-    renderRimpTable();
+    if (has("rimp-countries")) renderRimpCountries();
+    if (has("rimp-map") && WORLD) renderRimpMap();
+    if (has("rimp-sm")) renderRimpGrid();
+    if (has("rimp-table")) renderRimpTable();
   }
 
   function renderRimpTrend() {
@@ -2212,23 +2557,55 @@
     reveal(el);
   }
 
-  // Rimpatri ogni 100 ordini negli ultimi quattro anni, per i paesi con abbastanza ordini da rendere stabile il rapporto.
-  function renderRimpRatio() {
-    const D = RIMP, Yr = D.meta.years, L = Yr.length - 1, from = L - 3, MIN = 1000;
+  // Ordini e rimpatri paese per paese: una riga per paese, sulla stessa scala la barra chiara degli ordini di lasciare
+  // l'Italia e quella piena dei rimpatri. Periodo e ordine valgono solo per questo grafico. Il rapporto si legge solo per i
+  // paesi con abbastanza ordini nel periodo (250 l'anno): con pochi casi cambia molto da un anno all'altro.
+  const RC = { n: 4, sort: "o", all: false, top: 20 };
+  function wireRimpCountries() {
+    const Yr = RIMP.meta.years, L = Yr.length - 1;
+    $("#rc-period-seg").innerHTML = [[1, `${Yr[L]}`], [4, `${Yr[L - 3]}–${Yr[L]}`], [Yr.length, `${Yr[0]}–${Yr[L]}`]]
+      .map(([n, t]) => `<button type="button" data-rcn="${n}" aria-pressed="${n === RC.n}">${t}</button>`).join("");
+    seg("#rc-period-seg", "rcn", (v) => { RC.n = +v; renderRimpCountries(); });
+    seg("#rc-sort-seg", "rcsort", (v) => { RC.sort = v; renderRimpCountries(); });
+    $("#rc-more").addEventListener("click", () => { RC.all = !RC.all; renderRimpCountries(); });
+  }
+
+  function renderRimpCountries() {
+    const D = RIMP, Yr = D.meta.years, L = Yr.length - 1, from = L - RC.n + 1, MIN = 250 * RC.n;
     const sum = (a) => d3.sum(a.slice(from), (v) => v || 0);
-    const rows = D.paesi.map((p) => ({ p, r: sum(p.r), o: sum(p.o) })).filter((d) => d.o >= MIN)
-      .map((d) => ({ ...d, k: (100 * d.r) / d.o })).sort((a, b) => b.k - a.k);
-    const all = (100 * sum(D.totale.rimpatri)) / sum(D.totale.ordini);
-    $("#rimp-ratio-sub").textContent = `${Yr[from]}–${Yr[L]}, paesi con almeno ${nf0.format(MIN)} ordini nel periodo. La linea è la media di tutti i paesi: ${nf0.format(all)}.`;
-    const maxK = d3.max(rows, (d) => d.k);
-    const ol = $("#rimp-ratio");
-    ol.innerHTML = rows.map((d) => `<li data-id="${d.p.id}"><span class="name" title="${esc(d.p.name)}">${esc(d.p.name)}</span><span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * d.k) / maxK}%"></i><b class="rv-fade" style="left:${(100 * all) / maxK}%"></b></span><span class="val">${nf0.format(d.k)}</span></li>`).join("");
-    reveal(ol, ol.querySelectorAll("li"));
-    ol.querySelectorAll("li").forEach((li, i) => {
-      const d = rows[i];
-      li.addEventListener("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${Yr[from]}–${Yr[L]}<br>${nf0.format(d.r)} rimpatri su ${nf0.format(d.o)} ordini`, ev));
+    const gli = (n) => `${vowelNum(n) ? "gli" : "i"} ${nf0.format(n)}`, degli = (n) => `${vowelNum(n) ? "degli" : "dei"} ${nf0.format(n)}`;
+    const span = RC.n === 1 ? `nel ${Yr[L]}` : `dal ${Yr[from]} al ${Yr[L]}`, spanT = RC.n === 1 ? `${Yr[L]}` : `${Yr[from]}–${Yr[L]}`;
+    let rows = D.paesi.map((p) => ({ p, r: sum(p.r), o: sum(p.o) })).filter((d) => d.o > 0 || d.r > 0).map((d) => ({ ...d, k: d.o ? (100 * d.r) / d.o : null }));
+    const R = sum(D.totale.rimpatri), O = sum(D.totale.ordini);
+    const ok = rows.filter((d) => d.o >= MIN);
+    if (RC.sort === "k") rows = ok.slice().sort((a, b) => b.k - a.k);
+    else rows.sort((a, b) => b[RC.sort] - a[RC.sort] || b.o - a.o);
+    const shown = RC.sort === "k" || RC.all ? rows : rows.slice(0, RC.top);
+    const max = d3.max(shown, (d) => Math.max(d.o, d.r)) || 1, pct = (v) => `${((100 * v) / max).toFixed(2)}%`;
+    const kTxt = (d) => (d.k == null ? "–" : d.o < MIN ? `<span class="few" title="Meno di ${nf0.format(MIN)} ordini nel periodo: il rapporto è instabile">${nf0.format(d.k)}</span>` : nf0.format(d.k));
+    const ol = $("#rimp-countries");
+    ol.innerHTML = `<li class="rc-head" aria-hidden="true"><span>Cittadinanza</span><span>Ordini e rimpatri, ${spanT}</span><span class="num">Rimpatri su ordini</span><span class="num">Ogni 100</span></li>` +
+      shown.map((d) => `<li><span class="name" title="${esc(d.p.name)}">${esc(d.p.name)}</span><span class="rc-bars" aria-hidden="true"><i class="o rv-grow" style="width:${pct(d.o)}"></i><i class="r rv-grow" style="width:${pct(d.r)}"></i></span>` +
+        `<span class="val"><b>${nf0.format(d.r)}</b><span class="vh"> rimpatri</span> su ${nf0.format(d.o)}<span class="vh"> ordini</span></span><span class="k">${kTxt(d)}<span class="vh"> rimpatri ogni 100 ordini</span></span></li>`).join("");
+    const items = ol.querySelectorAll("li:not(.rc-head)");
+    reveal(ol, items);
+    items.forEach((li, i) => {
+      const d = shown[i];
+      li.addEventListener("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} ordini di lasciare l’Italia<br>${nf0.format(d.r)} rimpatri${d.k == null ? "" : `, ${nf0.format(d.k)} ogni 100 ordini`}`, ev));
       li.addEventListener("mouseleave", hideTip);
     });
+    $("#rc-sub").textContent = `Cittadini di paesi non UE, ${span}. ` +
+      (RC.sort === "k" ? `Solo ${gli(rows.length)} paesi con almeno ${nf0.format(MIN)} ordini nel periodo: con meno casi il rapporto cambia molto da un anno all’altro.`
+        : `${shown.length < rows.length ? `I primi ${shown.length} ${degli(rows.length)} paesi` : `Tutti ${gli(rows.length)} paesi`} ${RC.sort === "o" ? "con più ordini" : "con più rimpatri"}.`) +
+      ` In tutto ${nf0.format(R)} rimpatri su ${nf0.format(O)} ordini: ${nf0.format((100 * R) / O)} ogni 100.`;
+    const more = $("#rc-more");
+    more.hidden = RC.sort === "k" || rows.length <= RC.top;
+    more.textContent = RC.all ? `Mostra solo i primi ${RC.top}` : `Mostra tutti ${gli(rows.length)} paesi`;
+    const byK = ok.slice().sort((a, b) => b.k - a.k);
+    if (byK.length > 1) {
+      const hi = byK[0], lo = byK[byK.length - 1];
+      $("#rc-note").textContent = `Tra ${gli(byK.length)} paesi con almeno ${nf0.format(MIN)} ordini ${span}, i rimpatri vanno da ${nf0.format(lo.k)} ogni 100 ordini (${lo.p.name}: ${nf0.format(lo.r)} su ${nf0.format(lo.o)}) a ${nf0.format(hi.k)} ogni 100 (${hi.p.name}: ${nf0.format(hi.r)} su ${nf0.format(hi.o)}). Ordini e rimpatri dello stesso periodo non riguardano sempre le stesse persone.`;
+    }
   }
 
   function renderRimpMap() {
@@ -2298,49 +2675,34 @@
 
   function renderRimpGrid() {
     const D = RIMP, Yr = D.meta.years, L = Yr.length - 1;
-    const rows = D.paesi.slice(0, 18);
-    $("#rimp-sm-sub").textContent = `I ${rows.length} paesi con più rimpatri dal ${Yr[0]} al ${Yr[L]}, persone rimpatriate ogni anno. Ogni riquadro ha la propria scala: si legge la forma della curva, non il confronto tra paesi.`;
-    const host = $("#rimp-sm");
-    host.innerHTML = rows.map((p) => {
-      const tot = d3.sum(p.r, (v) => v || 0), iPk = d3.maxIndex(p.r, (v) => v || 0);
-      return `<div class="sm"><span class="h"><span class="n">${esc(p.name)}</span><span class="small">${p.r[L] == null ? "–" : nf0.format(p.r[L])} nel ${Yr[L]}</span></span><svg aria-hidden="true"></svg><span class="x"><span>${nf0.format(tot)} dal ${Yr[0]}</span><span>picco ${Yr[iPk]}</span></span></div>`;
-    }).join("");
-    const panels = host.querySelectorAll(".sm");
-    const w = panels[0].querySelector("svg").getBoundingClientRect().width || 150, h = 64, pad = { t: 6, r: 6, b: 4, l: 2 };
-    panels.forEach((el, k) => {
-      const p = rows[k], vals = p.r;
-      const svg = d3.select(el.querySelector("svg")).classed("spark", true).attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
-      const x = d3.scaleLinear([Yr[0], Yr[L]], [pad.l, w - pad.r]);
-      const yy = d3.scaleLinear([0, d3.max(vals, (v) => v || 0) || 1], [h - pad.b, pad.t]);
-      const step = x(Yr[1]) - x(Yr[0]);
-      svg.append("rect").attr("x", x(2020) - step / 2).attr("width", step * 2).attr("y", pad.t - 4).attr("height", h - pad.t - pad.b + 4).style("fill", "var(--covid)");
-      svg.append("line").attr("x1", pad.l).attr("x2", w - pad.r).attr("y1", yy(0)).attr("y2", yy(0)).style("stroke", "var(--rule)");
-      const def = (v) => v != null;
-      svg.append("path").attr("class", "area rv-fade").attr("d", d3.area().defined(def).x((_, i) => x(Yr[i])).y0(yy(0)).y1((v) => yy(v))(vals)).style("fill", "var(--fall)").style("fill-opacity", 0.12);
-      svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).attr("d", d3.line().defined(def).x((_, i) => x(Yr[i])).y((v) => yy(v))(vals)).style("fill", "none").style("stroke", "var(--fall)").style("stroke-width", 1.75).style("stroke-linejoin", "round");
-      const dot = svg.append("circle").attr("r", 3.5).style("fill", "var(--fall)").style("stroke", "var(--surface)").style("stroke-width", 1.5).style("display", "none");
-      svg.append("rect").attr("width", w).attr("height", h).style("fill", "transparent")
-        .on("mousemove", (ev) => {
-          const i = Math.max(0, Math.min(L, Math.round(x.invert(d3.pointer(ev)[0]) - Yr[0])));
-          if (vals[i] == null) { dot.style("display", "none"); hideTip(); return; }
-          dot.style("display", null).attr("cx", x(Yr[i])).attr("cy", yy(vals[i]));
-          showTip(`<b>${esc(p.name)}</b> · ${Yr[i]}<br>${nf0.format(vals[i])} rimpatri${p.o[i] != null ? `<br>${nf0.format(p.o[i])} ordini di lasciare l'Italia` : ""}`, ev);
-        })
-        .on("mouseleave", () => { dot.style("display", "none"); hideTip(); });
+    const rows = D.paesi.slice(0, 24);
+    $("#rimp-sm-sub").textContent = `${vowelNum(rows.length) ? "Gli" : "I"} ${rows.length} paesi con più rimpatri dal ${Yr[0]} al ${Yr[L]}. Ogni anno gli ordini di lasciare l’Italia (linea grigia) e i rimpatri (linea blu); l’ombra è la distanza tra i due. In alto i rimpatri ogni 100 ordini di tutto il periodo, in basso i rimpatri dal ${Yr[0]} e l’anno con più rimpatri. Ogni riquadro ha la propria scala: si legge la forma, non il confronto tra paesi.`;
+    sparkGrid($("#rimp-sm"), rows, {
+      years: Yr, gap: true,
+      lines: (p) => [{ values: p.r, color: "var(--fall)", width: 2 }, { values: p.o, color: "var(--ink-2)", width: 1.25 }],
+      head: (p) => { const r = d3.sum(p.r, (v) => v || 0), o = d3.sum(p.o, (v) => v || 0); return `<span class="n" title="${esc(p.name)}">${esc(p.name)}</span><span class="small">${o ? nf0.format((100 * r) / o) : "–"} su 100</span>`; },
+      foot: (p) => `<span>${nf0.format(d3.sum(p.r, (v) => v || 0))} dal ${Yr[0]}</span><span>picco ${Yr[d3.maxIndex(p.r, (v) => v || 0)]}</span>`,
+      tip: (p, i) => `<b>${esc(p.name)}</b> · ${Yr[i]}<br>${p.o[i] == null ? "–" : nf0.format(p.o[i])} ordini di lasciare l’Italia<br>${p.r[i] == null ? "–" : nf0.format(p.r[i])} rimpatri${p.o[i] ? `, ${nf0.format((100 * (p.r[i] || 0)) / p.o[i])} ogni 100` : ""}`,
     });
-    reveal(host, panels);
   }
 
+  // Due righe per paese, ordini e rimpatri, anno per anno: la tabella dice tutto quello che i grafici riassumono.
   function renderRimpTable() {
     const D = RIMP, Yr = D.meta.years;
     const cell = (v) => `<td class="num">${v == null ? "–" : nf0.format(v)}</td>`;
     const tot = (a) => d3.sum(a, (v) => v || 0);
-    $("#rimp-table").innerHTML = `<thead><tr><th>Cittadinanza</th>${Yr.map((y) => `<th class="num">${y}</th>`).join("")}<th class="num">Rimpatri, totale</th><th class="num">Ordini, totale</th></tr></thead><tbody>` +
-      D.paesi.map((p) => `<tr><td>${esc(p.name)}</td>${p.r.map(cell).join("")}${cell(tot(p.r))}${cell(tot(p.o))}</tr>`).join("") +
-      `<tr><td><b>Tutti i paesi</b></td>${D.totale.rimpatri.map((v) => `<td class="num"><b>${nf0.format(v)}</b></td>`).join("")}<td class="num"><b>${nf0.format(tot(D.totale.rimpatri))}</b></td><td class="num"><b>${nf0.format(tot(D.totale.ordini))}</b></td></tr></tbody>`;
+    const k = (r, o) => (tot(o) ? nf0.format((100 * tot(r)) / tot(o)) : "–");
+    const rowsOf = (name, r, o, b) => {
+      const B = (s) => (b ? `<b>${s}</b>` : s);
+      return `<tr class="rc-o"><td rowspan="2">${B(esc(name))}</td><td>ordini</td>${o.map(cell).join("")}${cell(tot(o))}<td class="num" rowspan="2">${B(k(r, o))}</td></tr>` +
+        `<tr class="rc-r"><td>rimpatri</td>${r.map(cell).join("")}${cell(tot(r))}</tr>`;
+    };
+    $("#rimp-table").innerHTML = `<thead><tr><th>Cittadinanza</th><th></th>${Yr.map((y) => `<th class="num">${y}</th>`).join("")}<th class="num">Totale</th><th class="num">Rimpatri ogni 100 ordini</th></tr></thead><tbody>` +
+      D.paesi.map((p) => rowsOf(p.name, p.r, p.o, false)).join("") + rowsOf("Tutti i paesi", D.totale.rimpatri, D.totale.ordini, true) + `</tbody>`;
   }
 
-  function wire() {
+  // i comandi delle sezioni sui reati: ci sono solo nella home
+  function wireHome() {
     // il menu dei reati, uguale nella mappa e nella griglia delle città: ognuno cambia solo la sua sezione
     const groups = d3.group(TYPES, (t) => t.group);
     const typeOptions = Array.from(groups, ([g, ts]) => `<optgroup label="${esc(g)}">${ts.map((t) => `<option value="${t.id}">${esc(t.label)}</option>`).join("")}</optgroup>`).join("");
@@ -2363,9 +2725,18 @@
     seg("#scale-seg", "scale", (v) => { state.scale = v; renderGrid(); });
     $("#spike-more").addEventListener("click", () => { state.spikeShown += 12; renderSpikes(); });
 
+    // passaggio del mouse sulle classifiche: la guglia corrispondente si accende sulla mappa
+    const rc = $(".rank-cols");
+    rc.addEventListener("mouseover", (ev) => { const li = ev.target.closest("li[data-c]"); if (li) hotCity(li.dataset.c, true); });
+    rc.addEventListener("mouseout", (ev) => { const li = ev.target.closest("li[data-c]"); if (li && !li.contains(ev.relatedTarget)) hotCity(li.dataset.c, false); });
+  }
+
+  function wire() {
+    if (has("map-type")) wireHome();
+
     // ricerca: subito i 108 capoluoghi, poi tutti i comuni appena arriva data/comuni.json
     INDEX = CITIES.map((c) => entry(c.name, "", "", null, c.id, c.region));
-    combo($("#finder-input"), $("#finder-list"), true);
+    if (has("finder-input")) combo($("#finder-input"), $("#finder-list"), true);
     combo($("#city-search"), $("#city-list"), false);
 
     // clic su città (classifica, tabella, small multiples) e su schede impennate: la scheda si apre sul reato
@@ -2386,11 +2757,6 @@
       }
     });
 
-    // passaggio del mouse sulle classifiche: la guglia corrispondente si accende sulla mappa
-    const rc = $(".rank-cols");
-    rc.addEventListener("mouseover", (ev) => { const li = ev.target.closest("li[data-c]"); if (li) hotCity(li.dataset.c, true); });
-    rc.addEventListener("mouseout", (ev) => { const li = ev.target.closest("li[data-c]"); if (li && !li.contains(ev.relatedTarget)) hotCity(li.dataset.c, false); });
-
     let lastW = innerWidth, t;
     addEventListener("resize", () => {
       clearTimeout(t);
@@ -2401,8 +2767,9 @@
     // e, quando la riga delle voci scorre di lato (telefono), tiene la voce segnata in vista.
     const menu = $(".masthead .menu");
     if (menu) {
-      const links = [...menu.querySelectorAll('a[href^="#"]')];
-      const targets = links.map((a) => document.getElementById(a.hash.slice(1)));
+      // data-spy: una voce che porta a un'altra pagina ma si accende su una sezione di questa (Approfondimenti, sulla fascia della home)
+      const links = [...menu.querySelectorAll('a[href^="#"], a[data-spy]')];
+      const targets = links.map((a) => document.getElementById(a.dataset.spy || a.hash.slice(1)));
       const bars = [$(".masthead")];
       let current = null;
       const more = () => menu.toggleAttribute("data-more", menu.scrollWidth - menu.clientWidth - menu.scrollLeft > 4);
@@ -2428,7 +2795,7 @@
       spy();
       // il nome riporta in cima (l'ancora non basta: la testata è incollata e per il browser è già in vista)
       const home = $(".wordmark a");
-      if (home) home.addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
+      if (home && home.getAttribute("href") === "#") home.addEventListener("click", (ev) => { ev.preventDefault(); scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
     }
     // Una barra sola, a ogni larghezza. La lente in fondo apre la ricerca del comune al posto delle voci; sotto i
     // 560px le sezioni diventano un menu a tendina che segue la sezione in vista (vc.css).
@@ -2451,12 +2818,15 @@
         if (!mast.classList.contains("searching") || tools.contains(ev.relatedTarget) || input.value) return;
         setTimeout(() => { if (!tools.contains(document.activeElement) && !input.value) searching(false); }, 200);
       });
-      const links = [...document.querySelectorAll('.masthead .menu a[href^="#"]')];
-      secSel.innerHTML = `<option value="" hidden>Sezioni</option>` + links.map((a) => `<option value="${esc(a.hash.slice(1))}">${esc(a.textContent)}</option>`).join("");
+      // tutte le voci, anche quelle che portano a un'altra pagina: gli approfondimenti, e dagli approfondimenti la home
+      const links = [...document.querySelectorAll(".masthead .menu a")];
+      secSel.innerHTML = `<option value="" hidden>Sezioni</option>` + links.map((a) => `<option value="${esc(a.getAttribute("href"))}">${esc(a.textContent)}</option>`).join("");
       // segue la voce che il menu in testata segna come in vista (il suo ascoltatore di scroll gira prima di questo)
-      const sync = () => { const a = $(".masthead .menu a[aria-current]"), v = a ? a.hash.slice(1) : ""; if (secSel.value !== v) secSel.value = v; };
+      const sync = () => { const a = $(".masthead .menu a[aria-current]"), v = a ? a.getAttribute("href") : ""; if (secSel.value !== v) secSel.value = v; };
       secSel.addEventListener("change", () => {
-        const t = document.getElementById(secSel.value);
+        const v = secSel.value;
+        if (v.charAt(0) !== "#") { location.href = v; return; }
+        const t = document.getElementById(v.slice(1));
         if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
         secSel.blur();
       });
@@ -2469,8 +2839,11 @@
       { id: "73_67_DF_DCCV_DELITTIPS_9", label: "ISTAT, Delitti denunciati — tasso di delittuosità per provincia (schede dei comuni che non sono capoluogo)" },
       { id: "Elenco-comuni-italiani.csv", label: "ISTAT, Elenco dei comuni italiani (codici statistici delle unità amministrative territoriali), per la ricerca del comune" },
     ];
-    $("#sources").innerHTML = META.sources.concat(extraSources).map((s) => `<li><code>${esc(s.id)}</code> ${esc(s.label)}</li>`).join("");
-    $("#colophon").innerHTML = `Atlante della sicurezza · dati ISTAT aggiornati al ${Y[LAST]}, dataset generato il ${new Date(META.built).toLocaleDateString("it-IT")}`;
+    const srcs = $("#sources");
+    if (srcs && !srcs.dataset.only) srcs.innerHTML = META.sources.concat(extraSources).map((s) => `<li><code>${esc(s.id)}</code> ${esc(s.label)}</li>`).join("");
+    // l'approfondimento sulla percezione: delitti, popolazione, le due indagini sulla percezione e i tassi delle province
+    else if (srcs && srcs.dataset.only === "percezione") addSources(META.sources.filter((s) => !/geojson/.test(s.id)).map((s) => (/DELITTIPS_9$/.test(s.id) ? { ...s, label: "ISTAT, Delitti denunciati — tasso di delittuosità, Italia e province" } : s)), "percezione");
+    if (has("colophon")) $("#colophon").innerHTML = `Atlante della sicurezza · dati ISTAT aggiornati al ${Y[LAST]}, dataset generato il ${new Date(META.built).toLocaleDateString("it-IT")}`;
   }
 
   // ------------------------------------------------------------------ avvio
@@ -2478,10 +2851,10 @@
   async function start() {
     try {
       const [data, topo, qindex] = await Promise.all([
-        fetch("data/vc.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-        fetch("data/italia.topo.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch(ROOT + "data/vc.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch(ROOT + "data/italia.topo.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
         // città con i dati per quartiere: se l'indice manca, nessuna
-        fetch("data/quartieri/index.json").then((r) => (r.ok ? r.json() : [])).catch(() => []),
+        fetch(ROOT + "data/quartieri/index.json").then((r) => (r.ok ? r.json() : [])).catch(() => []),
       ]);
       QINDEX = new Set(Array.isArray(qindex) ? qindex : []);
       META = data.meta; Y = META.years; LAST = Y.length - 1;
@@ -2489,8 +2862,14 @@
       CITIES = data.cities; ITALY = data.italy; TOPO = topo;
       wire();
       renderAll();
-      loadCarceri();
-      loadRimpatri();
+      // carceri e rimpatri: le loro pagine, e la home per due domande frequenti e per le schede degli approfondimenti;
+      // la pagina del progetto (l'elenco completo delle fonti, senza data-only) li carica per le fonti, e così i quartieri
+      const allSources = !!$("#sources:not([data-only])");
+      const loads = [];
+      if (has("carceri-facts") || has("brief") || $('[data-dd="carceri"]') || allSources) loads.push(loadCarceri());
+      if (has("rimpatri-facts") || has("brief") || $('[data-dd="rimpatri"]') || allSources) loads.push(loadRimpatri());
+      if (has("perc-prov")) loads.push(loadPercProv());
+      if (allSources) QINDEX.forEach((id) => loadQuart(id));
       let h = location.hash.slice(1);
       try { h = decodeURIComponent(h); } catch (e) { /* ignorato */ }
       if (h) {
@@ -2499,6 +2878,18 @@
         else if (/-[a-z]{2}$/.test(h)) {
           // scheda di un comune non capoluogo: #nome-sigla
           loadPlaces().then(() => { const e = INDEX.find((x) => !x.city && placeSlug(x) === h); if (e) openProv(e); }).catch(() => {});
+        } else if (document.getElementById(h)) {
+          // arrivando da un'altra pagina (../#carceri) il browser salta alla sezione prima dei grafici: la si ritrova
+          // a disegno fatto, e di nuovo quando arrivano i dati caricati dopo, se intanto nessuno ha scorso la pagina
+          const go = () => { document.getElementById(h).scrollIntoView(); return scrollY; };
+          const y = go();
+          Promise.allSettled(loads).then(() => { if (Math.abs(scrollY - y) < 2) go(); });
+        } else if (h === "metodo" || h === "domande") {
+          // i vecchi link alla metodologia e alle domande frequenti della home: ora stanno nella pagina del progetto
+          location.replace(ROOT + "progetto/#" + h);
+        } else if (["carceri", "rimpatri", "percezione"].includes(h) && has("approfondimenti")) {
+          // i vecchi link alle sezioni della home su carceri, rimpatri e percezione: ora sono approfondimenti
+          location.replace(ROOT + "approfondimenti/" + h + ".html");
         }
       }
     } catch (e) {

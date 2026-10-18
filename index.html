@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=44">
+<link rel="stylesheet" href="vc.css?v=46">
 </head>
 <body>
 <!-- vc:content -->
@@ -48,11 +48,8 @@
         <li><a href="#mix">Reati</a></li>
         <li><a href="#impennate">Impennate</a></li>
         <li><a href="#citta">Città</a></li>
-        <li><a href="#carceri">Carceri</a></li>
-        <li><a href="#rimpatri">Rimpatri</a></li>
-        <li><a href="#percezione">Percezione</a></li>
-        <li><a href="#domande">FAQ</a></li>
-        <li><a href="#metodo">Metodologia e fonti</a></li>
+        <li><a href="approfondimenti/" data-spy="approfondimenti">Approfondimenti</a></li>
+        <li><a href="progetto/">Il progetto</a></li>
       </ul>
     </nav>
     <div class="cta bar-cta">
@@ -262,7 +259,7 @@
       <header>
         <div class="kicker">Impennate e cali</div>
         <h2 id="spike-title">Dove qualcosa è cambiato all’improvviso</h2>
-        <p class="dek">Un’impennata è un anno in cui le denunce per un reato salgono di colpo: almeno un quarto sopra la media dei tre anni prima, con almeno 20 episodi e un salto che il caso da solo non spiega. «In proporzione» mette prima gli aumenti più solidi, «Per casi in più» quelli che riguardano più persone. <a href="#metodo">Come le riconosciamo</a>.</p>
+        <p class="dek">Un’impennata è un anno in cui le denunce per un reato salgono di colpo: almeno un quarto sopra la media dei tre anni prima, con almeno 20 episodi e un salto che il caso da solo non spiega. «In proporzione» mette prima gli aumenti più solidi, «Per casi in più» quelli che riguardano più persone. <a href="progetto/#metodo">Come le riconosciamo</a>.</p>
       </header>
       <div class="chips" role="group" aria-label="Anno delle impennate">
         <span class="small">Anno</span>
@@ -323,165 +320,36 @@
     </div>
   </section>
 
-  <section class="block" id="carceri" aria-labelledby="carceri-title">
+  <!-- Carceri, rimpatri e percezione hanno ognuno la sua pagina in approfondimenti/: qui solo le tre schede, con una cifra che scrive vc.js. -->
+  <section class="block" id="approfondimenti" aria-labelledby="dd-band-title">
     <div class="wrap">
       <header>
-        <div class="kicker">Chi è in carcere</div>
-        <h2 id="carceri-title">Gli stranieri nelle carceri italiane</h2>
-        <p class="dek" id="carceri-dek">Un altro dato ufficiale, un'altra popolazione: non le denunce ma le persone detenute negli istituti penitenziari, contate dal Ministero della Giustizia alla fine di ogni anno.</p>
+        <div class="kicker">Approfondimenti</div>
+        <h2 id="dd-band-title">Oltre le denunce</h2>
+        <p class="dek">Tre domande che i reati denunciati, da soli, non bastano a chiarire: chi c’è in carcere, quanti rimpatri vengono davvero eseguiti, quanto la paura segue i reati. Ognuna ha la sua pagina. <a href="approfondimenti/">Tutti gli approfondimenti</a>.</p>
       </header>
-      <div class="facts" id="carceri-facts"></div>
-      <div class="carceri-grid">
-        <div>
-          <div class="chart-head">
-            <div>
-              <p class="chart-title">Detenuti stranieri per paese di cittadinanza</p>
-              <p class="chart-sub" id="tree-sub"></p>
-            </div>
-            <div class="seg" id="tree-year-seg" role="group" aria-label="Anno della treemap"></div>
-          </div>
-          <div class="treemap" id="treemap"></div>
-          <details class="full"><summary>Tabella: detenuti stranieri per cittadinanza, tutti gli anni</summary><div class="tablewrap"><table id="tree-table"></table></div></details>
-        </div>
-        <div>
-          <p class="chart-title">Quota di stranieri tra i detenuti, 2010–2025</p>
-          <p class="chart-sub">Ogni 100 detenuti presenti a fine anno</p>
-          <div class="chart" id="carceri-trend"></div>
-          <p class="chart-title" style="margin-top:22px">Regione per regione</p>
-          <p class="chart-sub" id="carceri-reg-sub"></p>
-          <div class="rank regions"><ol id="carceri-regions"></ol></div>
-        </div>
-      </div>
-      <div class="carceri-grid two-even">
-        <div>
-          <p class="chart-title">Per quali reati: italiani e stranieri a confronto</p>
-          <p class="chart-sub">Detenuti con almeno un reato di questo tipo ogni 100 detenuti dello stesso gruppo. Una persona può avere più reati, quindi le percentuali non si sommano.</p>
-          <div class="chart" id="carceri-offences"></div>
-        </div>
-        <div>
-          <p class="chart-title">Età e posizione giuridica</p>
-          <p class="chart-sub">Detenuti per classe di età, ogni 100 del proprio gruppo</p>
-          <div class="chart" id="carceri-age"></div>
-          <p class="note" id="carceri-legal"></p>
-        </div>
-      </div>
-      <div class="method carceri-notes">
-        <h3>Perché il rapporto grezzo non misura la propensione a delinquere</h3>
-        <p id="carceri-note-1"></p>
-        <h3>Cosa contano questi numeri</h3>
-        <p>Sono le persone presenti in carcere a fine anno (uno stock), non gli ingressi dell'anno né le condanne. Chi sconta pene lunghe pesa di più. I reati sono quelli ascritti, anche in attesa di giudizio: una persona può averne più d'uno.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="rimpatri" aria-labelledby="rimpatri-title">
-    <div class="wrap">
-      <header>
-        <div class="kicker">Rimpatri</div>
-        <h2 id="rimpatri-title">Quante persone l'Italia rimpatria, e verso dove</h2>
-        <p class="dek" id="rimpatri-dek">Ogni anno l'Italia ordina a decine di migliaia di cittadini di paesi fuori dall'Unione europea di lasciare il territorio. Solo una parte viene davvero rimpatriata. I dati europei dicono quante persone partono e di quale paese sono cittadine, non da quale città o centro di permanenza partono.</p>
-      </header>
-      <div class="facts" id="rimpatri-facts"></div>
-      <div class="carceri-grid two-even">
-        <div>
-          <p class="chart-title">Ordini di lasciare l'Italia e rimpatri, <span id="rimp-span"></span></p>
-          <p class="chart-sub">Persone ogni anno</p>
-          <div class="chart" id="rimp-trend"></div>
-        </div>
-        <div>
-          <p class="chart-title">Rimpatri ogni 100 ordini, per cittadinanza</p>
-          <p class="chart-sub" id="rimp-ratio-sub"></p>
-          <div class="rank regions rimp"><ol id="rimp-ratio"></ol></div>
-        </div>
-      </div>
-      <div class="rimp-mapblock">
-        <div class="chart-head">
-          <div>
-            <p class="chart-title">Dall'Italia verso il paese di cittadinanza</p>
-            <p class="chart-sub" id="rimp-map-sub"></p>
-          </div>
-          <label class="yearpick"><span class="small">Anno</span> <input type="range" id="rimp-year" step="1"> <output id="rimp-year-out" for="rimp-year"></output></label>
-        </div>
-        <div class="flowmap" id="rimp-map"></div>
-        <div class="legend" id="rimp-legend"></div>
-      </div>
-      <h3 class="subhead">Paese per paese</h3>
-      <p class="chart-sub" id="rimp-sm-sub"></p>
-      <div class="sm-grid rimp-sm" id="rimp-sm"></div>
-      <details class="full"><summary>Tabella: rimpatri e ordini per cittadinanza, tutti gli anni</summary><div class="tablewrap"><table id="rimp-table"></table></div></details>
-      <div class="method carceri-notes">
-        <h3>Cosa contano questi numeri</h3>
-        <p>Sono cittadini di paesi non UE che hanno lasciato l'Italia dopo un ordine di allontanamento, con un rimpatrio forzato o volontario, contati da Eurostat su dati del Ministero dell'Interno. Non comprendono i respingimenti alla frontiera né chi lascia l'Italia senza che nessuno lo registri. Possono non coincidere con le cifre sui rimpatri diffuse dal Viminale, che usa conteggi propri. Eurostat arrotonda ogni valore a 5: la somma dei paesi può differire di poco dal totale.</p>
-        <h3>Da dove, verso dove</h3>
-        <p>Eurostat registra la cittadinanza delle persone rimpatriate, non il paese in cui atterrano. Quasi sempre coincidono, ma per l'Italia il dettaglio sulla destinazione effettiva non è pubblicato. Sulla carta ogni linea parte dall'Italia nel suo insieme: i dati non dicono da quale città, aeroporto o centro di permanenza per il rimpatrio sia partita ciascuna persona.</p>
-        <h3>Ordini e rimpatri non sono le stesse persone</h3>
-        <p id="rimp-note-ratio">Il rapporto tra rimpatri e ordini dello stesso periodo è un'approssimazione: chi viene rimpatriato in un anno può aver ricevuto l'ordine in un anno precedente, e la stessa persona può ricevere più ordini. Sul rapporto pesano, tra l'altro, gli accordi di riammissione con i singoli paesi e la disponibilità di voli e di posti nei centri di trattenimento.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="percezione" aria-labelledby="perc-title">
-    <div class="wrap">
-      <header>
-        <div class="kicker">Percezione e realtà</div>
-        <h2 id="perc-title">Quanto ci sentiamo in pericolo, e quanto lo siamo</h2>
-        <p class="dek" id="perc-dek"></p>
-      </header>
-      <div class="perc-grid">
-        <div>
-          <p class="chart-title">Grandi città nel 2024: reati denunciati e rischio percepito</p>
-          <p class="chart-sub">Asse orizzontale: delitti ogni 100.000 abitanti. Asse verticale: famiglie che giudicano molto o abbastanza a rischio la propria zona.</p>
-          <div class="chart" id="perc-scatter"></div>
-          <p class="note" id="perc-note"></p>
-        </div>
-        <div>
-          <p class="chart-title">Delitti denunciati ogni 100.000 abitanti, Italia</p>
-          <div class="chart" id="perc-crime"></div>
-          <p class="chart-title" style="margin-top:18px">Famiglie che segnalano criminalità o vandalismo nella zona in cui vivono, %</p>
-          <p class="chart-sub">Indagine europea EU-SILC. La domanda è diversa da quella sul rischio percepito usata a sinistra e nell’apertura, per questo i livelli non coincidono.</p>
-          <div class="chart" id="perc-silc"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Domande frequenti, in fondo: una riga per domanda, la risposta si apre al tocco. Le scrive vc.js (renderBrief). -->
-  <section class="block" id="domande" aria-labelledby="faq-title">
-    <div class="wrap">
-      <header>
-        <div class="kicker">Domande frequenti</div>
-        <h2 id="faq-title">Le domande che tutti si fanno</h2>
-        <p class="dek">Le risposte in poche righe, con gli stessi dati ufficiali dei grafici di questa pagina. Tocca una domanda per leggere la risposta: ognuna porta alla sezione che la spiega.</p>
-      </header>
-      <div class="faq" id="brief"></div>
-    </div>
-  </section>
-
-  <section class="block" id="metodo" aria-labelledby="method-title">
-    <div class="wrap">
-      <header>
-        <div class="kicker">Metodo e fonti</div>
-        <h2 id="method-title">Come leggere questi numeri</h2>
-      </header>
-      <div class="method">
-        <h3>Sono denunce, non tutti i reati commessi</h3>
-        <p>I dati contano i delitti che le forze di polizia hanno comunicato all’autorità giudiziaria. Molti reati non vengono mai denunciati, e la propensione a denunciare cambia da reato a reato e da luogo a luogo: un furto d’auto si denuncia quasi sempre per l’assicurazione, una violenza in famiglia molto meno. Un aumento delle denunce può voler dire più reati, ma anche più fiducia o più facilità nel denunciare.</p>
-        <h3>Il tasso si calcola sui residenti</h3>
-        <p>Il tasso è il numero di delitti ogni 100.000 abitanti residenti, calcolato sulla popolazione media dell’anno, come fa l’ISTAT. Nelle città che ogni giorno accolgono pendolari, studenti e turisti, come Milano, Firenze, Bologna, Rimini o Venezia, i reati colpiscono anche chi non vi risiede, quindi il tasso risulta più alto della probabilità reale di essere vittima per chi ci vive.</p>
-        <h3>Comune, non provincia</h3>
-        <p>Ogni città qui è il territorio del comune capoluogo, non la provincia. Monza, Fermo, Andria, Barletta e Trani hanno dati dal 2011, quando sono nate le loro province.</p>
-        <h3>Se il tuo comune non è un capoluogo</h3>
-        <p>L’ISTAT pubblica i delitti denunciati comune per comune solo per i capoluoghi. Per tutti gli altri comuni la scheda mostra i tassi ufficiali della provincia in cui si trovano: un territorio che comprende il comune cercato ma anche il capoluogo, dove di solito si denuncia di più. L’elenco dei comuni è quello ufficiale dell’ISTAT. In Sardegna l’ISTAT conta i reati secondo le quattro province storiche (Sassari, Nuoro, Cagliari, Oristano): ogni comune sardo è attribuito alla provincia in cui si trovava tra il 1995 e il 2005, secondo i codici dell’elenco ufficiale ISTAT dei comuni.</p>
-        <h3>Quartiere per quartiere: un prototipo</h3>
-        <p>La scheda di Milano ha una sezione sui suoi 88 quartieri (i Nuclei di identità locale del Piano di governo del territorio), con confini, residenti, densità, stranieri, età, pendolari ed edifici degradati pubblicati dal Comune. I reati per quartiere, invece, non esistono in nessuna fonte ufficiale: ISTAT e Ministero dell’Interno si fermano al comune. La sezione è pronta ad accoglierli il giorno in cui Prefettura, Questura o Comune li pubblicheranno.</p>
-        <h3>Come si riconosce un’impennata</h3>
-        <p>Per ogni città, reato e anno confrontiamo il tasso con quello dei tre anni precedenti, saltando il 2020 e il 2021. Segniamo un’impennata quando l’aumento è di almeno il 25%, gli episodi sono almeno 20 e la differenza è almeno tre volte più grande dell’oscillazione che ci si aspetterebbe per caso con quel numero di episodi (test sul rapporto tra tassi, z ≥ 3). I cali netti seguono la stessa regola al contrario. Nelle mappe e nelle variazioni, una differenza che non supera la soglia statistica (z sotto 2) è mostrata in grigio.</p>
-        <p>Due conseguenze da tenere a mente. Una crescita costante, come quella delle truffe informatiche, produce un’impennata quasi ogni anno: il conteggio delle impennate di un anno include quindi anche tendenze lunghe. E con la soglia dei 20 episodi, i reati rari come omicidi o usura possono risultare in impennata solo nelle città più grandi.</p>
-        <h3>Anni da leggere con cautela</h3>
-        <p>Nel 2020 i lockdown hanno fatto crollare quasi tutti i reati di strada. Dal 2016 l’ingiuria non è più reato, e questo abbassa un po’ il totale dei delitti. I reati rari, come gli omicidi, vanno letti su più anni: per questo nelle classifiche usiamo la media 2022–2024.</p>
-        <h3>Fonti</h3>
-        <ul class="sources" id="sources"></ul>
-        <p style="margin-top:16px">Dati scaricati dall’API SDMX di <a href="https://esploradati.istat.it/" rel="noopener">esploradati.istat.it</a>. Il dataset si ricostruisce con <code>python3 scripts/build_data.py</code>; i comuni e le province con <code>python3 scripts/build_comuni.py</code>. I rimpatri sono l’unico dato non ISTAT: vengono dall’API di <a href="https://ec.europa.eu/eurostat/web/migration-asylum/managed-migration/database" rel="noopener">Eurostat</a> e si ricostruiscono con <code>python3 scripts/build_rimpatri.py</code>.</p>
+      <div class="dd-cards">
+        <a class="dd-card" href="approfondimenti/carceri.html" data-dd="carceri">
+          <span class="kicker">Carceri</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Gli stranieri nelle carceri italiane</h3>
+          <p>Quanti sono, da quali paesi, per quali reati, e perché il confronto con i residenti va letto con cautela.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/rimpatri.html" data-dd="rimpatri">
+          <span class="kicker">Rimpatri</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Quanti rimpatri vengono ordinati, quanti eseguiti</h3>
+          <p>Paese per paese, gli ordini di lasciare l’Italia e i rimpatri davvero eseguiti, anno per anno dal 2008.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="approfondimenti/percezione.html" data-dd="percezione">
+          <span class="kicker">Percezione e realtà</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Quanto ci sentiamo in pericolo, e quanto lo siamo</h3>
+          <p>La paura della criminalità accanto ai reati denunciati: in Italia, nelle grandi città e provincia per provincia.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
       </div>
     </div>
   </section>
@@ -490,7 +358,7 @@
 <footer class="colophon">
   <div class="wrap">
     <div class="credit">
-      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a>.</p>
+      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a> · <a href="progetto/">Il progetto, metodologia e fonti</a></p>
       <div class="cta">
         <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
           <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
@@ -527,6 +395,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=42"></script>
+<script src="vc.js?v=45"></script>
 </body>
 </html>

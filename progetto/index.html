@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Il progetto · Atlante della sicurezza</title>
+<meta name="description" content="Perché esiste l’Atlante della sicurezza, chi lo ha fatto, le domande frequenti e come leggere i suoi numeri: metodologia e fonti ufficiali, ISTAT ed Eurostat.">
+<link rel="icon" href="../favicon.ico" sizes="32x32">
+<link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<meta name="theme-color" content="#f3f4f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1110" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atlante della sicurezza">
+<meta property="og:title" content="Il progetto · Atlante della sicurezza">
+<meta property="og:description" content="Perché esiste l’Atlante della sicurezza, chi lo ha fatto, le domande frequenti e come leggere i suoi numeri: metodologia e fonti ufficiali, ISTAT ed Eurostat.">
+<meta property="og:url" content="https://atlantedellasicurezza.it/progetto/">
+<meta property="og:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=2">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atlante della sicurezza. In Italia si denunciano meno reati di quindici anni fa, ma non ovunque e non tutti. Mappa dei 108 capoluoghi con una guglia per città: l’altezza è il tasso di denunce, rosso in aumento, blu in calo.">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="../vc.css?v=46">
+<style>
+  /* solo in questa pagina: l'indice in cima e la riga dei link dell'autore */
+  .toc { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 18px 0; font-size: var(--step--1); font-weight: 600; }
+  .toc span { color: var(--muted); font-weight: 500; }
+  .toc a { color: var(--ink-2); text-decoration: none; border-bottom: 2px solid var(--rule); }
+  .toc a:hover, .toc a:focus-visible { color: var(--ink); border-bottom-color: var(--gold); }
+  .about .bio { font-family: var(--font-body); font-size: var(--step-1); color: var(--ink-2); max-width: var(--measure); margin: 0 0 22px; }
+  .about .bio + .bio { font-size: var(--step-0); }
+  .cta .web svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
+  .cta .web:hover, .cta .web:focus-visible { background: var(--bg); }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1 class="wordmark"><a href="../" aria-label="Atlante della sicurezza: torna alla pagina principale"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></a></h1>
+    <nav class="menu" aria-label="Sezioni dell'atlante">
+      <ul>
+        <li><a href="../#mappa">Mappa</a></li>
+        <li><a href="../#mix">Reati</a></li>
+        <li><a href="../#impennate">Impennate</a></li>
+        <li><a href="../#citta">Città</a></li>
+        <li><a href="../approfondimenti/">Approfondimenti</a></li>
+        <li><a href="./" aria-current="page">Il progetto</a></li>
+      </ul>
+    </nav>
+    <div class="cta bar-cta">
+      <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+        <span>Offrimi un caffè</span>
+      </a>
+      <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+    </div>
+    <!-- La lente apre la ricerca del comune al posto delle voci; sul telefono le voci diventano il menu a tendina. -->
+    <div class="bar-tools">
+      <select id="section-select" aria-label="Vai a una sezione dell'atlante"></select>
+      <div class="control control-search">
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca un comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+      </div>
+      <button type="button" class="bar-find" id="bar-find" aria-label="Cerca un comune" aria-expanded="false" aria-controls="city-combo">
+        <svg class="i-find" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="i-close" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <nav class="wrap toc" aria-label="In questa pagina">
+    <span>In questa pagina</span>
+    <a href="#progetto">Sul progetto</a>
+    <a href="#autore">Sull’autore</a>
+    <a href="#domande">Domande frequenti</a>
+    <a href="#metodo">Metodologia e fonti</a>
+  </nav>
+
+  <section class="block" id="progetto" aria-labelledby="project-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Sul progetto</div>
+        <h2 id="project-title">Perché un atlante della sicurezza</h2>
+        <p class="dek">Ogni anno escono le classifiche delle città «più pericolose» d’Italia, e ogni anno diventano un titolo. L’atlante prova a fare il passo successivo: prendere gli stessi dati ufficiali e guardarli da vicino, città per città e reato per reato, perché ciascuno possa vedere da sé com’è andata dove vive.</p>
+      </header>
+      <div class="method">
+        <h3>Solo dati ufficiali</h3>
+        <p>Tutti i numeri vengono da fonti pubbliche: l’ISTAT per i reati denunciati, la popolazione, la percezione del rischio e le carceri, Eurostat per i rimpatri, il Comune di Milano per i quartieri. Niente stime e niente modelli: dove un dato non esiste, come i reati quartiere per quartiere, l’atlante lo dice invece di inventarlo.</p>
+        <h3>I numeri con i loro limiti</h3>
+        <p>Una denuncia non è un reato commesso, e un tasso calcolato sui residenti pesa di più dove arrivano ogni giorno pendolari e turisti. I grafici lo ricordano accanto ai numeri, e una variazione che potrebbe essere dovuta al caso resta grigia: né rossa né blu.</p>
+        <h3>Quello che si denuncia e quello che si teme</h3>
+        <p>Accanto alle denunce c’è quanto le persone si sentono in pericolo nella zona in cui vivono. Le due cose non vanno sempre insieme, e guardarle vicine aiuta a leggere il dibattito sulla sicurezza.</p>
+        <h3>Ogni comune, non solo i capoluoghi</h3>
+        <p>Basta cercare il proprio comune per aprirne la scheda: per i 108 capoluoghi con i dati del comune, per tutti gli altri con quelli ufficiali della provincia, e la scheda lo dice subito.</p>
+        <h3>Aperto e rifacibile</h3>
+        <p>Il codice della pagina e gli script che scaricano e ricostruiscono i dati sono pubblici <a href="https://github.com/JacopoOttaviani/atlante-della-sicurezza" target="_blank" rel="noopener noreferrer">su GitHub</a>: chiunque può controllare i conti, rifarli e segnalare un errore.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block about" id="autore" aria-labelledby="author-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Sull’autore</div>
+        <h2 id="author-title">Jacopo Ottaviani</h2>
+      </header>
+      <p class="bio">Data journalist con un’anima da informatico. È Chief Data Officer di Code for Africa, la più grande rete africana di laboratori di civic tech e di giornalismo dei dati, e da oltre dieci anni unisce algoritmi e reportage sul campo per raccontare migrazioni, ambiente e le persone dietro i numeri.</p>
+      <p class="bio">I suoi progetti sono stati pubblicati da Der Spiegel, El País, The Guardian, Daily Maverick e Internazionale; con The Migrants’ Files ha vinto il Data Journalism Award nel 2014, con Map Makoko il Sigma Award nel 2021. È ICFJ Knight Fellow e forma giornalisti e comunicatori in tutto il mondo.</p>
+      <div class="cta">
+        <a class="web" href="https://jacopoottaviani.com/it/" target="_blank" rel="noopener noreferrer" aria-label="Il sito di Jacopo Ottaviani (si apre in una nuova scheda)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3c-2.5 2.6-3.8 5.6-3.8 9s1.3 6.4 3.8 9"/></svg>
+          <span>jacopoottaviani.com</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè su Ko-fi (si apre in una nuova scheda)" title="Sostieni questo progetto">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Offrimi un caffè</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Domande frequenti: una riga per domanda, la risposta si apre al tocco. Le scrive vc.js (renderBrief). -->
+  <section class="block" id="domande" aria-labelledby="faq-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Domande frequenti</div>
+        <h2 id="faq-title">Le domande che tutti si fanno</h2>
+        <p class="dek">Le risposte in poche righe, con gli stessi dati ufficiali dei grafici dell’atlante. Tocca una domanda per leggere la risposta: ognuna porta alla sezione che la spiega.</p>
+      </header>
+      <div class="faq" id="brief"></div>
+    </div>
+  </section>
+
+  <section class="block" id="metodo" aria-labelledby="method-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Metodologia e fonti</div>
+        <h2 id="method-title">Come leggere questi numeri</h2>
+      </header>
+      <div class="method">
+        <h3>Sono denunce, non tutti i reati commessi</h3>
+        <p>I dati contano i delitti che le forze di polizia hanno comunicato all’autorità giudiziaria. Molti reati non vengono mai denunciati, e la propensione a denunciare cambia da reato a reato e da luogo a luogo: un furto d’auto si denuncia quasi sempre per l’assicurazione, una violenza in famiglia molto meno. Un aumento delle denunce può voler dire più reati, ma anche più fiducia o più facilità nel denunciare.</p>
+        <h3>Il tasso si calcola sui residenti</h3>
+        <p>Il tasso è il numero di delitti ogni 100.000 abitanti residenti, calcolato sulla popolazione media dell’anno, come fa l’ISTAT. Nelle città che ogni giorno accolgono pendolari, studenti e turisti, come Milano, Firenze, Bologna, Rimini o Venezia, i reati colpiscono anche chi non vi risiede, quindi il tasso risulta più alto della probabilità reale di essere vittima per chi ci vive.</p>
+        <h3>Comune, non provincia</h3>
+        <p>Ogni città qui è il territorio del comune capoluogo, non la provincia. Monza, Fermo, Andria, Barletta e Trani hanno dati dal 2011, quando sono nate le loro province.</p>
+        <h3>Se il tuo comune non è un capoluogo</h3>
+        <p>L’ISTAT pubblica i delitti denunciati comune per comune solo per i capoluoghi. Per tutti gli altri comuni la scheda mostra i tassi ufficiali della provincia in cui si trovano: un territorio che comprende il comune cercato ma anche il capoluogo, dove di solito si denuncia di più. L’elenco dei comuni è quello ufficiale dell’ISTAT. In Sardegna l’ISTAT conta i reati secondo le quattro province storiche (Sassari, Nuoro, Cagliari, Oristano): ogni comune sardo è attribuito alla provincia in cui si trovava tra il 1995 e il 2005, secondo i codici dell’elenco ufficiale ISTAT dei comuni.</p>
+        <h3>Quartiere per quartiere: un prototipo</h3>
+        <p>La scheda di Milano ha una sezione sui suoi 88 quartieri (i Nuclei di identità locale del Piano di governo del territorio), con confini, residenti, densità, stranieri, età, pendolari ed edifici degradati pubblicati dal Comune. I reati per quartiere, invece, non esistono in nessuna fonte ufficiale: ISTAT e Ministero dell’Interno si fermano al comune. La sezione è pronta ad accoglierli il giorno in cui Prefettura, Questura o Comune li pubblicheranno.</p>
+        <h3>Come si riconosce un’impennata</h3>
+        <p>Per ogni città, reato e anno confrontiamo il tasso con quello dei tre anni precedenti, saltando il 2020 e il 2021. Segniamo un’impennata quando l’aumento è di almeno il 25%, gli episodi sono almeno 20 e la differenza è almeno tre volte più grande dell’oscillazione che ci si aspetterebbe per caso con quel numero di episodi (test sul rapporto tra tassi, z ≥ 3). I cali netti seguono la stessa regola al contrario. Nelle mappe e nelle variazioni, una differenza che non supera la soglia statistica (z sotto 2) è mostrata in grigio.</p>
+        <p>Due conseguenze da tenere a mente. Una crescita costante, come quella delle truffe informatiche, produce un’impennata quasi ogni anno: il conteggio delle impennate di un anno include quindi anche tendenze lunghe. E con la soglia dei 20 episodi, i reati rari come omicidi o usura possono risultare in impennata solo nelle città più grandi.</p>
+        <h3>Anni da leggere con cautela</h3>
+        <p>Nel 2020 i lockdown hanno fatto crollare quasi tutti i reati di strada. Dal 2016 l’ingiuria non è più reato, e questo abbassa un po’ il totale dei delitti. I reati rari, come gli omicidi, vanno letti su più anni: per questo nelle classifiche usiamo la media 2022–2024.</p>
+        <h3>Fonti</h3>
+        <ul class="sources" id="sources"></ul>
+        <p style="margin-top:16px">Dati scaricati dall’API SDMX di <a href="https://esploradati.istat.it/" rel="noopener">esploradati.istat.it</a>. Il dataset si ricostruisce con <code>python3 scripts/build_data.py</code>; i comuni e le province con <code>python3 scripts/build_comuni.py</code>. I rimpatri sono l’unico dato non ISTAT: vengono dall’API di <a href="https://ec.europa.eu/eurostat/web/migration-asylum/managed-migration/database" rel="noopener">Eurostat</a> e si ricostruiscono con <code>python3 scripts/build_rimpatri.py</code>.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="credit">
+      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a>.</p>
+      <div class="cta">
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Offrimi un caffè</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+      </div>
+      <div id="colophon">Atlante della sicurezza · dati ISTAT</div>
+    </div>
+    <nav class="source-logos" aria-label="Fonti dei dati">
+      <span class="lbl">Fonti dei dati</span>
+      <a class="logo logo-istat" href="https://www.istat.it/" rel="noopener" aria-label="ISTAT, Istituto nazionale di statistica"></a>
+      <a class="logo logo-eurostat" href="https://ec.europa.eu/eurostat" rel="noopener" aria-label="Eurostat"></a>
+      <a class="logo logo-openpolis" href="https://www.openpolis.it/" rel="noopener" aria-label="Fondazione openpolis"></a>
+    </nav>
+  </div>
+</footer>
+
+<dialog class="cityd" id="city-dialog" aria-labelledby="city-name">
+  <div class="top">
+    <div>
+      <div class="kicker" id="city-kicker"></div>
+      <h2 id="city-name"></h2>
+    </div>
+    <button type="button" class="btn close" id="city-close">Chiudi</button>
+  </div>
+  <div class="body" id="city-body"></div>
+</dialog>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="../vc.js?v=45"></script>
+</body>
+</html>

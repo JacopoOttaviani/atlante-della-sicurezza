@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rimpatri: quanti vengono ordinati, quanti eseguiti · Atlante della sicurezza</title>
+<meta name="description" content="Quanti cittadini di paesi non UE l’Italia ordina di rimpatriare e quanti rimpatria davvero, paese per paese dal 2008: dati Eurostat su fonte del Ministero dell’Interno.">
+<link rel="icon" href="../favicon.ico" sizes="32x32">
+<link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<meta name="theme-color" content="#f3f4f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1110" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Atlante della sicurezza">
+<meta property="og:title" content="Rimpatri: quanti vengono ordinati, quanti eseguiti · Atlante della sicurezza">
+<meta property="og:description" content="Quanti cittadini di paesi non UE l’Italia ordina di rimpatriare e quanti rimpatria davvero, paese per paese dal 2008: dati Eurostat su fonte del Ministero dell’Interno.">
+<meta property="og:url" content="https://atlantedellasicurezza.it/approfondimenti/rimpatri.html">
+<meta property="og:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=2">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atlante della sicurezza. In Italia si denunciano meno reati di quindici anni fa, ma non ovunque e non tutti. Mappa dei 108 capoluoghi con una guglia per città: l’altezza è il tasso di denunce, rosso in aumento, blu in calo.">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rimpatri: quanti vengono ordinati, quanti eseguiti · Atlante della sicurezza">
+<meta name="twitter:description" content="Quanti cittadini di paesi non UE l’Italia ordina di rimpatriare e quanti rimpatria davvero, paese per paese dal 2008: dati Eurostat su fonte del Ministero dell’Interno.">
+<meta name="twitter:image" content="https://atlantedellasicurezza.it/img/og-image.jpg?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="../vc.css?v=46">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <p class="wordmark"><a href="../" aria-label="Atlante della sicurezza: torna alla pagina principale"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">sicurezza</span></a></p>
+    <nav class="menu" aria-label="Sezioni dell'atlante">
+      <ul>
+        <li><a href="../#mappa">Mappa</a></li>
+        <li><a href="../#mix">Reati</a></li>
+        <li><a href="../#impennate">Impennate</a></li>
+        <li><a href="../#citta">Città</a></li>
+        <li><a href="./" aria-current="page">Approfondimenti</a></li>
+        <li><a href="../progetto/">Il progetto</a></li>
+      </ul>
+    </nav>
+    <div class="cta bar-cta">
+      <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+        <span>Offrimi un caffè</span>
+      </a>
+      <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+    </div>
+    <!-- La lente apre la ricerca del comune al posto delle voci; sul telefono le voci diventano il menu a tendina. -->
+    <div class="bar-tools">
+      <select id="section-select" aria-label="Vai a una sezione dell'atlante"></select>
+      <div class="control control-search">
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca un comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+      </div>
+      <button type="button" class="bar-find" id="bar-find" aria-label="Cerca un comune" aria-expanded="false" aria-controls="city-combo">
+        <svg class="i-find" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="i-close" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <section class="dd-head" aria-labelledby="dd-title">
+    <div class="wrap">
+      <p class="dd-crumb"><a href="./">Approfondimenti</a> · Rimpatri</p>
+      <h1 id="dd-title">Rimpatri: quanti vengono ordinati, quanti eseguiti</h1>
+      <p class="dek">Ogni anno l’Italia ordina a decine di migliaia di cittadini di paesi fuori dall’Unione europea di lasciare il territorio. Solo una parte viene davvero rimpatriata, e quanta dipende molto dal paese di cittadinanza. Dati Eurostat, su fonte del Ministero dell’Interno.</p>
+      <nav class="dd-nav" aria-label="Gli approfondimenti"><a href="carceri.html">Carceri</a><a href="rimpatri.html" aria-current="page">Rimpatri</a><a href="percezione.html">Percezione e realtà</a></nav>
+    </div>
+  </section>
+
+  <section class="block" id="quanti" aria-labelledby="rimpatri-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">L’Italia</div>
+        <h2 id="rimpatri-title">Ordini di lasciare l’Italia e rimpatri</h2>
+      </header>
+      <div class="facts" id="rimpatri-facts"></div>
+      <p class="chart-title">Ordini di lasciare l’Italia e rimpatri, <span id="rimp-span"></span></p>
+      <p class="chart-sub">Persone ogni anno. L’ombra è la distanza tra ordini e rimpatri.</p>
+      <div class="chart" id="rimp-trend"></div>
+    </div>
+  </section>
+
+  <section class="block" id="paesi" aria-labelledby="rc-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Paese per paese</div>
+        <h2 id="rc-title">Quanti ordini diventano rimpatri, per cittadinanza</h2>
+        <p class="dek">Per ogni paese la barra chiara sono gli ordini di lasciare l’Italia, quella piena i rimpatri eseguiti, sulla stessa scala. Periodo e ordine valgono solo per questo grafico.</p>
+      </header>
+      <div class="chips" role="group" aria-label="Periodo e ordine del grafico">
+        <span class="small">Periodo</span>
+        <div class="seg" id="rc-period-seg"></div>
+        <span class="small">Ordina</span>
+        <div class="seg" id="rc-sort-seg">
+          <button type="button" data-rcsort="o" aria-pressed="true">Più ordini</button>
+          <button type="button" data-rcsort="r" aria-pressed="false">Più rimpatri</button>
+          <button type="button" data-rcsort="k" aria-pressed="false">Rimpatri ogni 100 ordini</button>
+        </div>
+      </div>
+      <p class="chart-sub" id="rc-sub"></p>
+      <div class="rc-key" aria-hidden="true"><span><i class="k-o"></i>ordini di lasciare l’Italia</span><span><i class="k-r"></i>rimpatri eseguiti</span></div>
+      <ol class="rc-list" id="rimp-countries"></ol>
+      <div class="more"><button type="button" class="btn" id="rc-more">Mostra tutti i paesi</button></div>
+      <p class="note" id="rc-note"></p>
+      <details class="full"><summary>Tabella: ordini e rimpatri per cittadinanza, anno per anno</summary><div class="tablewrap"><table id="rimp-table" class="rc-table"></table></div></details>
+    </div>
+  </section>
+
+  <section class="block" id="nel-tempo" aria-labelledby="rsm-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Nel tempo</div>
+        <h2 id="rsm-title">Paese per paese, anno per anno</h2>
+      </header>
+      <p class="chart-sub" id="rimp-sm-sub"></p>
+      <div class="rc-key" aria-hidden="true"><span><i class="k-ol"></i>ordini di lasciare l’Italia</span><span><i class="k-rl"></i>rimpatri</span></div>
+      <div class="sm-grid rimp-sm" id="rimp-sm"></div>
+    </div>
+  </section>
+
+  <section class="block" id="carta" aria-labelledby="map-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">La carta</div>
+        <h2 id="map-title">Dall’Italia verso il paese di cittadinanza</h2>
+      </header>
+      <div class="rimp-mapblock">
+        <div class="chart-head">
+          <div>
+            <p class="chart-sub" id="rimp-map-sub"></p>
+          </div>
+          <label class="yearpick"><span class="small">Anno</span> <input type="range" id="rimp-year" step="1"> <output id="rimp-year-out" for="rimp-year"></output></label>
+        </div>
+        <div class="flowmap" id="rimp-map"></div>
+        <div class="legend" id="rimp-legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="note" aria-labelledby="notes-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Metodo e fonti</div>
+        <h2 id="notes-title">Come leggere questi numeri</h2>
+      </header>
+      <div class="method">
+        <h3>Cosa contano questi numeri</h3>
+        <p>Sono cittadini di paesi non UE a cui l’Italia ha ordinato di lasciare il territorio (gli ordini) e quelli che lo hanno lasciato dopo un ordine, con un rimpatrio forzato o volontario (i rimpatri), contati da Eurostat su dati del Ministero dell’Interno. Non comprendono i respingimenti alla frontiera né chi lascia l’Italia senza che nessuno lo registri. Possono non coincidere con le cifre sui rimpatri diffuse dal Viminale, che usa conteggi propri. Eurostat arrotonda ogni valore a 5: la somma dei paesi può differire di poco dal totale.</p>
+        <h3>Ordini e rimpatri non sono le stesse persone</h3>
+        <p>Il rapporto tra rimpatri e ordini dello stesso periodo è un’approssimazione: chi viene rimpatriato in un anno può aver ricevuto l’ordine in un anno precedente, e la stessa persona può ricevere più ordini. Per questo un paese può avere, in un anno, più rimpatri che ordini. Sul rapporto pesano, tra l’altro, gli accordi di riammissione con i singoli paesi e la disponibilità di voli e di posti nei centri di trattenimento.</p>
+        <h3>Perché il rapporto solo con abbastanza ordini</h3>
+        <p>Quando gli ordini sono pochi, bastano poche persone per spostare il rapporto di molti punti. La classifica per rimpatri ogni 100 ordini considera quindi solo i paesi con almeno 250 ordini per ogni anno del periodo scelto; negli altri ordinamenti il rapporto dei paesi sotto la soglia è in grigio.</p>
+        <h3>Da dove, verso dove</h3>
+        <p>Eurostat registra la cittadinanza delle persone rimpatriate, non il paese in cui atterrano. Quasi sempre coincidono, ma per l’Italia il dettaglio sulla destinazione effettiva non è pubblicato. Sulla carta ogni linea parte dall’Italia nel suo insieme: i dati non dicono da quale città, aeroporto o centro di permanenza per il rimpatrio sia partita ciascuna persona.</p>
+        <h3>Fonti</h3>
+        <ul class="sources" id="sources" data-only="rimpatri"></ul>
+        <p>I dati si ricostruiscono con <code>python3 scripts/build_rimpatri.py</code>. Per il metodo di tutto l’atlante: <a href="../progetto/#metodo">Metodologia e fonti</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block dd-more" aria-labelledby="more-title">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Approfondimenti</div>
+        <h2 id="more-title">Gli altri approfondimenti</h2>
+      </header>
+      <div class="dd-cards two">
+        <a class="dd-card" href="carceri.html" data-dd="carceri">
+          <span class="kicker">Carceri</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Gli stranieri nelle carceri italiane</h3>
+          <p>Quanti sono, da quali paesi, per quali reati, e perché il confronto con i residenti va letto con cautela.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="dd-card" href="percezione.html" data-dd="percezione">
+          <span class="kicker">Percezione e realtà</span>
+          <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
+          <h3>Quanto ci sentiamo in pericolo, e quanto lo siamo</h3>
+          <p>La paura della criminalità accanto ai reati denunciati: in Italia, nelle grandi città e provincia per provincia.</p>
+          <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="credit">
+      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a>.</p>
+      <div class="cta">
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Offrimi un caffè</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+      </div>
+      <div id="colophon">Atlante della sicurezza · dati ISTAT</div>
+    </div>
+    <nav class="source-logos" aria-label="Fonti dei dati">
+      <span class="lbl">Fonti dei dati</span>
+      <a class="logo logo-istat" href="https://www.istat.it/" rel="noopener" aria-label="ISTAT, Istituto nazionale di statistica"></a>
+      <a class="logo logo-eurostat" href="https://ec.europa.eu/eurostat" rel="noopener" aria-label="Eurostat"></a>
+      <a class="logo logo-openpolis" href="https://www.openpolis.it/" rel="noopener" aria-label="Fondazione openpolis"></a>
+    </nav>
+  </div>
+</footer>
+
+<dialog class="cityd" id="city-dialog" aria-labelledby="city-name">
+  <div class="top">
+    <div>
+      <div class="kicker" id="city-kicker"></div>
+      <h2 id="city-name"></h2>
+    </div>
+    <button type="button" class="btn close" id="city-close">Chiudi</button>
+  </div>
+  <div class="body" id="city-body"></div>
+</dialog>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="../vc.js?v=45"></script>
+</body>
+</html>
