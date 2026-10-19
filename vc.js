@@ -1733,10 +1733,15 @@
       };
       const path = d3.geoPath({ stream: (s) => proj.stream(thin(s)) }).digits(1);
       const [[x0, y0], [x1, y1]] = d3.geoPath(proj).bounds(land);
-      LOC = { proj, d: path(land), box: [x0 - 8, y0 - 8, x1 - x0 + 16, y1 - y0 + 16].map((v) => v.toFixed(1)).join(" ") };
+      LOC = { proj, d: path(land), x0: x0 - 8, x1: x1 + 8, y1: y1 + 8, box: [x0 - 8, y0 - 8, x1 - x0 + 16, y1 - y0 + 16].map((v) => v.toFixed(1)).join(" ") };
     }
-    const [x, y] = LOC.proj([lon, lat]).map((v) => v.toFixed(1));
-    return `<figure class="loc"><svg viewBox="${LOC.box}" role="img" aria-label="${esc(name)} ${L("sulla carta d’Italia", "on a map of Italy")}"><path class="loc-land" d="${LOC.d}"/><circle class="loc-ring" cx="${x}" cy="${y}" r="9"/><circle class="loc-dot" cx="${x}" cy="${y}" r="4"/></svg></figure>`;
+    const [x, y] = LOC.proj([lon, lat]);
+    // il nome accanto al punto: a destra se ci sta, se no a sinistra, se no centrato sotto (o sopra, in fondo alla carta).
+    // La larghezza è stimata sul corpo 14 del .loc-name
+    const w = name.length * 14 * 0.56;
+    const lab = x + 13 + w <= LOC.x1 ? [x + 13, y, "start"] : x - 13 - w >= LOC.x0 ? [x - 13, y, "end"]
+      : [Math.min(Math.max(x, LOC.x0 + w / 2), LOC.x1 - w / 2), y + 22 > LOC.y1 ? y - 15 : y + 22, "middle"];
+    return `<figure class="loc"><svg viewBox="${LOC.box}" role="img" aria-label="${esc(name)} ${L("sulla carta d’Italia", "on a map of Italy")}"><path class="loc-land" d="${LOC.d}"/><circle class="loc-ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9"/><circle class="loc-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"/><text class="loc-name" x="${lab[0].toFixed(1)}" y="${lab[1].toFixed(1)}" dy="0.35em" text-anchor="${lab[2]}">${esc(name)}</text></svg></figure>`;
   }
 
   // In testa alla scheda, in parole semplici: quanto si denuncia, rispetto all'Italia, in che posizione e come è cambiato.
@@ -1811,8 +1816,9 @@
     const q = QUART[c.id] || null; // quartieri, se la città li ha e sono arrivati
     const verdict = verdictHTML({ t: state.cardType, where: EN ? "in " + esc(c.name) : (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.cardType].group) && !TOURIST_NOT.includes(state.cardType) });
     $("#city-body").innerHTML = `
-      ${verdict}
       <div class="card-head">
+      <div class="card-main">
+      ${verdict}
       <div class="facts">
         <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ${L("ogni 100.000 abitanti", "per 100,000 residents")} (${m.levelNote}) · ${r.rank ? (EN ? ordinal(r.rank) + " of " : r.rank + "° su ") + m.ranked.length : ""} · ${L("Italia", "Italy")} ${fmtRate(m.itLvl)}</div></div>
         <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))}: ${Y[LAST]} ${L("rispetto al", "compared with")} ${state.cardBase}${sigText ? " · " + sigText : ""}</div></div>
@@ -1820,9 +1826,10 @@
         ${provFact}
         ${percFact(c.perc, EN ? "in " + esc(c.name) : "di " + esc(c.name))}
       </div>
+      ${movers}
+      </div>
       ${locMap(c.lon, c.lat, c.name)}
       </div>
-      ${movers}
       ${chartBlock(m.label + L(" a ", " in ") + c.name, `<span><i class="k-city"></i>${esc(c.name)}</span>${P ? `<span><i class="k-prov"></i>${L("provincia di", "province of")} ${esc(P.name)}</span>` : ""}<span><i class="k-it"></i>${L("Italia", "Italy")}</span><span><i class="k-gold"></i>${L("impennata", "spike")}</span>`)}
       <p class="note">${spikeNote((t) => model(t, state.cardBase).rows.find((d) => d.c.id === c.id))}</p>
       ${q ? quartHTML(q) : ""}
@@ -2195,11 +2202,10 @@
     }, counts);
     $("#city-body").innerHTML = `
       <div class="card-head">
+      <div class="card-main">
       <div class="prov-note">
         <p>${EN ? `<strong>ISTAT publishes reported crimes municipality by municipality only for the 108 provincial capitals.</strong> For ${esc(e.name)} the closest official figure is the one for the whole province of ${esc(P.name)}: ${nf0.format(P.comuni)} municipalities, ${capWord}. The numbers in this profile therefore describe the province, not just the municipality of ${esc(e.name)}.` : `<strong>L’ISTAT pubblica i reati denunciati comune per comune solo per i 108 capoluoghi.</strong> Per ${esc(e.name)} il dato ufficiale più vicino è quello di tutta la provincia di ${esc(P.name)}: ${nf0.format(P.comuni)} comuni, ${capWord}. I numeri di questa scheda descrivono quindi la provincia, non il solo comune di ${esc(e.name)}.`}</p>
         ${extra.map((x) => `<p>${x}</p>`).join("")}
-      </div>
-      ${locMap(e.lon, e.lat, e.name)}
       </div>
       ${verdictHTML({ t, where: EN ? `in the province of ${esc(P.name)}` : `in provincia di ${esc(P.name)}`, lvl: r.lvl, it: m.itLvl, rank: r.rank, n: pm.ranked.length, unit: "province", cmp: r.cmp })}
       <div class="facts">
@@ -2208,6 +2214,9 @@
         ${t !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">${EN ? `all crimes per 100,000 residents in the province in ${Y[LAST]} · ${ordinal(tr.rank)} of ${tm.ranked.length}` : `tutti i delitti ogni 100.000 abitanti in provincia nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}`}</div></div>` : ""}
         ${capRow ? `<div class="fact"><div class="fv">${fmtRate(capRow.lvl)}</div><div class="fl">${esc(lower(m.label))} ${EN ? `per 100,000 residents in the municipality of ${esc(cap.name)} alone, the provincial capital (${m.levelNote})` : `ogni 100.000 abitanti nel solo comune di ${esc(cap.name)}, il capoluogo (${m.levelNote})`}</div></div>` : ""}
         ${percFact(P.perc, L("della provincia", "in the province"))}
+      </div>
+      </div>
+      ${locMap(e.lon, e.lat, e.name)}
       </div>
       ${movers}
       ${chartBlock(m.label + L(" in provincia di ", " in the province of ") + P.name, `<span><i class="k-city"></i>${L("provincia di", "province of")} ${esc(P.name)}</span>${capRow ? `<span><i class="k-prov"></i>${esc(cap.name)}, ${L("capoluogo", "provincial capital")}</span>` : ""}<span><i class="k-it"></i>${L("Italia", "Italy")}</span>${counts ? `<span><i class="k-gold"></i>${L("impennata", "spike")}</span>` : ""}`)}

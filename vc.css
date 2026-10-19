@@ -849,7 +849,6 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .verdict { font-family: var(--font-body); font-size: var(--step-1); line-height: 1.45; color: var(--ink); max-width: 70ch; margin: 0 0 20px; }
 .verdict .gl { display: block; font-size: var(--step-0); color: var(--ink-2); margin-top: 8px; }
 .verdict .gl b { font-family: var(--font-display); font-weight: 700; color: var(--ink); }
-.card-head + .verdict { margin-top: 2px; }
 
 /* i comandi della mappa, sotto il suo titolo: il reato e il confronto tra anni valgono solo per mappa e classifica */
 .map-picks { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; margin-top: 16px; }
@@ -917,14 +916,16 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .chg.nd::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
 .cityd .src { margin-top: 18px; }
 
-/* scheda: in testa l'avviso (o i numeri principali) e, accanto, dove si trova il comune */
+/* scheda: in testa, a sinistra, avviso, giudizio e numeri principali (nei capoluoghi anche cosa è salito e sceso),
+   così la carta accanto, con il nome del comune, non lascia un vuoto sotto il testo */
 .card-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: start; margin-bottom: 20px; }
-.card-head > .prov-note, .card-head > .facts { margin-bottom: 0; }
-.loc { margin: 0; width: 168px; }
+.card-main > :last-child { margin-bottom: 0; }
+.loc { margin: 0; width: 208px; }
 .loc svg { width: 100%; height: auto; display: block; overflow: visible; }
 .loc-land { fill: var(--land); stroke: var(--mid); stroke-width: 0.6; stroke-linejoin: round; }
 .loc-ring { fill: none; stroke: var(--ink); stroke-width: 1.25; opacity: 0.3; }
 .loc-dot { fill: var(--ink); stroke: var(--bg); stroke-width: 1.5; }
+.loc-name { fill: var(--ink); font-size: 14px; font-weight: 700; font-family: var(--font-display); letter-spacing: 0.01em; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
 
 /* scheda: i tre reati saliti di più e i tre scesi di più */
 .movers { margin: 0 0 26px; }
@@ -997,6 +998,7 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 /* la carta di posizione nella scheda: il punto sboccia e l'anello gli si allarga intorno, a ogni apertura */
 .loc-dot, .loc-ring { transform-box: fill-box; transform-origin: center; animation: rv-pop 0.6s var(--rv-spring) both; }
 .loc-ring { animation-delay: 0.15s; }
+.loc-name { animation: rv-fade 0.4s ease-out 0.3s both; }
 
 @media (max-width: 920px) {
   :root { --section: 56px; }
@@ -1051,7 +1053,8 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   .sm-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .movers-cols { grid-template-columns: minmax(0, 1fr); }
   .card-head { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .card-head .loc { order: -1; width: 96px; }
+  .card-head .loc { order: -1; width: 128px; }
+  .card-head .loc-name { font-size: 22px; stroke-width: 6px; }
   .eyechart li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
   .mrow { grid-template-columns: minmax(96px, 120px) minmax(0, 1fr) 50px; }
   .mrow svg { display: none; }
