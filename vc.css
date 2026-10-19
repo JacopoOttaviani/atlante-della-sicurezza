@@ -19,6 +19,7 @@
   --gold-wash: rgba(201, 141, 0, 0.13);
   --covid: rgba(18, 22, 20, 0.05);
   --focus: #2c6db0;
+  --fall-soft: #9cbbdf;     /* il blu chiaro accanto al blu pieno (custodia cautelare) */
 
   --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Newsreader", "Iowan Old Style", Georgia, serif;
@@ -37,14 +38,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0e1110; --surface: #151917; --land: #1d2220; --ink: #eef0ec; --ink-2: #bcc3be; --muted: #8a918c;
     --rule: #2b312e; --grid: #222825; --mid: #4d544f; --rise: #e25a6e; --fall: #4f8fd8; --gold: #bf8a0e; --gold-ink: #d9a226;
-    --gold-wash: rgba(191, 138, 14, 0.16); --covid: rgba(255, 255, 255, 0.04); --focus: #4f8fd8;
+    --gold-wash: rgba(191, 138, 14, 0.16); --covid: rgba(255, 255, 255, 0.04); --focus: #4f8fd8; --fall-soft: #a9c6ea;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0e1110; --surface: #151917; --land: #1d2220; --ink: #eef0ec; --ink-2: #bcc3be; --muted: #8a918c;
   --rule: #2b312e; --grid: #222825; --mid: #4d544f; --rise: #e25a6e; --fall: #4f8fd8; --gold: #bf8a0e; --gold-ink: #d9a226;
-  --gold-wash: rgba(191, 138, 14, 0.16); --covid: rgba(255, 255, 255, 0.04); --focus: #4f8fd8;
+  --gold-wash: rgba(191, 138, 14, 0.16); --covid: rgba(255, 255, 255, 0.04); --focus: #4f8fd8; --fall-soft: #a9c6ea;
   color-scheme: dark;
 }
 /* La fascia delle impennate: scura e calda in entrambi i temi, con la terna validata per fondo scuro. */
@@ -1197,8 +1198,45 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
 #autori-city-table caption { caption-side: bottom; text-align: left; padding-top: 8px; font-size: var(--step--1); color: var(--muted); }
 #autori-city-table th[scope="row"] { text-align: left; font-weight: 600; white-space: nowrap; }
 
+/* prima della condanna: cento quadratini divisi per posizione giuridica con la loro legenda accanto, gli esiti delle
+   misure in barre al 100%, la scelta della misura per i distretti. In blu pieno chi aspetta il primo giudizio, in blu
+   chiaro chi aspetta l'appello o la Cassazione; i condannati definitivi restano nel grigio dei quadratini spenti. */
+#caut-waffle { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr); gap: 18px 28px; align-items: start; }
+.waffle rect.p1, .sw-key i.p1 { fill: var(--fall); background: var(--fall); }
+.waffle rect.p2, .sw-key i.p2 { fill: var(--fall-soft); background: var(--fall-soft); }
+.waffle rect.p3, .sw-key i.p3 { fill: var(--rule); background: var(--rule); }
+.waffle rect.p4, .sw-key i.p4 { fill: var(--muted); background: var(--muted); }
+.sw-key { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: var(--step--1); color: var(--ink-2); }
+.sw-key li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.sw-key i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; transform: translateY(1px); }
+.sw-key b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.sbar-key { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 6px 0 10px; padding: 0; font-size: var(--step--1); color: var(--ink-2); }
+.sbar-key i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.sbars { list-style: none; margin: 0 0 14px; padding: 0; max-width: 1000px; }
+.sbars li { display: grid; grid-template-columns: minmax(120px, 210px) minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding-block: 6px; border-bottom: 1px solid var(--grid); --stag: 70ms; }
+.sbars .name { font-size: var(--step--1); font-weight: 600; color: var(--ink-2); }
+.sbars li.strong .name { font-weight: 700; color: var(--ink); }
+.sbars .val { text-align: right; font-size: var(--step--1); color: var(--muted); font-variant-numeric: tabular-nums; }
+.sbar { display: flex; height: 24px; border-radius: 3px; overflow: hidden; transform-origin: 0 50%; }
+.sbar i { display: flex; align-items: center; justify-content: center; min-width: 0; height: 100%; font-style: normal; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sbar i + i { box-shadow: inset 1px 0 0 var(--surface); }
+:is(.sbar, .sbar-key) .o1 { background: var(--ink); color: var(--bg); }
+:is(.sbar, .sbar-key) .o2 { background: var(--mid); color: var(--ink); }
+:is(.sbar, .sbar-key) .o3 { background: var(--fall); color: #fff; }
+:is(.sbar, .sbar-key) .o4 { background: var(--fall-soft); color: #121614; }
+.caut-disc { margin-top: 28px; }
+
 @media (max-width: 920px) {
   .dd-split, .dd-cards, .dd-cards.two, .dd-cards.four, .autori-provgrid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+@media (max-width: 560px) {
+  #caut-waffle { grid-template-columns: minmax(0, 1fr); }
+  #caut-waffle .waffle { max-width: 200px; }
+  .sbars li { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; }
+  .sbars .sbar { grid-column: 1 / -1; grid-row: 2; }
+  /* i tre bottoni dei distretti si dividono la riga, il testo va a capo */
+  #caut-dist-seg { display: flex; width: 100%; }
+  #caut-dist-seg button { flex: 1 1 0; min-width: 0; padding-inline: 6px; white-space: normal; line-height: 1.2; }
 }
 @media (max-width: 560px) {
   .dd-head { padding-block: 24px 22px; }
@@ -1223,7 +1261,7 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
     linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0) 100%),
     repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
 }
-.dd-card:is([data-dd="carceri"], [data-dd="rimpatri"], [data-dd="percezione"], [data-dd="autori"], [data-dd="minori"])::before {
+.dd-card:is([data-dd="carceri"], [data-dd="rimpatri"], [data-dd="percezione"], [data-dd="autori"], [data-dd="minori"], [data-dd="cautelari"])::before {
   content: "";
   flex: none;
   margin: -18px -20px 4px;
@@ -1240,6 +1278,7 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
 .dd-card[data-dd="percezione"]::before { background-image: var(--cctv), url("img/dd/percezione.jpg"); --shot-pos: 50% 60%; }
 .dd-card[data-dd="autori"]::before     { background-image: var(--cctv), url("img/dd/autori.jpg"); --shot-pos: 50% 70%; }
 .dd-card[data-dd="minori"]::before     { background-image: var(--cctv), url("img/dd/minori.jpg"); --shot-pos: 50% 35%; }
+.dd-card[data-dd="cautelari"]::before  { background-image: var(--cctv), url("img/dd/cautelari.jpg"); --shot-pos: 50% 55%; }
 .dd-card:hover::before, .dd-card:focus-visible::before { animation: dd-roll 4s linear infinite; }
 @keyframes dd-roll {
   from { background-position: 0 0, 0 0, 0 -30%, 0 0, var(--shot-pos, 50% 50%); }

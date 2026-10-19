@@ -717,6 +717,7 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [data/rimpatri.json]({SITE}data/rimpatri.json): ordini di lasciare il territorio e rimpatri eseguiti, per cittadinanza.
 - [data/autori.json]({SITE}data/autori.json): delitti commessi nell’anno e denunciati, e quanti con autore noto, per tipo (Italia e dodici grandi comuni) e per provincia.
 - [data/minori.json]({SITE}data/minori.json): segnalazioni di minorenni e di tutte le persone denunciate e arrestate, per tipo di delitto, in Italia e nelle regioni.
+- [data/cautelari.json]({SITE}data/cautelari.json): persone detenute a fine anno per posizione giuridica (Italia e regioni, per cittadinanza e sesso), misure cautelari disposte ed esiti, domande e ordinanze di riparazione per ingiusta detenzione per distretto di Corte d’appello, procedimenti disciplinari.
 - [Codice e script dei dati su GitHub](https://github.com/JacopoOttaviani/atlante-della-sicurezza): chiunque può rifare i conti.
 
 ## Fonti
@@ -728,6 +729,8 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - ISTAT, delitti di cui si è scoperto l’autore (73_67_DF_DCCV_DELITTIPS_2, _5, _6, _7), su dati del Ministero dell’Interno
 - ISTAT, segnalazioni di persone e di minorenni denunciati e arrestati (73_342_DF_DCCV_SEGNALAZPS_1 e _2), su dati del Ministero dell’Interno
 - Eurostat, migr_eiord e migr_eirtn, su dati del Ministero dell’Interno
+- Ministero della Giustizia, Relazione al Parlamento sulle misure cautelari personali e sulla riparazione per ingiusta detenzione (legge 47/2015, art. 15), dati 2024; importi delle riparazioni di fonte Ministero dell’Economia
+- ISTAT, Demografia in cifre: popolazione residente per provincia (demo.istat.it)
 
 ## Autore
 

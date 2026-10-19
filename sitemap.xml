@@ -62,6 +62,14 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://atlantedellasicurezza.it/approfondimenti/custodia-cautelare.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/custodia-cautelare.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/custodia-cautelare.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/custodia-cautelare.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://atlantedellasicurezza.it/progetto/</loc>
     <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/progetto/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/progetto/"/>
@@ -662,6 +670,14 @@
     <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/minori.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/minori.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/minori.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://atlantedellasicurezza.it/en/approfondimenti/custodia-cautelare.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://atlantedellasicurezza.it/approfondimenti/custodia-cautelare.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://atlantedellasicurezza.it/en/approfondimenti/custodia-cautelare.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://atlantedellasicurezza.it/approfondimenti/custodia-cautelare.html"/>
     <lastmod>2026-10-19</lastmod>
     <priority>0.7</priority>
   </url>

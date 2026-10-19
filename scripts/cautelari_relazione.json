@@ -1,0 +1,1396 @@
+{
+ "_nota": "Tabelle trascritte dalla Relazione al Parlamento sulle misure cautelari personali e sulla riparazione per ingiusta detenzione (legge 16 aprile 2015, n. 47, art. 15), Ministero della Giustizia. Fonte principale: edizione gennaio 2025, dati 2024 (giustizia.it). Le ordinanze e gli importi per distretto sono uguali nell'edizione successiva (Camera dei deputati, Doc. XCIV n. 4, trasmessa il 30 dicembre 2025), che ne ha il testo più pulito. Ogni tabella indica la pagina del PDF da cui viene. build_cautelari.py ricontrolla somme e medie.",
+ "fonti": {
+  "rel2024": {
+   "titolo": "Misure cautelari personali e riparazione per ingiusta detenzione: dati anno 2024. Relazione al Parlamento ex L. 16 aprile 2015, n. 47 (edizione gennaio 2025)",
+   "url": "https://www.giustizia.it/cmsresources/cms/documents/misure_cautelari_personali_2024_aggiornamento_gennaio2025.pdf"
+  },
+  "rel2025": {
+   "titolo": "Relazione sull'applicazione delle misure cautelari personali e sui provvedimenti di riconoscimento del diritto alla riparazione per ingiusta detenzione (anno 2025), Camera dei deputati, Doc. XCIV n. 4",
+   "url": "https://documenti.camera.it/_dati/leg19/lavori/documentiparlamentari/indiceetesti/094/004/INTERO.pdf"
+  }
+ },
+ "anni": [
+  2018,
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024
+ ],
+ "misure": {
+  "_fonte": "rel2024, schema 1, pag. 11. Il 2018 e il 2019 contengono stime del Ministero per le misure rilevate insieme (note ** e ***). Nel 2024 hanno risposto l'84% degli uffici; i dati mancanti sono stimati.",
+  "stimati": [
+   2018,
+   2019
+  ],
+  "tipi": [
+   {
+    "id": "espatrio",
+    "art": "281",
+    "nome": "Divieto di espatrio",
+    "custodiale": false,
+    "n": [
+     101,
+     109,
+     60,
+     54,
+     74,
+     56,
+     61
+    ]
+   },
+   {
+    "id": "firma",
+    "art": "282",
+    "nome": "Obbligo di presentarsi alla polizia giudiziaria",
+    "custodiale": false,
+    "n": [
+     14503,
+     14204,
+     11642,
+     12816,
+     12928,
+     12475,
+     14519
+    ]
+   },
+   {
+    "id": "allontanamento",
+    "art": "282 bis",
+    "nome": "Allontanamento dalla casa familiare",
+    "custodiale": false,
+    "n": [
+     3158,
+     3606,
+     3392,
+     3181,
+     3156,
+     3489,
+     4499
+    ]
+   },
+   {
+    "id": "avvicinamento",
+    "art": "282 ter",
+    "nome": "Divieto di avvicinamento",
+    "custodiale": false,
+    "n": [
+     9101,
+     8629,
+     8053,
+     8444,
+     8621,
+     9793,
+     12313
+    ]
+   },
+   {
+    "id": "divieto_dimora",
+    "art": "283 c. 1",
+    "nome": "Divieto di dimora",
+    "custodiale": false,
+    "n": [
+     5211,
+     5090,
+     4805,
+     4532,
+     5385,
+     5828,
+     7479
+    ]
+   },
+   {
+    "id": "obbligo_dimora",
+    "art": "283 c. 2",
+    "nome": "Obbligo di dimora",
+    "custodiale": false,
+    "n": [
+     7439,
+     7268,
+     6850,
+     6467,
+     6171,
+     5899,
+     6344
+    ]
+   },
+   {
+    "id": "domiciliari",
+    "art": "284",
+    "nome": "Arresti domiciliari senza braccialetto elettronico",
+    "custodiale": true,
+    "n": [
+     20938,
+     20294,
+     19331,
+     18036,
+     16507,
+     15003,
+     14706
+    ]
+   },
+   {
+    "id": "braccialetto",
+    "art": "284 e 275 bis",
+    "nome": "Arresti domiciliari con braccialetto elettronico",
+    "custodiale": true,
+    "n": [
+     2840,
+     2753,
+     2618,
+     2808,
+     3357,
+     4034,
+     6182
+    ]
+   },
+   {
+    "id": "carcere",
+    "art": "285",
+    "nome": "Custodia cautelare in carcere",
+    "custodiale": true,
+    "n": [
+     31970,
+     31624,
+     24928,
+     24126,
+     24654,
+     24746,
+     27261
+    ]
+   },
+   {
+    "id": "cura",
+    "art": "286",
+    "nome": "Custodia cautelare in luogo di cura",
+    "custodiale": true,
+    "n": [
+     537,
+     620,
+     520,
+     638,
+     715,
+     712,
+     804
+    ]
+   }
+  ],
+  "totale": [
+   95798,
+   94197,
+   82199,
+   81102,
+   81568,
+   82035,
+   94168
+  ]
+ },
+ "esiti": {
+  "_fonte": "rel2024, schemi 7 e 8, pagg. 19-21: misure emesse nell'anno in procedimenti definiti nello stesso anno, per esito (anche non definitivo). 'altro' sono i proscioglimenti a vario titolo (artt. 129, 425, 469, 529, 531 c.p.p.).",
+  "definiti": [
+   54329,
+   41604,
+   31455,
+   32805,
+   33039,
+   32970,
+   39313
+  ],
+  "condanna_def": [
+   9900,
+   8024,
+   5363,
+   5449,
+   5866,
+   8041,
+   9972
+  ],
+  "condanna_def_sosp": [
+   3294,
+   2757,
+   1909,
+   1969,
+   2214,
+   2334,
+   3153
+  ],
+  "condanna_nondef": [
+   31228,
+   23271,
+   18675,
+   19694,
+   19280,
+   16466,
+   18412
+  ],
+  "condanna_nondef_sosp": [
+   4349,
+   3396,
+   2639,
+   2761,
+   2662,
+   2439,
+   3040
+  ],
+  "assoluzione_def": [
+   910,
+   792,
+   462,
+   495,
+   534,
+   719,
+   831
+  ],
+  "assoluzione_nondef": [
+   3200,
+   2301,
+   1745,
+   1775,
+   1828,
+   1495,
+   1808
+  ],
+  "altro": [
+   1448,
+   1063,
+   662,
+   662,
+   655,
+   1476,
+   2097
+  ]
+ },
+ "esiti_per_misura_2024": {
+  "_fonte": "rel2024, schema 9, pag. 23. Colonne: condanna definitiva senza e con sospensione condizionale, condanna non definitiva senza e con sospensione, assoluzione (definitiva e non), altro.",
+  "colonne": [
+   "condanna_def",
+   "condanna_def_sosp",
+   "condanna_nondef",
+   "condanna_nondef_sosp",
+   "assoluzione",
+   "altro"
+  ],
+  "righe": {
+   "carcere": [
+    2804,
+    448,
+    5850,
+    415,
+    645,
+    371
+   ],
+   "domiciliari": [
+    2101,
+    525,
+    3480,
+    443,
+    442,
+    272
+   ],
+   "braccialetto": [
+    627,
+    117,
+    1806,
+    92,
+    279,
+    123
+   ],
+   "cura": [
+    22,
+    2,
+    36,
+    2,
+    110,
+    20
+   ],
+   "totale": [
+    9972,
+    3153,
+    18412,
+    3040,
+    2639,
+    2097
+   ]
+  }
+ },
+ "riparazione": {
+  "domande": {
+   "_fonte": "rel2025, schema 1, pag. 38 (2021 da rel2024, schema 1, pag. 30): procedimenti sopravvenuti presso le Corti d'appello.",
+   "n": [
+    1232,
+    1326,
+    1108,
+    1303,
+    1229,
+    1271,
+    1154
+   ]
+  },
+  "accolte_pct": {
+   "_fonte": "rel2024, schema 3 bis, pag. 33: procedimenti definiti con accoglimento, definitivo o non, ogni 100 definiti.",
+   "v": [
+    44.6,
+    48.7,
+    44.5,
+    47.1,
+    47.1,
+    48.5,
+    45.6
+   ]
+  },
+  "definite_2024": {
+   "_fonte": "rel2024, schema 4, pagg. 33-34.",
+   "totale": 1293,
+   "accolte": 589,
+   "respinte": 643,
+   "inammissibili": 61
+  },
+  "motivi": {
+   "_fonte": "rel2024, schema 5 bis, pag. 37: ordinanze di accoglimento diventate irrevocabili nell'anno, e quante per proscioglimento, assoluzione o archiviazione (il resto per illegittimità dell'ordinanza cautelare).",
+   "irrevocabili": [
+    530,
+    465,
+    283,
+    490,
+    482,
+    478,
+    505
+   ],
+   "proscioglimento_pct": [
+    76.8,
+    75.3,
+    71.7,
+    59.6,
+    76.8,
+    72.8,
+    77.4
+   ]
+  },
+  "pagamenti": {
+   "_fonte": "rel2024, schemi 6, 7 e 8, pagg. 38-40 (dati MEF); stesso testo in rel2025, pagg. 45-47. Ordinanze arrivate al MEF nell'anno con cui le Corti d'appello dispongono il pagamento, e importi in euro.",
+   "totale_ordinanze": [
+    895,
+    1000,
+    750,
+    565,
+    539,
+    619,
+    552
+   ],
+   "totale_milioni": [
+    33.4,
+    43.5,
+    37.0,
+    24.5,
+    27.4,
+    27.8,
+    26.9
+   ],
+   "media_nazionale": [
+    37289,
+    43487,
+    49278,
+    43374,
+    50794,
+    44983,
+    48722
+   ],
+   "distretti": [
+    {
+     "id": "ancona",
+     "nome": "Ancona",
+     "relazione": "ANCONA",
+     "ordinanze": [
+      13,
+      13,
+      1,
+      0,
+      3,
+      8,
+      7
+     ],
+     "importi": [
+      239031,
+      432864,
+      9018,
+      0,
+      74012,
+      193240,
+      209045
+     ],
+     "media": [
+      18387,
+      33297,
+      9018,
+      0,
+      24671,
+      24155,
+      29864
+     ]
+    },
+    {
+     "id": "bari",
+     "nome": "Bari",
+     "relazione": "BARI",
+     "ordinanze": [
+      78,
+      78,
+      68,
+      15,
+      8,
+      20,
+      42
+     ],
+     "importi": [
+      2486599,
+      2503326,
+      3257839,
+      418524,
+      51952,
+      548459,
+      953718
+     ],
+     "media": [
+      31879,
+      32094,
+      47909,
+      27902,
+      6494,
+      27423,
+      22708
+     ]
+    },
+    {
+     "id": "bologna",
+     "nome": "Bologna",
+     "relazione": "BOLOGNA",
+     "ordinanze": [
+      9,
+      28,
+      12,
+      24,
+      15,
+      21,
+      17
+     ],
+     "importi": [
+      275451,
+      537931,
+      347026,
+      882867,
+      622669,
+      406017,
+      569310
+     ],
+     "media": [
+      30606,
+      19212,
+      28919,
+      36786,
+      41511,
+      19334,
+      33489
+     ]
+    },
+    {
+     "id": "brescia",
+     "nome": "Brescia",
+     "relazione": "BRESCIA",
+     "ordinanze": [
+      10,
+      10,
+      7,
+      7,
+      6,
+      8,
+      12
+     ],
+     "importi": [
+      134087,
+      196601,
+      35641,
+      100909,
+      111640,
+      305545,
+      258126
+     ],
+     "media": [
+      13409,
+      19660,
+      5092,
+      14416,
+      18607,
+      38193,
+      21511
+     ]
+    },
+    {
+     "id": "cagliari",
+     "nome": "Cagliari",
+     "relazione": "CAGLIARI",
+     "ordinanze": [
+      3,
+      3,
+      7,
+      2,
+      4,
+      9,
+      12
+     ],
+     "importi": [
+      16669,
+      102914,
+      249432,
+      96933,
+      98733,
+      570578,
+      385537
+     ],
+     "media": [
+      5556,
+      34305,
+      35633,
+      48467,
+      24683,
+      63398,
+      32128
+     ]
+    },
+    {
+     "id": "sassari",
+     "nome": "Sassari",
+     "relazione": "SASSARI",
+     "ordinanze": [
+      7,
+      7,
+      5,
+      2,
+      5,
+      3,
+      2
+     ],
+     "importi": [
+      201538,
+      315201,
+      260397,
+      15691,
+      540927,
+      79887,
+      14200
+     ],
+     "media": [
+      28791,
+      45029,
+      52079,
+      7846,
+      108185,
+      26629,
+      7100
+     ]
+    },
+    {
+     "id": "caltanissetta",
+     "nome": "Caltanissetta",
+     "relazione": "CALTANISSETTA",
+     "ordinanze": [
+      13,
+      10,
+      9,
+      5,
+      7,
+      11,
+      9
+     ],
+     "importi": [
+      487286,
+      551328,
+      368780,
+      76532,
+      53584,
+      415475,
+      324821
+     ],
+     "media": [
+      37484,
+      55133,
+      40976,
+      15306,
+      7655,
+      37770,
+      36091
+     ]
+    },
+    {
+     "id": "campobasso",
+     "nome": "Campobasso",
+     "relazione": "CAMPOBASSO",
+     "ordinanze": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      2
+     ],
+     "importi": [
+      0,
+      7422,
+      1651,
+      0,
+      34430,
+      0,
+      14503
+     ],
+     "media": [
+      0,
+      7422,
+      1651,
+      0,
+      34430,
+      0,
+      7252
+     ]
+    },
+    {
+     "id": "catania",
+     "nome": "Catania",
+     "relazione": "CATANIA",
+     "ordinanze": [
+      54,
+      57,
+      37,
+      43,
+      37,
+      53,
+      27
+     ],
+     "importi": [
+      2767955,
+      3576263,
+      1737034,
+      1691872,
+      1187596,
+      1565935,
+      921884
+     ],
+     "media": [
+      51258,
+      62741,
+      46947,
+      39346,
+      32097,
+      29546,
+      34144
+     ]
+    },
+    {
+     "id": "catanzaro",
+     "nome": "Catanzaro",
+     "relazione": "CATANZARO",
+     "ordinanze": [
+      182,
+      83,
+      66,
+      58,
+      22,
+      52,
+      110
+     ],
+     "importi": [
+      10378138,
+      4458727,
+      4584530,
+      2255165,
+      871942,
+      2129959,
+      4274784
+     ],
+     "media": [
+      57023,
+      53720,
+      69463,
+      38882,
+      39634,
+      40961,
+      38862
+     ]
+    },
+    {
+     "id": "firenze",
+     "nome": "Firenze",
+     "relazione": "FIRENZE",
+     "ordinanze": [
+      17,
+      11,
+      18,
+      8,
+      14,
+      22,
+      6
+     ],
+     "importi": [
+      310096,
+      151191,
+      621402,
+      94302,
+      294099,
+      329303,
+      384006
+     ],
+     "media": [
+      18241,
+      13745,
+      34522,
+      11788,
+      21007,
+      14968,
+      64001
+     ]
+    },
+    {
+     "id": "genova",
+     "nome": "Genova",
+     "relazione": "GENOVA",
+     "ordinanze": [
+      14,
+      13,
+      17,
+      5,
+      6,
+      16,
+      6
+     ],
+     "importi": [
+      445261,
+      327803,
+      368480,
+      62926,
+      254834,
+      394611,
+      263179
+     ],
+     "media": [
+      31804,
+      25216,
+      21675,
+      12585,
+      42472,
+      24663,
+      43863
+     ]
+    },
+    {
+     "id": "laquila",
+     "nome": "L’Aquila",
+     "relazione": "L’AQUILA",
+     "ordinanze": [
+      7,
+      24,
+      21,
+      14,
+      27,
+      19,
+      10
+     ],
+     "importi": [
+      120013,
+      532954,
+      653466,
+      235998,
+      638620,
+      311172,
+      298881
+     ],
+     "media": [
+      17145,
+      22206,
+      31117,
+      16857,
+      23653,
+      16377,
+      29888
+     ]
+    },
+    {
+     "id": "lecce",
+     "nome": "Lecce",
+     "relazione": "LECCE",
+     "ordinanze": [
+      13,
+      37,
+      39,
+      13,
+      33,
+      31,
+      19
+     ],
+     "importi": [
+      414225,
+      1821863,
+      1523814,
+      326618,
+      1042650,
+      1179757,
+      1049853
+     ],
+     "media": [
+      31863,
+      49240,
+      39072,
+      25124,
+      31595,
+      38057,
+      55255
+     ]
+    },
+    {
+     "id": "taranto",
+     "nome": "Taranto",
+     "relazione": "TARANTO",
+     "ordinanze": [
+      2,
+      14,
+      7,
+      7,
+      6,
+      6,
+      7
+     ],
+     "importi": [
+      59093,
+      414034,
+      417197,
+      548881,
+      170671,
+      185098,
+      213683
+     ],
+     "media": [
+      29547,
+      29574,
+      59600,
+      78412,
+      28445,
+      30850,
+      30526
+     ]
+    },
+    {
+     "id": "messina",
+     "nome": "Messina",
+     "relazione": "MESSINA",
+     "ordinanze": [
+      25,
+      45,
+      21,
+      12,
+      7,
+      14,
+      5
+     ],
+     "importi": [
+      614201,
+      1705151,
+      685551,
+      378214,
+      188078,
+      773591,
+      100987
+     ],
+     "media": [
+      24568,
+      37892,
+      32645,
+      31518,
+      26868,
+      55257,
+      20197
+     ]
+    },
+    {
+     "id": "milano",
+     "nome": "Milano",
+     "relazione": "MILANO",
+     "ordinanze": [
+      23,
+      42,
+      39,
+      34,
+      18,
+      33,
+      24
+     ],
+     "importi": [
+      637927,
+      1348910,
+      1327208,
+      795907,
+      1069770,
+      784316,
+      1468538
+     ],
+     "media": [
+      27736,
+      32117,
+      34031,
+      23409,
+      59432,
+      23767,
+      61189
+     ]
+    },
+    {
+     "id": "napoli",
+     "nome": "Napoli",
+     "relazione": "NAPOLI",
+     "ordinanze": [
+      113,
+      129,
+      101,
+      72,
+      75,
+      43,
+      30
+     ],
+     "importi": [
+      2404793,
+      3207214,
+      3105219,
+      2517100,
+      1789977,
+      955099,
+      654865
+     ],
+     "media": [
+      21281,
+      24862,
+      30745,
+      34960,
+      23866,
+      22212,
+      21829
+     ]
+    },
+    {
+     "id": "palermo",
+     "nome": "Palermo",
+     "relazione": "PALERMO",
+     "ordinanze": [
+      44,
+      39,
+      46,
+      36,
+      43,
+      53,
+      53
+     ],
+     "importi": [
+      1876045,
+      3217001,
+      4399761,
+      2772097,
+      3557891,
+      3845580,
+      4785080
+     ],
+     "media": [
+      42637,
+      82487,
+      95647,
+      77003,
+      82742,
+      72558,
+      90285
+     ]
+    },
+    {
+     "id": "perugia",
+     "nome": "Perugia",
+     "relazione": "PERUGIA",
+     "ordinanze": [
+      11,
+      19,
+      10,
+      25,
+      10,
+      6,
+      4
+     ],
+     "importi": [
+      843364,
+      388874,
+      305777,
+      443013,
+      273019,
+      59742,
+      58080
+     ],
+     "media": [
+      76669,
+      20467,
+      30578,
+      17721,
+      27302,
+      9957,
+      14520
+     ]
+    },
+    {
+     "id": "potenza",
+     "nome": "Potenza",
+     "relazione": "POTENZA",
+     "ordinanze": [
+      11,
+      11,
+      4,
+      3,
+      4,
+      3,
+      4
+     ],
+     "importi": [
+      281231,
+      60220,
+      38868,
+      62543,
+      63059,
+      59808,
+      100852
+     ],
+     "media": [
+      25566,
+      5475,
+      9717,
+      20848,
+      15765,
+      19936,
+      25213
+     ]
+    },
+    {
+     "id": "reggio",
+     "nome": "Reggio Calabria",
+     "relazione": "REGGIO CAL.",
+     "ordinanze": [
+      64,
+      120,
+      90,
+      76,
+      90,
+      82,
+      42
+     ],
+     "importi": [
+      2285572,
+      9836865,
+      7907009,
+      6702097,
+      10312205,
+      8019396,
+      4543327
+     ],
+     "media": [
+      35712,
+      81974,
+      87856,
+      88185,
+      114580,
+      97798,
+      108174
+     ]
+    },
+    {
+     "id": "roma",
+     "nome": "Roma",
+     "relazione": "ROMA",
+     "ordinanze": [
+      96,
+      105,
+      77,
+      52,
+      52,
+      59,
+      52
+     ],
+     "importi": [
+      3492249,
+      4897010,
+      3566075,
+      1996507,
+      1964663,
+      2626240,
+      3498517
+     ],
+     "media": [
+      36378,
+      46638,
+      46313,
+      38394,
+      37782,
+      44513,
+      67279
+     ]
+    },
+    {
+     "id": "salerno",
+     "nome": "Salerno",
+     "relazione": "SALERNO",
+     "ordinanze": [
+      24,
+      28,
+      11,
+      18,
+      13,
+      16,
+      6
+     ],
+     "importi": [
+      1029445,
+      1004252,
+      366057,
+      991919,
+      898782,
+      761394,
+      282461
+     ],
+     "media": [
+      42894,
+      35866,
+      33278,
+      55107,
+      69137,
+      47587,
+      47077
+     ]
+    },
+    {
+     "id": "torino",
+     "nome": "Torino",
+     "relazione": "TORINO",
+     "ordinanze": [
+      29,
+      20,
+      9,
+      6,
+      3,
+      8,
+      19
+     ],
+     "importi": [
+      629735,
+      375190,
+      91162,
+      247451,
+      94500,
+      139819,
+      250320
+     ],
+     "media": [
+      21715,
+      18760,
+      10129,
+      41242,
+      31500,
+      17477,
+      13175
+     ]
+    },
+    {
+     "id": "trento",
+     "nome": "Trento",
+     "relazione": "TRENTO",
+     "ordinanze": [
+      3,
+      5,
+      1,
+      1,
+      4,
+      4,
+      3
+     ],
+     "importi": [
+      77389,
+      41064,
+      53050,
+      15681,
+      57487,
+      77039,
+      63256
+     ],
+     "media": [
+      25796,
+      8213,
+      53050,
+      15681,
+      14372,
+      19260,
+      21085
+     ]
+    },
+    {
+     "id": "bolzano",
+     "nome": "Bolzano",
+     "relazione": "BOLZANO",
+     "ordinanze": [
+      1,
+      0,
+      1,
+      0,
+      2,
+      3,
+      2
+     ],
+     "importi": [
+      20345,
+      0,
+      28528,
+      0,
+      97243,
+      810736,
+      119652
+     ],
+     "media": [
+      20345,
+      0,
+      28528,
+      0,
+      48622,
+      270245,
+      59826
+     ]
+    },
+    {
+     "id": "trieste",
+     "nome": "Trieste",
+     "relazione": "TRIESTE",
+     "ordinanze": [
+      4,
+      6,
+      2,
+      3,
+      2,
+      3,
+      5
+     ],
+     "importi": [
+      92509,
+      104891,
+      9355,
+      119300,
+      59198,
+      126683,
+      122257
+     ],
+     "media": [
+      23127,
+      17482,
+      4678,
+      39767,
+      29599,
+      42228,
+      24451
+     ]
+    },
+    {
+     "id": "venezia",
+     "nome": "Venezia",
+     "relazione": "VENEZIA",
+     "ordinanze": [
+      25,
+      42,
+      23,
+      24,
+      22,
+      13,
+      15
+     ],
+     "importi": [
+      753584,
+      1369566,
+      638964,
+      657143,
+      903855,
+      190300,
+      710868
+     ],
+     "media": [
+      30143,
+      32609,
+      27781,
+      27381,
+      41084,
+      14638,
+      47391
+     ]
+    }
+   ],
+   "_sezioni": "Sassari, Taranto e Bolzano sono sezioni distaccate delle Corti d'appello di Cagliari, Lecce e Trento: la relazione le conta a parte."
+  }
+ },
+ "disciplinari": {
+  "_fonte": "rel2025, schema 9, pag. 51 (situazione a novembre 2025): procedimenti disciplinari avviati per l'illecito dell'art. 2, lett. gg), d.lgs. 109/2006 (provvedimento restrittivo fuori dai casi consentiti, per negligenza grave e inescusabile). 'sanzioni' somma censura, ammonimento e trasferimento. Le righe 2023 e 2024 sono state riviste tra le due edizioni (rel2024, schema 9, pag. 43, situazione al 31 dicembre 2024, dava per il 2023 sette azioni, una chiusa con un'assoluzione e sei in corso, e per il 2024 due azioni, entrambe in corso): qui vale l'edizione più recente.",
+  "anni": [
+   2017,
+   2018,
+   2019,
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "azioni": [
+   13,
+   16,
+   24,
+   21,
+   5,
+   1,
+   7,
+   3
+  ],
+  "assoluzioni": [
+   5,
+   8,
+   7,
+   6,
+   1,
+   0,
+   2,
+   0
+  ],
+  "non_doversi_procedere": [
+   4,
+   4,
+   17,
+   15,
+   3,
+   1,
+   3,
+   2
+  ],
+  "sanzioni": [
+   4,
+   4,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0
+  ],
+  "in_corso": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1
+  ]
+ }
+}

@@ -128,12 +128,13 @@
   // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
   // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT" };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT", cautMode: "ord" };
   let CARCERI = null;
   let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
   let AUTORI = null; // delitti con autore noto (data/autori.json), per il suo approfondimento e la sua scheda
   let MINORI = null; // minorenni denunciati e arrestati (data/minori.json), idem
+  let CAUT = null, DIST_OF = {}; // custodia cautelare e ingiusta detenzione (data/cautelari.json); DIST_OF: provincia della carta -> distretto
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
   let PROV = null, PROV_META = null, UNITS = null, INDEX = [], CITY_PROV = {}, placesPromise = null, placesFailed = false;
 
@@ -750,6 +751,12 @@
       fill("minori", `${nf1.format(minShare("STREETROB", L))}%`, EN
         ? `of records of people reported or arrested for street robbery in ${M.meta.last} concern a minor; in ${M.meta.share_from}, ${nf1.format(minShare("STREETROB", i0))}%`
         : `delle segnalazioni per rapina in strada nel ${M.meta.last} riguarda un minorenne; nel ${M.meta.share_from}, ${pctA("il", minShare("STREETROB", i0))}`);
+    }
+    if (CAUT) {
+      const I = CAUT.detenuti.italia, Yc = CAUT.meta.years, L = Yc.length - 1;
+      fill("cautelari", `${nf1.format(dispShare(I, L))}%`, EN
+        ? `of people in prison at the end of ${CAUT.meta.last} had no final conviction; in ${Yc[0]}, ${nf1.format(dispShare(I, 0))}%`
+        : `delle persone detenute a fine ${CAUT.meta.last} non aveva una condanna definitiva; nel ${Yc[0]}, ${pctA("il", dispShare(I, 0))}`);
     }
   }
 
@@ -2438,6 +2445,7 @@
     if (RIMP && has("rimpatri-facts")) renderRimpatri();
     if (AUTORI && has("autori-facts")) renderAutori();
     if (MINORI && has("minori-facts")) renderMinori();
+    if (CAUT && has("caut-facts")) renderCautelari();
     renderDeepCards();
     if (state.city) renderCity();
     if (state.place) renderProv();
@@ -3073,20 +3081,22 @@
   // La carta delle province su cui l'ISTAT pubblica i delitti: i confini sono quelli di oggi (data/italia.topo.json),
   // ma in Sardegna i dati sono per le quattro province storiche, quindi le province di oggi si uniscono a quella da cui vengono.
   const SARD_OLD = { 112: "090", 113: "090", 114: "091", 116: "091", 115: "095", 117: "092", 118: "092", 119: "092" };
-  // by = "reg" unisce le province per regione, per la carta dei minori
+  // by = "reg" unisce le province per regione, per la carta dei minori; by = "dist" per distretto di Corte d'appello (DIST_OF)
   function provShapes(by = "prov") {
     provShapes.cache = provShapes.cache || {};
     if (provShapes.cache[by]) return provShapes.cache[by];
     const obj = TOPO.objects[Object.keys(TOPO.objects)[0]], groups = new Map();
     obj.geometries.forEach((g) => {
-      const code = g.properties.prov_istat_code, k = by === "reg" ? g.properties.reg_istat_code : SARD_OLD[+code] || code;
+      const code = g.properties.prov_istat_code, k = by === "reg" ? g.properties.reg_istat_code : by === "dist" ? DIST_OF[code] : SARD_OLD[+code] || code;
+      if (k == null) return;
       if (!groups.has(k)) groups.set(k, []);
       groups.get(k).push(g);
     });
     provShapes.cache[by] = { obj, groups, land: topojson.feature(TOPO, obj) };
     return provShapes.cache[by];
   }
-  // vals = Map(codice ISTAT della provincia, a tre cifre, o della regione, a due -> { v, tip }); o = { by, label, legend, fmt }
+  // vals = Map(codice ISTAT della provincia, a tre cifre, o della regione, a due, o id del distretto -> { v, tip });
+  // o = { by, label, legend, fmt, sqrt }: con sqrt i colori seguono la radice, quando un valore stacca molto gli altri
   function provMap(el, legend, vals, o) {
     const { obj, groups, land } = provShapes(o.by);
     const w = Math.max(260, el.clientWidth), h = Math.round(w * 1.18);
@@ -3097,7 +3107,7 @@
     svg.selectAll("*").remove();
     const vs = [...vals.values()].map((d) => d.v).filter((v) => v != null);
     const step = d3.max(vs) - d3.min(vs) > 15 ? 5 : 1, lo = Math.floor(d3.min(vs) / step) * step, hi = Math.ceil(d3.max(vs) / step) * step;
-    const col = d3.scaleSequential(d3.interpolateLab(css("--land"), css("--fall"))).domain([lo - (hi - lo) * 0.08, hi]);
+    const col = (o.sqrt ? d3.scaleSequentialSqrt : d3.scaleSequential)(d3.interpolateLab(css("--land"), css("--fall"))).domain(o.sqrt ? [Math.max(0, lo - (hi - lo) * 0.02), hi] : [lo - (hi - lo) * 0.08, hi]);
     const g = svg.append("g");
     const shapes = [...vals.entries()].filter(([k]) => groups.has(k)).map(([k, d]) => ({ k, d, geo: topojson.merge(TOPO, groups.get(k)) }));
     g.selectAll("path").data(shapes).join("path").attr("class", "pv rv-fade").style("--i", (_, i) => i).attr("d", (s) => path(s.geo))
@@ -3434,6 +3444,289 @@
       : (solid.length >= 4 ? `Le quote più alte sono in ${hi.map(nm).join(" e ")}, le più basse in ${lo.map(nm).join(" e ")}` + (solid.length < rows.length ? ", tra le regioni con almeno 20 segnalazioni di minorenni" : "") + ". " : "") + `La quota non dice dove i ragazzi delinquono di più: dipende anche da quanti delitti commettono gli adulti e da quanti giovani vivono in ogni regione.`;
   }
 
+  // ------------------------------------------------------------------ prima della condanna (custodia cautelare)
+
+  async function loadCautelari() {
+    try {
+      const r = await fetch(ROOT + "data/cautelari.json");
+      if (!r.ok) throw new Error(r.status);
+      CAUT = await r.json();
+      DIST_OF = {};
+      CAUT.riparazione.distretti.forEach((d) => d.map.forEach((p) => { DIST_OF[p] = d.id; }));
+      addSources(CAUT.meta.sources, "cautelari");
+      if (has("caut-dist-seg")) seg("#caut-dist-seg", "dmode", (v) => { state.cautMode = v; renderCautDistricts(); });
+      if (has("caut-facts")) renderCautelari();
+      renderDeepCards();
+    } catch (e) {
+      if (has("caut-facts")) $("#caut-facts").innerHTML = `<p class="note">${L("I dati sulla custodia cautelare non si sono caricati", "The data on pre-trial detention did not load")} (${esc(e.message)}).</p>`;
+      console.error(e);
+    }
+  }
+
+  // quante persone detenute ogni 100 non hanno una condanna definitiva, nell'anno di indice i (s = una serie di detenuti)
+  const dispShare = (s, i) => (s.ALL[i] ? (100 * s.DISPAUTH[i]) / s.ALL[i] : null);
+
+  // Cento quadratini divisi in parti, nell'ordine dato: parts = [{ v (su 100), cls, label }]. I resti si assegnano
+  // ai decimali più grandi, così i quadratini sono sempre cento.
+  function stackWaffle(el, parts, o) {
+    const fl = parts.map((p) => Math.floor(p.v)), left = 100 - d3.sum(fl);
+    parts.map((p, i) => ({ i, r: p.v - fl[i] })).sort((a, b) => b.r - a.r).slice(0, left).forEach((d) => { fl[d.i] += 1; });
+    let k = 0;
+    const cells = parts.flatMap((p, j) => d3.range(fl[j]).map(() => k++).map((i) => `<rect class="rv-pop ${p.cls}" style="--i:${i}" x="${(i % 10) * 10 + 0.75}" y="${Math.floor(i / 10) * 10 + 0.75}" width="8.5" height="8.5" rx="1.5"/>`)).join("");
+    el.innerHTML = `<figure class="waffle"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(o.aria)}">${cells}</svg><figcaption><span class="wv">${o.big}<small> ${o.unit}</small></span><span class="wl">${o.label}</span></figcaption></figure>` +
+      `<ul class="sw-key">${parts.map((p) => `<li><i class="${p.cls}" aria-hidden="true"></i><span>${p.label}</span><b>${nf1.format(p.v)}%</b></li>`).join("")}</ul>`;
+    reveal(el, el.querySelectorAll(".waffle"));
+  }
+
+  // Barre al 100%, una per riga: rows = [{ name, parts: [n, …], strong }], cats = [{ cls, label }] nello stesso ordine.
+  function stackBars(el, rows, cats) {
+    el.innerHTML = `<ul class="sbar-key" aria-hidden="true">${cats.map((c) => `<li><i class="${c.cls}"></i>${c.label}</li>`).join("")}</ul>` +
+      `<ol class="sbars">${rows.map((r, j) => {
+        const tot = d3.sum(r.parts);
+        const segs = r.parts.map((n, i) => { const p = (100 * n) / tot; return `<i class="${cats[i].cls}" style="width:${p}%" title="${esc(cats[i].label)}: ${nf1.format(p)}% (${nf0.format(n)})">${p >= 7 ? `<span>${nf0.format(Math.round(p))}%</span>` : ""}</i>`; }).join("");
+        return `<li${r.strong ? ' class="strong"' : ""}><span class="name">${esc(r.name)}</span><span class="sbar rv-grow" style="--i:${j}">${segs}</span><span class="val">${nf0.format(tot)}</span></li>`;
+      }).join("")}</ol>`;
+    reveal(el, el.querySelectorAll("li"));
+  }
+
+  function renderCautelari() {
+    const C = CAUT, Yc = C.meta.years, L = Yc.length - 1, last = C.meta.last, y0 = Yc[0];
+    const D = C.detenuti, I = D.italia;
+    const R = C.riparazione, Yr = C.meta.rel_years, Lr = Yr.length - 1, lastR = C.meta.rel_last;
+    const sL = dispShare(I, L), s0 = dispShare(I, 0), aw = (100 * I.AWFJ[L]) / I.ALL[L];
+    const sIt = dispShare(D.cit.it, L), sStr = dispShare(D.cit.str, L);
+    const a = oneIn(sL);
+
+    // apertura: una persona su quattro, e i quadratini divisi per posizione giuridica
+    const lead = EN ? `${a.pre}one person in ${a.w} held in prison has no final conviction` : `${a.pre}una persona detenuta su ${a.w} non ha una condanna definitiva`;
+    $("#caut-lead").textContent = lead.charAt(0).toUpperCase() + lead.slice(1);
+    $("#caut-lead-sub").textContent = EN
+      ? `At the end of ${last}, ${nf0.format(I.DISPAUTH[L])} of the ${nf0.format(I.ALL[L])} people held in Italian prisons were still waiting for a final judgment. Each square is one person in a hundred.`
+      : `A fine ${last}, ${nf0.format(I.DISPAUTH[L])} delle ${nf0.format(I.ALL[L])} persone detenute nelle carceri italiane aspettavano ancora una sentenza definitiva. Ogni quadratino è una persona su cento.`;
+    const pc = (k) => (100 * I[k][L]) / I.ALL[L];
+    // qui L è l'indice dell'ultimo anno, non la funzione delle due lingue
+    stackWaffle($("#caut-waffle"), [
+      { v: pc("AWFJ"), cls: "p1", label: EN ? "awaiting their first trial" : "in attesa del primo giudizio" },
+      { v: pc("APP") + pc("REC") + pc("MWOD"), cls: "p2", label: EN ? "convicted at first or second instance, awaiting appeal or the Court of Cassation" : "condannate in primo o secondo grado, in attesa di appello o di Cassazione" },
+      { v: pc("CONVFJ") + pc("MWD"), cls: "p3", label: EN ? "with at least one final conviction" : "con almeno una condanna definitiva" },
+      { v: pc("SUBSM"), cls: "p4", label: EN ? "under a security measure" : "in misura di sicurezza" },
+    ], EN
+      ? { big: nf1.format(sL) + "%", unit: "", label: `without a final conviction, end of ${last}`, aria: `${nf1.format(sL)} people in 100 held in prison without a final conviction at the end of ${last}` }
+      : { big: nf1.format(sL) + "%", unit: "", label: `senza condanna definitiva, fine ${last}`, aria: `${nf1.format(sL)} persone detenute su 100 senza condanna definitiva a fine ${last}` });
+
+    const pay = d3.sum(R.importi), ord = d3.sum(R.ordinanze);
+    $("#caut-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${nf1.format(sL)}%</div><div class="fl">of the ${nf0.format(I.ALL[L])} people in prison at the end of ${last} had no final conviction: ${nf0.format(I.DISPAUTH[L])} people. In ${y0} the figure was ${nf1.format(s0)}%.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(I.AWFJ[L])}</div><div class="fl">people were still waiting for their first trial verdict: ${nf1.format(aw)}% of everyone in prison.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sStr)}%<small>vs ${nf1.format(sIt)}%</small></div><div class="fl">of foreign nationals in prison had no final conviction; among Italians, ${nf1.format(sIt)}%.</div></div>
+      <div class="fact"><div class="fv">€${nf1.format(R.importi[Lr] / 1e6)}<small>million</small></div><div class="fl">paid by the State in ${lastR} under ${nf0.format(R.ordinanze[Lr])} orders compensating wrongful detention; €${nf0.format(pay / 1e6)} million from ${Yr[0]} to ${lastR}.</div></div>` : `
+      <div class="fact"><div class="fv">${nf1.format(sL)}%</div><div class="fl">delle ${nf0.format(I.ALL[L])} persone detenute a fine ${last} non aveva una condanna definitiva: ${nf0.format(I.DISPAUTH[L])} persone. Nel ${y0} era ${pctA("il", s0)}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(I.AWFJ[L])}</div><div class="fl">persone aspettavano ancora la sentenza di primo grado: ${pctA("il", aw)} di tutte le persone detenute.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(sStr)}%<small>vs ${nf1.format(sIt)}%</small></div><div class="fl">delle persone straniere detenute era senza condanna definitiva; tra le italiane, ${pctA("il", sIt)}.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(R.importi[Lr] / 1e6)}<small>milioni di euro</small></div><div class="fl">pagati dallo Stato nel ${lastR} con ${nf0.format(R.ordinanze[Lr])} ordinanze di riparazione per ingiusta detenzione; ${nf0.format(pay / 1e6)} milioni dal ${Yr[0]} al ${lastR}.</div></div>`;
+
+    // nel tempo
+    const share = Yc.map((_, i) => dispShare(I, i)), shareAw = Yc.map((_, i) => (100 * I.AWFJ[i]) / I.ALL[i]);
+    $("#caut-time-title").textContent = EN
+      ? `Since ${y0} the share has fallen from ${nf1.format(s0)}% to ${nf1.format(sL)}%`
+      : `Dal ${y0} la quota è scesa ${pctA("dal", s0)} ${pctA("al", sL)}`;
+    $("#caut-share-sub").textContent = EN ? `People in prison per 100, at the end of each year, ${y0}–${last}` : `Persone detenute ogni 100, a fine anno, ${y0}–${last}`;
+    seriesChart($("#caut-share"), {
+      years: Yc, label: EN ? `Share of people in prison without a final conviction, ${y0}–${last}` : `Quota di persone detenute senza condanna definitiva, ${y0}–${last}`, height: 240,
+      yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%", yMax: d3.max(share) * 1.12,
+      series: [
+        { name: EN ? "without a final conviction" : "senza condanna definitiva", values: share, color: "var(--fall)", width: 2.5, at: 2012, dy: -10 },
+        { name: EN ? "awaiting first trial" : "in attesa del primo giudizio", values: shareAw, color: "var(--ink-2)", at: 2016, dy: -10, dyEnd: 16 },
+      ],
+      tip: (i) => EN
+        ? `<b>end of ${Yc[i]}</b><br>${nf1.format(share[i])}% without a final conviction (${nf0.format(I.DISPAUTH[i])})<br>${nf1.format(shareAw[i])}% awaiting first trial (${nf0.format(I.AWFJ[i])})`
+        : `<b>fine ${Yc[i]}</b><br>${nf1.format(share[i])}% senza condanna definitiva (${nf0.format(I.DISPAUTH[i])})<br>${nf1.format(shareAw[i])}% in attesa del primo giudizio (${nf0.format(I.AWFJ[i])})`,
+    });
+    $("#caut-counts-sub").textContent = EN ? `People held at the end of each year, ${y0}–${last}` : `Persone detenute a fine anno, ${y0}–${last}`;
+    seriesChart($("#caut-counts"), {
+      years: Yc, label: EN ? `People in prison, in total and without a final conviction, ${y0}–${last}` : `Persone detenute, in tutto e senza condanna definitiva, ${y0}–${last}`, height: 240, yMin: 0, gap: true,
+      series: [
+        { name: EN ? "everyone in prison" : "tutte le persone detenute", values: I.ALL, color: "var(--ink)", at: 2012, dy: -10 },
+        { name: EN ? "without a final conviction" : "senza condanna definitiva", values: I.DISPAUTH, color: "var(--fall)", width: 2.5, at: 2016, dy: -10, dyEnd: 16 },
+      ],
+    });
+    const i15 = Yc.indexOf(2015);
+    $("#caut-time-note").textContent = EN
+      ? `The steepest fall came between ${y0} and 2015, from ${nf1.format(s0)}% to ${nf1.format(share[i15])}%. Those are the years in which the European Court of Human Rights condemned Italy over prison overcrowding (the Torreggiani judgment, January 2013) and in which new laws restricted pre-trial detention in prison, up to Law 47 of 2015. The numbers show the timing; they do not say how much each law contributed. Since 2015 the number of people in prison has grown again, while those without a final conviction have stayed between ${nf0.format(Math.floor(d3.min(I.DISPAUTH.slice(i15)) / 1000))},000 and ${nf0.format(Math.ceil(d3.max(I.DISPAUTH.slice(i15)) / 1000))},000.`
+      : `La discesa più ripida è tra il ${y0} e il 2015, ${pctA("dal", s0)} ${pctA("al", share[i15])}. Sono gli anni in cui la Corte europea dei diritti dell’uomo ha condannato l’Italia per il sovraffollamento delle carceri (sentenza Torreggiani, gennaio 2013) e in cui nuove leggi hanno ristretto la custodia cautelare in carcere, fino alla legge 47 del 2015. I numeri mostrano la coincidenza nel tempo, non dicono quanto abbia pesato ciascuna legge. Dal 2015 le persone detenute sono tornate a crescere, quelle senza condanna definitiva sono rimaste tra ${nf0.format(Math.floor(d3.min(I.DISPAUTH.slice(i15)) / 1000))} e ${nf0.format(Math.ceil(d3.max(I.DISPAUTH.slice(i15)) / 1000))} mila.`;
+
+    // chi: italiani e stranieri, donne e uomini
+    const pair = (a, b) => ({ a: Yc.map((_, i) => dispShare(a, i)), b: Yc.map((_, i) => dispShare(b, i)) });
+    const pc2 = pair(D.cit.it, D.cit.str), ps2 = pair(D.sex.uomini, D.sex.donne);
+    seriesChart($("#caut-cit"), {
+      years: Yc, label: EN ? "Without a final conviction, per 100 Italians and per 100 foreign nationals in prison" : "Senza condanna definitiva, ogni 100 persone detenute italiane e straniere", height: 220,
+      yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%", yMax: d3.max(pc2.b) * 1.12,
+      series: [
+        { name: EN ? "foreign nationals" : "straniere", values: pc2.b, color: "var(--fall)", width: 2.5, at: 2012, dy: -10 },
+        { name: EN ? "Italians" : "italiane", values: pc2.a, color: "var(--ink)", at: 2016, dy: 18, dyEnd: 16 },
+      ],
+    });
+    seriesChart($("#caut-sex"), {
+      years: Yc, label: EN ? "Without a final conviction, per 100 women and per 100 men in prison" : "Senza condanna definitiva, ogni 100 donne e ogni 100 uomini detenuti", height: 220,
+      yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%", yMax: d3.max(ps2.b.concat(ps2.a)) * 1.12,
+      series: [
+        { name: EN ? "men" : "uomini", values: ps2.a, color: "var(--ink)", at: 2015, dy: -10 },
+        { name: EN ? "women" : "donne", values: ps2.b, color: "var(--rise)", width: 2.5, at: 2015, dy: 18, dyEnd: 16 },
+      ],
+    });
+    const awStr = (100 * D.cit.str.AWFJ[L]) / D.cit.str.ALL[L], awIt = (100 * D.cit.it.AWFJ[L]) / D.cit.it.ALL[L];
+    $("#caut-who-note").textContent = EN
+      ? `The gap between foreign nationals and Italians has been there in every year since ${y0}: at the end of ${last}, ${nf1.format(awStr)}% of foreign nationals in prison were awaiting their first trial, against ${nf1.format(awIt)}% of Italians. People without a home or a stable job in Italy find it harder to obtain house arrest or other alternatives to prison while they wait. Women are ${nf1.format((100 * D.sex.donne.ALL[L]) / I.ALL[L])}% of everyone in prison, and among them the share without a final conviction is close to the men’s.`
+      : `Lo scarto tra persone straniere e italiane c’è in ogni anno dal ${y0}: a fine ${last} era in attesa del primo giudizio ${pctA("il", awStr)} delle persone straniere detenute, contro ${pctA("il", awIt)} delle italiane. Chi in Italia non ha una casa o un lavoro stabile ottiene più difficilmente gli arresti domiciliari o altre misure al posto del carcere, mentre aspetta. Le donne sono ${pctA("il", (100 * D.sex.donne.ALL[L]) / I.ALL[L])} delle persone detenute, e tra loro la quota senza condanna definitiva è vicina a quella degli uomini.`;
+
+    renderCautRegions();
+    renderCautMeasures();
+    renderCautRepair();
+  }
+
+  function renderCautRegions() {
+    const C = CAUT, Yc = C.meta.years, L = Yc.length - 1, last = C.meta.last, itv = dispShare(C.detenuti.italia, L);
+    const rows = C.detenuti.regioni.map((r) => ({ r, n: r.all[L], d: r.disp[L], v: (100 * r.disp[L]) / r.all[L] })).sort((p, q) => q.v - p.v);
+    $("#caut-reg-sub").textContent = EN
+      ? `People in prison without a final conviction per 100, by region where the prison is, end of ${last}. The line is Italy (${nf1.format(itv)}%).` + (rows.some((d) => d.n < 300) ? " An asterisk marks regions with fewer than 300 people in prison." : "")
+      : `Persone detenute senza condanna definitiva ogni 100, per regione in cui si trova il carcere, fine ${last}. La linea è l’Italia (${nf1.format(itv)}%).` + (rows.some((d) => d.n < 300) ? " L’asterisco indica le regioni con meno di 300 persone detenute." : "");
+    barList($("#caut-regions"), rows.map((d) => ({ name: d.r.name, v: d.v, few: d.n < 300, title: EN ? `${d.r.name}: ${nf0.format(d.d)} of ${nf0.format(d.n)} people in prison` : `${d.r.name}: ${nf0.format(d.d)} su ${nf0.format(d.n)} persone detenute` })), { max: Math.max(rows[0].v, itv) * 1.02, ref: itv });
+    if (has("caut-reg-map")) {
+      provMap($("#caut-reg-map"), $("#caut-reg-legend"), new Map(rows.map((d) => [d.r.istat, { v: d.v, tip: EN
+        ? `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)}% without a final conviction<br><span class="small">${nf0.format(d.d)} of ${nf0.format(d.n)} people in prison, end of ${last}</span>`
+        : `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)}% senza condanna definitiva<br><span class="small">${nf0.format(d.d)} su ${nf0.format(d.n)} persone detenute, fine ${last}</span>` }])),
+        EN ? { by: "reg", label: `Map of regions: people in prison without a final conviction per 100, end of ${last}`, legend: `Without a final conviction per 100, end of ${last}` }
+          : { by: "reg", label: `Carta delle regioni: persone detenute senza condanna definitiva ogni 100, fine ${last}`, legend: `Senza condanna definitiva ogni 100, fine ${last}` });
+    }
+    const solid = rows.filter((d) => d.n >= 300), hi = solid.slice(0, 2), lo = solid.slice(-2).reverse(), nm = (d) => `${d.r.name} (${nf1.format(d.v)}%)`;
+    $("#caut-reg-note").textContent = EN
+      ? `The highest shares are in ${hi.map(nm).join(" and ")}, the lowest in ${lo.map(nm).join(" and ")}. What counts is the region where the prison is, not where the trial takes place or where the person lives: people awaiting trial are usually held in a remand prison near their court, while someone with a long final sentence can be moved to a prison far away. A region with many prisons for convicted people can therefore show a lower share. These data do not say why the share is so high in ${hi[0].r.name}.`
+      : `Le quote più alte sono in ${hi.map(nm).join(" e ")}, le più basse in ${lo.map(nm).join(" e ")}. Conta la regione in cui si trova il carcere, non quella del processo né quella di residenza: chi è in attesa di giudizio sta di solito in una casa circondariale vicina al suo tribunale, chi ha una condanna definitiva lunga può essere trasferito in una casa di reclusione anche lontana. Una regione con molte case di reclusione può quindi avere una quota più bassa. Questi dati non dicono perché la quota sia così alta in ${hi[0].r.name}.`;
+  }
+
+  function renderCautMeasures() {
+    const C = CAUT, M = C.misure, Yr = C.meta.rel_years, Lr = Yr.length - 1, lastR = C.meta.rel_last;
+    const byId = Object.fromEntries(M.tipi.map((t) => [t.id, t]));
+    const custodial = Yr.map((_, i) => d3.sum(M.tipi.filter((t) => t.custodiale), (t) => t.n[i]));
+    const house = Yr.map((_, i) => byId.domiciliari.n[i] + byId.braccialetto.n[i]);
+    const prison = byId.carcere.n, tot = M.totale;
+    $("#caut-measures-sub").textContent = EN ? `Coercive personal precautionary measures ordered by the courts each year, ${Yr[0]}–${lastR}` : `Misure cautelari personali coercitive disposte dai giudici ogni anno, ${Yr[0]}–${lastR}`;
+    seriesChart($("#caut-measures"), {
+      years: Yr, label: EN ? `Precautionary measures ordered, ${Yr[0]}–${lastR}` : `Misure cautelari disposte, ${Yr[0]}–${lastR}`, height: 240, yMin: 0, covid: true, xTicks: Yr,
+      series: [
+        { name: EN ? "all measures" : "tutte le misure", values: tot, color: "var(--ink)", at: 2019, dy: -10 },
+        { name: EN ? "custody in prison" : "custodia in carcere", values: prison, color: "var(--fall)", width: 2.5, at: 2019, dy: -10 },
+        { name: EN ? "house arrest" : "arresti domiciliari", values: house, color: "var(--ink-2)", at: 2019, dy: 16, dyEnd: 16 },
+      ],
+      tip: (i) => EN
+        ? `<b>${Yr[i]}</b>${M.stimati.includes(Yr[i]) ? " · includes estimates" : ""}<br>${nf0.format(tot[i])} measures<br>${nf0.format(custodial[i])} involving custody (${nf1.format((100 * custodial[i]) / tot[i])}%)<br>${nf0.format(prison[i])} in prison, ${nf0.format(house[i])} house arrest`
+        : `<b>${Yr[i]}</b>${M.stimati.includes(Yr[i]) ? " · con stime" : ""}<br>${nf0.format(tot[i])} misure<br>${nf0.format(custodial[i])} custodiali (${nf1.format((100 * custodial[i]) / tot[i])}%)<br>${nf0.format(prison[i])} in carcere, ${nf0.format(house[i])} ai domiciliari`,
+    });
+    // nomi brevi sulle righe, quello intero nel suggerimento
+    const SHORT = EN
+      ? { espatrio: "Ban on leaving Italy", firma: "Reporting to the police", allontanamento: "Removal from home", avvicinamento: "Keeping away from victim", divieto_dimora: "Ban on living in a place", obbligo_dimora: "Must live in a place", domiciliari: "House arrest", braccialetto: "House arrest with tag", carcere: "Custody in prison", cura: "Custody in a care facility" }
+      : { espatrio: "Divieto di espatrio", firma: "Obbligo di firma", allontanamento: "Allontanamento da casa", avvicinamento: "Divieto di avvicinamento", divieto_dimora: "Divieto di dimora", obbligo_dimora: "Obbligo di dimora", domiciliari: "Arresti domiciliari", braccialetto: "Domiciliari con braccialetto", carcere: "Custodia in carcere", cura: "Custodia in luogo di cura" };
+    const FULL_EN = { espatrio: "Ban on leaving Italy", firma: "Obligation to report to the police", allontanamento: "Removal from the family home", avvicinamento: "Ban on approaching the victim", divieto_dimora: "Ban on living in a place", obbligo_dimora: "Obligation to live in a place", domiciliari: "House arrest without electronic tag", braccialetto: "House arrest with electronic tag", carcere: "Custody in prison", cura: "Custody in a care facility" };
+    const rows = M.tipi.map((t) => ({ name: SHORT[t.id], full: EN ? FULL_EN[t.id] : t.nome, v: (100 * t.n[Lr]) / tot[Lr], n: t.n[Lr], art: t.art })).sort((p, q) => q.v - p.v);
+    $("#caut-types-sub").textContent = EN ? `Share of all ${nf0.format(tot[Lr])} measures ordered in ${lastR}` : `Quota sulle ${nf0.format(tot[Lr])} misure disposte nel ${lastR}`;
+    barList($("#caut-types"), rows.map((r) => ({ name: r.name, v: r.v, title: EN ? `${r.full} (art. ${r.art} of the Code of Criminal Procedure): ${nf0.format(r.n)}` : `${r.full} (art. ${r.art} c.p.p.): ${nf0.format(r.n)}` })), { max: rows[0].v * 1.05 });
+
+    // come finiscono i procedimenti, per le misure emesse e chiuse nello stesso anno
+    const E = C.esiti, X = C.esiti_misura.righe, def = E.definiti[Lr];
+    const parts = (r) => [r[0] + r[2], r[1] + r[3], r[4], r[5]];
+    const cats = EN
+      ? [{ cls: "o1", label: "convicted, sentence not suspended" }, { cls: "o2", label: "convicted, suspended sentence" }, { cls: "o3", label: "acquitted" }, { cls: "o4", label: "proceedings dropped for other reasons" }]
+      : [{ cls: "o1", label: "condanna senza sospensione della pena" }, { cls: "o2", label: "condanna con sospensione condizionale" }, { cls: "o3", label: "assoluzione" }, { cls: "o4", label: "proscioglimento per altri motivi" }];
+    stackBars($("#caut-outcomes"), [
+      { name: EN ? "Custody in prison" : "Custodia in carcere", parts: parts(X.carcere) },
+      { name: EN ? "House arrest" : "Arresti domiciliari", parts: parts(X.domiciliari) },
+      { name: EN ? "House arrest with tag" : "Domiciliari con braccialetto", parts: parts(X.braccialetto) },
+      { name: EN ? "All measures" : "Tutte le misure", parts: parts(X.totale), strong: true },
+    ], cats);
+    const free = (r) => r[4] + r[5], cust = ["carcere", "domiciliari", "braccialetto", "cura"];
+    const susp = d3.sum(cust, (k) => X[k][1] + X[k][3]);
+    const shareDef = (100 * def) / C.misure.totale[Lr];
+    $("#caut-out-sub").textContent = EN
+      ? `How the ${nf0.format(def)} measures ordered in ${lastR} in proceedings that also ended in ${lastR} turned out, by type of measure. The number on the right is how many measures; judgments may still be appealed.`
+      : `Come sono finite le ${nf0.format(def)} misure disposte nel ${lastR} in procedimenti chiusi nello stesso anno, per tipo di misura. A destra quante sono; le sentenze possono non essere definitive.`;
+    $("#caut-out-note").textContent = EN
+      ? `Read with care: this covers only ${nf1.format(shareDef)}% of the measures ordered in ${lastR}, those in proceedings that ended within the same year. These are short proceedings; for the longer ones the outcome is not yet known, and the report does not follow them into later years. Within that limit, ${nf1.format((100 * free(X.carcere)) / d3.sum(X.carcere))}% of the orders for custody in prison ended in an acquittal or with the case dropped. And ${nf0.format(susp)} orders for prison or house arrest were followed by a suspended sentence, although the law (art. 275(2-bis) of the Code of Criminal Procedure) rules out both measures when the judge expects the sentence to be suspended. The Ministry considers it a marginal figure: ${nf1.format((100 * susp) / def)}% of the measures. The report counts measures, not people: one person can receive more than one.`
+      : `Da leggere con cautela: qui c’è solo ${pctA("il", shareDef)} delle misure disposte nel ${lastR}, quelle dei procedimenti chiusi entro lo stesso anno. Sono procedimenti brevi; per quelli più lunghi l’esito non è ancora noto, e la relazione non li segue negli anni successivi. Con questo limite, ${pctA("il", (100 * free(X.carcere)) / d3.sum(X.carcere))} delle custodie cautelari in carcere si è chiuso con un’assoluzione o un proscioglimento. E ${nf0.format(susp)} misure di carcere o di domiciliari sono state seguite da una condanna con la sospensione condizionale della pena, anche se la legge (art. 275, comma 2 bis c.p.p.) esclude le due misure quando il giudice prevede che la pena sarà sospesa. Il Ministero lo considera un dato marginale: ${pctA("il", (100 * susp) / def)} delle misure. La relazione conta misure, non persone: una persona può riceverne più d’una.`;
+  }
+
+  function renderCautRepair() {
+    const C = CAUT, R = C.riparazione, Yr = C.meta.rel_years, Lr = Yr.length - 1, lastR = C.meta.rel_last;
+    const G = C.disciplinari, Dd = R.definite, mot = R.motivi;
+    const ord = d3.sum(R.ordinanze), pay = d3.sum(R.importi), meanReq = d3.mean(R.domande), meanAcc = d3.mean(R.accolte_pct);
+    const az = d3.sum(G.azioni), sanz = d3.sum(G.sanzioni), clean = d3.sum(G.assoluzioni) + d3.sum(G.non_doversi_procedere), open = d3.sum(G.in_corso);
+    $("#caut-rip-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${nf0.format(Math.round(meanReq))}</div><div class="fl">requests for compensation reach the courts of appeal every year on average (${Yr[0]}–${lastR}). About ${nf0.format(Math.round(meanAcc))} in 100 are granted.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(mot.proscioglimento_pct[Lr])}%</div><div class="fl">of the compensation orders that became final in ${lastR} concern people later acquitted or whose case was dropped; the rest, a precautionary order found to be unlawful.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(ord)}</div><div class="fl">payment orders from ${Yr[0]} to ${lastR}, for €${nf1.format(pay / 1e6)} million: about €${nf0.format(Math.round(pay / ord / 1000) * 1000)} each.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(sanz)}</div><div class="fl">disciplinary sanctions against judges out of ${nf0.format(az)} proceedings opened since ${G.anni[0]} for depriving someone of their liberty outside the cases allowed by law.</div></div>` : `
+      <div class="fact"><div class="fv">${nf0.format(Math.round(meanReq))}</div><div class="fl">domande di riparazione arrivano in media ogni anno alle Corti d’appello (${Yr[0]}–${lastR}). Ne vengono accolte circa ${nf0.format(Math.round(meanAcc))} su 100.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(mot.proscioglimento_pct[Lr])}%</div><div class="fl">delle riparazioni diventate definitive nel ${lastR} riguarda persone poi assolte, prosciolte o con il procedimento archiviato; le altre, un’ordinanza cautelare illegittima.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(ord)}</div><div class="fl">ordinanze di pagamento dal ${Yr[0]} al ${lastR}, per ${nf1.format(pay / 1e6)} milioni di euro: circa ${nf0.format(Math.round(pay / ord / 1000) * 1000)} euro ciascuna.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(sanz)}</div><div class="fl">sanzioni disciplinari ai magistrati, su ${nf0.format(az)} procedimenti avviati dal ${G.anni[0]} per aver privato qualcuno della libertà fuori dai casi consentiti.</div></div>`;
+    $("#caut-pay-sub").textContent = EN ? `Compensation for wrongful detention paid each year, millions of euros, ${Yr[0]}–${lastR}` : `Riparazioni per ingiusta detenzione pagate ogni anno, milioni di euro, ${Yr[0]}–${lastR}`;
+    seriesChart($("#caut-pay"), {
+      years: Yr, label: EN ? `Compensation paid, millions of euros, ${Yr[0]}–${lastR}` : `Riparazioni pagate, milioni di euro, ${Yr[0]}–${lastR}`, height: 220, yMin: 0, xTicks: Yr,
+      fmt: (v) => nf1.format(v), yFmt: (v) => nf0.format(v),
+      series: [{ name: EN ? "€ million" : "milioni di euro", values: R.importi.map((v) => v / 1e6), color: "var(--fall)", width: 2.5, label: false }],
+      tip: (i) => EN
+        ? `<b>${Yr[i]}</b><br>€${nf1.format(R.importi[i] / 1e6)} million<br>${nf0.format(R.ordinanze[i])} orders, €${nf0.format(R.importi[i] / R.ordinanze[i])} on average`
+        : `<b>${Yr[i]}</b><br>${nf1.format(R.importi[i] / 1e6)} milioni di euro<br>${nf0.format(R.ordinanze[i])} ordinanze, ${nf0.format(R.importi[i] / R.ordinanze[i])} euro in media`,
+    });
+    $("#caut-req-sub").textContent = EN ? `Requests for compensation and payment orders each year, ${Yr[0]}–${lastR}` : `Domande di riparazione e ordinanze di pagamento ogni anno, ${Yr[0]}–${lastR}`;
+    seriesChart($("#caut-req"), {
+      years: Yr, label: EN ? `Requests for compensation and payment orders, ${Yr[0]}–${lastR}` : `Domande di riparazione e ordinanze di pagamento, ${Yr[0]}–${lastR}`, height: 220, yMin: 0, xTicks: Yr,
+      series: [
+        { name: EN ? "requests" : "domande", values: R.domande, color: "var(--ink)", at: 2019, dy: -10 },
+        { name: EN ? "payment orders" : "ordinanze di pagamento", values: R.ordinanze, color: "var(--fall)", width: 2.5, at: 2021, dy: 18, dyEnd: 16 },
+      ],
+      tip: (i) => EN
+        ? `<b>${Yr[i]}</b><br>${nf0.format(R.domande[i])} new requests, ${nf1.format(R.accolte_pct[i])}% of decided ones granted<br>${nf0.format(R.ordinanze[i])} payment orders`
+        : `<b>${Yr[i]}</b><br>${nf0.format(R.domande[i])} domande nuove, accolte ${nf1.format(R.accolte_pct[i])}% di quelle decise<br>${nf0.format(R.ordinanze[i])} ordinanze di pagamento`,
+    });
+    $("#caut-disc").textContent = EN
+      ? `Compensation does not mean that a judge made a mistake. Custody may have been entirely lawful when it was ordered and turn out to be unjust only after an acquittal: for this reason the Ministry does not link compensation to the responsibility of judges. From ${G.anni[0]} to ${G.anni[G.anni.length - 1]}, ${nf0.format(az)} disciplinary proceedings were opened for the specific offence of ordering a deprivation of liberty outside the cases allowed by law through serious and inexcusable negligence: ${nf0.format(clean)} ended without a sanction, ${nf0.format(sanz)} with one, ${nf0.format(open)} are still open.`
+      : `La riparazione non vuol dire che il giudice abbia sbagliato. La custodia può essere stata del tutto legittima quando è stata disposta e rivelarsi ingiusta solo dopo l’assoluzione: per questo il Ministero non collega le riparazioni alla responsabilità dei magistrati. Dal ${G.anni[0]} al ${G.anni[G.anni.length - 1]} i procedimenti disciplinari avviati per l’illecito specifico (un provvedimento restrittivo della libertà fuori dai casi consentiti, per negligenza grave e inescusabile) sono stati ${nf0.format(az)}: ${nf0.format(clean)} si sono chiusi senza sanzione, ${nf0.format(sanz)} con una sanzione, ${nf0.format(open)} sono in corso.`;
+    $("#caut-def-note").textContent = EN
+      ? `In ${lastR} the courts of appeal decided ${nf0.format(Dd.totale)} requests: ${nf0.format(Dd.accolte)} granted, ${nf0.format(Dd.respinte)} rejected, ${nf0.format(Dd.inammissibili)} inadmissible. Compensation is refused, among other cases, to anyone who contributed to their own detention through intent or gross negligence, and must be requested within two years of the final judgment.`
+      : `Nel ${lastR} le Corti d’appello hanno deciso ${nf0.format(Dd.totale)} domande: ${nf0.format(Dd.accolte)} accolte, ${nf0.format(Dd.respinte)} respinte, ${nf0.format(Dd.inammissibili)} inammissibili. La riparazione è esclusa, tra l’altro, per chi ha contribuito alla propria detenzione con dolo o colpa grave, e va chiesta entro due anni dalla sentenza definitiva.`;
+    renderCautDistricts();
+  }
+
+  function renderCautDistricts() {
+    const C = CAUT, R = C.riparazione, Yr = C.meta.rel_years, lastR = C.meta.rel_last, mode = state.cautMode;
+    const span = `${Yr[0]}–${lastR}`, popY = C.meta.pop_year;
+    const popIt = d3.sum(R.distretti, (d) => d.pop), ordIt = d3.sum(R.ordinanze), payIt = d3.sum(R.importi);
+    const val = (o, e, p) => (mode === "ord" ? (1e5 * o) / p : mode === "eur" ? e / p : e / 1e6);
+    const rows = R.distretti.map((d) => { const o = d3.sum(d.ordinanze), e = d3.sum(d.importi); return { d, o, e, v: val(o, e, d.pop) }; }).sort((p, q) => q.v - p.v);
+    const itv = mode === "tot" ? null : val(ordIt, payIt, popIt);
+    const fmt = (v) => nf1.format(v);
+    const T = EN
+      ? { ord: [`Compensation orders per 100,000 residents, ${span}`, "orders per 100,000 residents"], eur: [`Euros of compensation per resident, ${span}`, "euros per resident"], tot: [`Compensation paid, millions of euros, ${span}`, "€ million"] }
+      : { ord: [`Ordinanze di riparazione ogni 100.000 abitanti, ${span}`, "ordinanze ogni 100.000 abitanti"], eur: [`Euro di riparazione per abitante, ${span}`, "euro per abitante"], tot: [`Riparazioni pagate, milioni di euro, ${span}`, "milioni di euro"] };
+    $("#caut-dist-title").textContent = T[mode][0];
+    $("#caut-dist-sub").textContent = EN
+      ? `Courts of appeal, ${span} added together; Sassari, Taranto and Bolzano are detached sections of Cagliari, Lecce and Trento, counted separately` + (itv != null ? `. Residents on 1 January ${popY}; the line is Italy (${fmt(itv)}).` : ".")
+      : `Corti d’appello, ${span} sommati; Sassari, Taranto e Bolzano sono sezioni distaccate di Cagliari, Lecce e Trento, contate a parte` + (itv != null ? `. Residenti al 1° gennaio ${popY}; la linea è l’Italia (${fmt(itv)}).` : ".");
+    const tip = (r) => EN
+      ? `<b>${esc(r.d.name)}</b><br>${nf0.format(r.o)} orders, €${nf1.format(r.e / 1e6)} million, ${span}<br><span class="small">${nf1.format((1e5 * r.o) / r.d.pop)} orders per 100,000 residents, €${nf1.format(r.e / r.d.pop)} per resident</span>`
+      : `<b>${esc(r.d.name)}</b><br>${nf0.format(r.o)} ordinanze, ${nf1.format(r.e / 1e6)} milioni di euro, ${span}<br><span class="small">${nf1.format((1e5 * r.o) / r.d.pop)} ordinanze ogni 100.000 abitanti, ${nf1.format(r.e / r.d.pop)} euro per abitante</span>`;
+    barList($("#caut-districts"), rows.map((r) => ({ name: r.d.name, v: r.v, title: tip(r).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() })), { max: rows[0].v * 1.02, ref: itv, fmt });
+    if (has("caut-dist-map")) {
+      provMap($("#caut-dist-map"), $("#caut-dist-legend"), new Map(rows.map((r) => [r.d.id, { v: r.v, tip: tip(r) }])),
+        { by: "dist", sqrt: true, label: EN ? `Map of court districts: ${T[mode][1]}` : `Carta dei distretti di Corte d’appello: ${T[mode][1]}`, legend: T[mode][1], fmt: (v) => nf0.format(v) });
+    }
+    const top = rows[0], second = rows[1];
+    const xIt = (r) => ((1e5 * r.o) / r.d.pop) / ((1e5 * ordIt) / popIt);
+    $("#caut-dist-note").textContent = EN
+      ? `${top.d.name} stands out in every measure: ${nf0.format(top.o)} orders and €${nf1.format(top.e / 1e6)} million over seven years, for a district of ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} residents, ${nf0.format(xIt(top))} times the national rate. ${second.d.name} follows. The report does not say which proceedings the orders come from or when the custody began: a single large trial ending in many acquittals can fill several years of payments.`
+      : `${top.d.name} spicca in ogni misura: ${nf0.format(top.o)} ordinanze e ${nf1.format(top.e / 1e6)} milioni di euro in sette anni, per un distretto di ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} abitanti, ${nf0.format(xIt(top))} volte la media italiana. Segue ${second.d.name}. La relazione non dice da quali procedimenti vengano le ordinanze né quando sia cominciata la custodia: un solo grande processo che finisce con molte assoluzioni può riempire più anni di pagamenti.`;
+  }
+
   function wireHome() {
     // il menu dei reati, uguale nella mappa e nella griglia delle città: ognuno cambia solo la sua sezione
     const groups = d3.group(TYPES, (t) => t.group);
@@ -3611,6 +3904,7 @@
       if (has("perc-prov")) loads.push(loadPercProv());
       if (has("autori-facts") || $('[data-dd="autori"]') || allSources) loads.push(loadAutori());
       if (has("minori-facts") || $('[data-dd="minori"]') || allSources) loads.push(loadMinori());
+      if (has("caut-facts") || $('[data-dd="cautelari"]') || allSources) loads.push(loadCautelari());
       if (allSources) QINDEX.forEach((id) => loadQuart(id));
       let h = location.hash.slice(1);
       try { h = decodeURIComponent(h); } catch (e) { /* ignorato */ }

@@ -15,6 +15,7 @@ riconoscibile sembrerebbe indicata come esempio.
 «lift» schiarisce i notturni prima del filtro (gamma), che con il contrasto a 1.5 altrimenti diventano neri.
 
 Uso:  python3 scripts/make_dd_shots.py          (scarica le foto da images.unsplash.com e riscrive img/dd/)
+      python3 scripts/make_dd_shots.py minori   (solo le chiavi indicate, le altre foto restano come sono)
 """
 import io
 import pathlib
@@ -34,6 +35,7 @@ SHOTS = {
     "percezione": ("photo-1772400862581-1608fd542da3", "empty-street-with-buildings-and-clock-tower-at-night-ca_5BEvg-LY", "Mohamed Marey", 0.5, 0.55, 0.9),
     "autori":     ("photo-1676829482890-08da580bf542", "a-couple-of-police-cars-parked-next-to-each-other-Fn57NtC4ddk", "Alex Suprun", 0.5, 0.6, 0.75),
     "minori":     ("photo-1544919982-b61976f0ba43", "portable-basketball-hoop-20K-JZ2ppbE", "Piotr Osmenda", 0.5, 0.5, 0.75),
+    "cautelari":  ("photo-1660784670019-33a36fd82515", "a-courtroom-with-a-large-wooden-bench-ZV0kXnONoHo", "Rai Singh Uriarte", 0.5, 0.45, 1.0),
 }
 
 
@@ -55,9 +57,11 @@ def tone(im, lift):
     return g.filter(ImageFilter.GaussianBlur(0.5))      # blur(0.3px), a circa due pixel del file per pixel CSS
 
 
-def main():
+def main(keys):
     OUT.mkdir(parents=True, exist_ok=True)
     for key, (file, page, author, fx, fy, lift) in SHOTS.items():
+        if keys and key not in keys:
+            continue
         req = urllib.request.Request(f"https://images.unsplash.com/{file}?w=1600&q=85&fm=jpg", headers={"User-Agent": "atlante-della-sicurezza"})
         with urllib.request.urlopen(req, timeout=60) as r:
             src = Image.open(io.BytesIO(r.read()))
@@ -67,4 +71,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(sys.argv[1:])
