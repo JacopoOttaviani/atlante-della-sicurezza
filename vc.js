@@ -604,6 +604,16 @@
   // in inglese: 1st, 2nd, 3rd, 4th… 11th, 12th, 13th
   const ordinal = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
 
+  // Variazione nazionale di un reato tra due anni, calcolata dai conteggi e dalla popolazione: i tassi di data/vc.json
+  // sono arrotondati a un decimale, e per i reati rari il rapporto tra tassi arrotondati gonfia la variazione
+  // (omicidi 2019–2024: 0,5 → 0,6 darebbe +20%, i conteggi 318 → 326 danno +4%).
+  function natCh(id, iB, iL = LAST) {
+    const n = ITALY.n && ITALY.n[id], nt = ITALY.n && ITALY.n.TOT, rt = ITALY.rate.TOT;
+    if (n && nt && n[iB] > 0 && n[iL] != null && nt[iB] > 0 && nt[iL] > 0 && rt[iB] > 0 && rt[iL] > 0)
+      return (n[iL] / n[iB]) / ((nt[iL] / rt[iL]) / (nt[iB] / rt[iB])) - 1;
+    return ITALY.rate[id][iL] / ITALY.rate[id][iB] - 1;
+  }
+
   function renderBrief() {
     const host = $("#brief");
     if (!host) return;
@@ -612,7 +622,7 @@
     const card = (q, a, href, go) => cards.push(`<details class="faq-q rv-up"><summary><h3>${q}</h3></summary><div class="faq-a"><p>${a}</p><a class="go" href="${PAGES + href}">${go} <span aria-hidden="true">→</span></a></div></details>`);
 
     // cosa sale e cosa scende, in Italia
-    const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 })).filter((d) => isFinite(d.ch));
+    const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: natCh(t.id, iB) })).filter((d) => isFinite(d.ch));
     const ups = ch.filter((d) => d.ch > 0.03).sort((a, b) => b.ch - a.ch).slice(0, 3);
     const downs = ch.filter((d) => d.ch < -0.03).sort((a, b) => a.ch - b.ch).slice(0, 3);
     const list = (l) => andList(l.map((d) => `${esc(shortLabel(d.t))} (${fmtPct(d.ch)})`));
@@ -886,7 +896,7 @@
     if (!el) return;
     const iB = Y.indexOf(REF);
     const items = TYPES.filter((t) => t.id !== "TOT")
-      .map((t) => ({ t, lvl: ITALY.rate[t.id][LAST], ch: ITALY.rate[t.id][LAST] / ITALY.rate[t.id][iB] - 1 }))
+      .map((t) => ({ t, lvl: ITALY.rate[t.id][LAST], ch: natCh(t.id, iB) }))
       .filter((d) => isFinite(d.ch)).sort((a, b) => b.ch - a.ch);
     if (items.length < 2) return;
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
@@ -1002,7 +1012,7 @@
     const base = state.mixBase, iB = Y.indexOf(base);
     const items = TYPES.filter((t) => t.id !== "TOT").map((t) => {
       const it = ITALY.rate[t.id];
-      return { t, it, ch: it[LAST] / it[iB] - 1 };
+      return { t, it, ch: natCh(t.id, iB) };
     }).sort((a, b) => b.ch - a.ch);
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
     const up = items.filter((d) => d.ch > 0.03).length, down = items.filter((d) => d.ch < -0.03).length;

@@ -621,14 +621,24 @@ def sitemap():
 
 # ------------------------------------------------------------------ llms.txt
 
+def nat_change(tid, i0, i1=L):
+    """Variazione nazionale dai conteggi e dalla popolazione, come natCh in vc.js: i tassi di vc.json sono
+    arrotondati a un decimale e per i reati rari (omicidi, usura) il rapporto tra tassi arrotondati la falsa."""
+    n, nt, rt = ITALY["n"].get(tid), ITALY["n"]["TOT"], ITALY["rate"]["TOT"]
+    if n and n[i0] and n[i1] is not None and nt[i0] and nt[i1] and rt[i0] and rt[i1]:
+        return (n[i1] / n[i0]) / ((nt[i1] / rt[i1]) / (nt[i0] / rt[i0])) - 1
+    a, b = ITALY["rate"][tid][i0], ITALY["rate"][tid][i1]
+    return b / a - 1 if a else None
+
+
 def llms():
     ups_downs = []
     for t in TYPES:
         if t["id"] == "TOT":
             continue
-        a, b = ITALY["rate"][t["id"]][IB], ITALY["rate"][t["id"]][L]
-        if a:
-            ups_downs.append((t, b / a - 1))
+        ch = nat_change(t["id"], IB)
+        if ch is not None:
+            ups_downs.append((t, ch))
     ups = sorted((d for d in ups_downs if d[1] > 0.03), key=lambda d: -d[1])[:3]
     downs = sorted((d for d in ups_downs if d[1] < -0.03), key=lambda d: d[1])[:3]
     lst = lambda ms: and_list([f"{short_label(t)} ({fmt_pct(p)})" for t, p in ms])
