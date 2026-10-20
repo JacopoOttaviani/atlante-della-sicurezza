@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — Milano quartiere per quartiere (prototipo).
+"""Atlante della Sicurezza — Milano quartiere per quartiere (prototipo).
 
 Il Comune di Milano pubblica i confini e i residenti dei suoi 88 quartieri (NIL, Nuclei
 di identità locale, PGT 2030), ma nessuna fonte ufficiale pubblica i reati denunciati

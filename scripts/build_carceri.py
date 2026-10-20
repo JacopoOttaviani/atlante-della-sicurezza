@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — sezione carceri.
+"""Atlante della Sicurezza — sezione carceri.
 
 Scarica da ISTAT (API SDMX) i dati sui detenuti adulti presenti nelle carceri
 italiane (fonte originaria: Ministero della Giustizia, DAP) e, quando il server

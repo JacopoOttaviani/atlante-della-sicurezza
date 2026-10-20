@@ -1,4 +1,4 @@
-/* Atlante della sicurezza — interfaccia.
+/* Atlante della Sicurezza — interfaccia.
    Legge data/vc.json (generato da scripts/build_data.py) e data/italia.topo.json.
    Tutti i calcoli (tassi, variazioni, impennate) avvengono qui a partire dai conteggi ISTAT. */
 (function () {
@@ -4442,8 +4442,8 @@
     // l'approfondimento sulla percezione: delitti, popolazione, le due indagini sulla percezione e i tassi delle province
     else if (srcs && srcs.dataset.only === "percezione") addSources(META.sources.filter((s) => !/geojson/.test(s.id)).map((s) => (/DELITTIPS_9$/.test(s.id) ? { ...s, label: "ISTAT, Delitti denunciati — tasso di delittuosità, Italia e province", en: "ISTAT, Reported crimes — crime rate, Italy and provinces" } : s)), "percezione");
     if (has("colophon")) $("#colophon").innerHTML = EN
-      ? `Atlante della sicurezza · ISTAT data up to ${Y[LAST]}, dataset built on ${new Date(META.built).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" })}`
-      : `Atlante della sicurezza · dati ISTAT aggiornati al ${Y[LAST]}, dataset generato il ${new Date(META.built).toLocaleDateString(LOCALE)}`;
+      ? `Atlante della Sicurezza · ISTAT data up to ${Y[LAST]}, dataset built on ${new Date(META.built).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" })}`
+      : `Atlante della Sicurezza · dati ISTAT aggiornati al ${Y[LAST]}, dataset generato il ${new Date(META.built).toLocaleDateString(LOCALE)}`;
   }
 
   // ------------------------------------------------------------------ avvio

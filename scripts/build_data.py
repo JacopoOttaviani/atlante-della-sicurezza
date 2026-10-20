@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — costruzione del dataset.
+"""Atlante della Sicurezza — costruzione del dataset.
 
 Scarica i dati ufficiali ISTAT (API SDMX di esploradati.istat.it) e i confini
 amministrativi (openpolis/geojson-italy, derivati da ISTAT), e scrive:
@@ -338,7 +338,7 @@ def build():
 
     data = {
         "meta": {
-            "title": "Atlante della sicurezza",
+            "title": "Atlante della Sicurezza",
             "years": YEARS,
             "built": date.today().isoformat(),
             "sources": [

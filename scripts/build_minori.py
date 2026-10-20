@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — approfondimento sui minorenni denunciati e arrestati.
+"""Atlante della Sicurezza — approfondimento sui minorenni denunciati e arrestati.
 
 L'ISTAT pubblica, sui dati delle forze di polizia (SDI/SSD), le segnalazioni di persone denunciate e arrestate o fermate:
 una segnalazione per persona e per delitto, quindi chi è denunciato per tre delitti conta tre volte. Scrive data/minori.json con:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — approfondimento «Carcere per carcere» (affollamento e morti negli istituti per adulti).
+"""Atlante della Sicurezza — approfondimento «Carcere per carcere» (affollamento e morti negli istituti per adulti).
 
 Scrive data/istituti.json mettendo insieme quattro fonti:
 

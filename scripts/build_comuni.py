@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — tutti i comuni italiani, con i dati della loro provincia.
+"""Atlante della Sicurezza — tutti i comuni italiani, con i dati della loro provincia.
 
 L'ISTAT pubblica i delitti denunciati comune per comune solo per i capoluoghi.
 Per ogni altro comune il dato ufficiale più vicino è quello della provincia.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — approfondimento «Prima della condanna» (custodia cautelare e ingiusta detenzione).
+"""Atlante della Sicurezza — approfondimento «Prima della condanna» (custodia cautelare e ingiusta detenzione).
 
 Scrive data/cautelari.json mettendo insieme tre fonti:
 

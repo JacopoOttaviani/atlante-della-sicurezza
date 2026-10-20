@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — sezione rimpatri.
+"""Atlante della Sicurezza — sezione rimpatri.
 
 Scarica da Eurostat (API di diffusione, formato JSON-stat) i cittadini di paesi terzi
 a cui l'Italia ha ordinato di lasciare il territorio e quelli effettivamente rimpatriati

@@ -1,4 +1,4 @@
-# Atlante della sicurezza
+# Atlante della Sicurezza
 
 > Strumento civico gratuito sui reati denunciati in Italia, con soli dati ufficiali: ISTAT 2006–2024 per i 108 comuni capoluogo e la scheda di ogni comune italiano (per i non capoluoghi, i dati della provincia), più Eurostat per i rimpatri. Mostra dove si denuncia di più e di meno, quali reati salgono e quali scendono, le impennate improvvise e quanto le persone si sentono a rischio. Di Jacopo Ottaviani, data journalist.
 
@@ -29,8 +29,8 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 
 ## In English
 
-- [Atlante della sicurezza: reported crime in Italy, city by city, 2006–2024](https://atlantedellasicurezza.it/en/): Atlante della sicurezza: how many crimes are really reported in Italian cities, and how that is changing. Official ISTAT data for 2006–2024 on the 108 provincial capitals, with rankings, a map and spikes.
-- [Deep dives](https://atlantedellasicurezza.it/en/approfondimenti/): The deep dives of the Atlante della sicurezza: foreign nationals in prison, orders to leave Italy and the returns carried out country by country, perceived risk alongside reported crimes, the crimes that remain without a known offender, minors reported and arrested, people in prison without a final conviction and compensation for wrongful detention, and overcrowding and deaths prison by prison.
+- [Atlante della Sicurezza: reported crime in Italy, city by city, 2006–2024](https://atlantedellasicurezza.it/en/): Atlante della Sicurezza: how many crimes are really reported in Italian cities, and how that is changing. Official ISTAT data for 2006–2024 on the 108 provincial capitals, with rankings, a map and spikes.
+- [Deep dives](https://atlantedellasicurezza.it/en/approfondimenti/): The deep dives of the Atlante della Sicurezza: foreign nationals in prison, orders to leave Italy and the returns carried out country by country, perceived risk alongside reported crimes, the crimes that remain without a known offender, minors reported and arrested, people in prison without a final conviction and compensation for wrongful detention, and overcrowding and deaths prison by prison.
 - [Foreign nationals in Italian prisons](https://atlantedellasicurezza.it/en/approfondimenti/carceri.html): How many foreign nationals are in Italian prisons, which countries they come from, for which crimes and with what legal status, alongside their share of the resident population: official ISTAT data, sourced from the Ministry of Justice.
 - [Returns: how many are ordered, how many carried out](https://atlantedellasicurezza.it/en/approfondimenti/rimpatri.html): How many citizens of non-EU countries Italy orders to leave and how many it actually returns, country by country since 2008: Eurostat data, sourced from the Ministry of the Interior.
 - [How unsafe we feel, and how unsafe we are](https://atlantedellasicurezza.it/en/approfondimenti/percezione.html): Fear of crime alongside reported crimes: the national series since 2006, the big cities and the Italian provinces, with official ISTAT and EU-SILC data.
@@ -38,7 +38,7 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [Minors reported and arrested](https://atlantedellasicurezza.it/en/approfondimenti/minori.html): How many minors are reported or arrested in Italy, for which crimes and what share they make up of all the people reported, from 2004 to today: official ISTAT data, sourced from the Ministry of the Interior.
 - [Before the verdict: pre-trial detention and wrongful detention](https://atlantedellasicurezza.it/en/approfondimenti/custodia-cautelare.html): How many people are in prison in Italy without a final conviction, how many precautionary measures the courts order and how much the State pays for wrongful detention, district by district: official data from ISTAT and the Ministry of Justice.
 - [Prison by prison: overcrowding and deaths in Italy’s prisons](https://atlantedellasicurezza.it/en/approfondimenti/carcere-per-carcere.html): How many people are held in each of Italy’s adult prisons compared with the places available, month by month since 2019, and how many die there: data from the Ministry of Justice and the National Guarantor, with the counts of Ristretti Orizzonti and Antigone.
-- [About](https://atlantedellasicurezza.it/en/progetto/): Why the Atlante della sicurezza exists, who made it, frequently asked questions and how to read its numbers: methodology and official sources, ISTAT and Eurostat.
+- [About](https://atlantedellasicurezza.it/en/progetto/): Why the Atlante della Sicurezza exists, who made it, frequently asked questions and how to read its numbers: methodology and official sources, ISTAT and Eurostat.
 
 ## Le città
 

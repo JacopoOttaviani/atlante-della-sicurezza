@@ -184,7 +184,7 @@ if "vc.css" not in HEAD_LINKS or "vc.js" not in SCRIPTS:
     raise SystemExit("approfondimenti/index.html: non trovo vc.css o vc.js")
 
 PERSON_REF = {"@type": "Person", "@id": SITE + "progetto/#autore", "name": "Jacopo Ottaviani", "url": "https://jacopoottaviani.com/"}
-WEBSITE_REF = {"@type": "WebSite", "@id": SITE + "#website", "name": "Atlante della sicurezza", "url": SITE}
+WEBSITE_REF = {"@type": "WebSite", "@id": SITE + "#website", "name": "Atlante della Sicurezza", "url": SITE}
 
 # poche regole solo per queste pagine, così vc.css resta com'è
 STYLE = """<style>
@@ -214,7 +214,7 @@ def head(title, description, url, ld):
 <meta name="author" content="Jacopo Ottaviani">
 {HEAD_LINKS}
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Atlante della sicurezza">
+<meta property="og:site_name" content="Atlante della Sicurezza">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(description)}">
 <meta property="og:url" content="{url}">
@@ -259,7 +259,7 @@ def crumbs(*items):
 
 SOURCES = (
     "Fonte: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria (dati del Ministero dell’Interno) "
-    "e popolazione residente; elaborazione dell’Atlante della sicurezza. "
+    "e popolazione residente; elaborazione dell’Atlante della Sicurezza. "
     '<a href="../progetto/#metodo">Come leggere questi numeri</a>.'
 )
 
@@ -357,7 +357,7 @@ def city_page(c):
 
     same_region = sorted((x for x in CITIES if x["region"] == c["region"] and x["id"] != cid), key=lambda x: x["name"])
 
-    title = f"Reati denunciati {where}, {Y[i0]}–{LAST} · Atlante della sicurezza"
+    title = f"Reati denunciati {where}, {Y[i0]}–{LAST} · Atlante della Sicurezza"
     description = (
         f"{name}, {LAST}: {nf0(n_last)} delitti denunciati, {nf0(r_last)} ogni 100.000 abitanti (Italia {nf0(IT_TOT[L])}), "
         f"{rank}° tra i {N_CITIES} capoluoghi. Reato per reato e anno per anno dal {Y[i0]}, con dati ufficiali ISTAT."
@@ -381,7 +381,7 @@ def city_page(c):
                 "geo": {"@type": "GeoCoordinates", "latitude": c["lat"], "longitude": c["lon"]},
             },
         },
-        crumbs(("Atlante della sicurezza", SITE), ("Le città", SITE + "citta/"), (name, url)),
+        crumbs(("Atlante della Sicurezza", SITE), ("Le città", SITE + "citta/"), (name, url)),
     ]
 
     region_links = ""
@@ -409,7 +409,7 @@ def city_page(c):
 <main id="app">
   <section class="dd-head" aria-labelledby="cp-title">
     <div class="wrap">
-      <p class="dd-crumb"><a href="../">Atlante della sicurezza</a> · <a href="./">Le città</a> · {esc(c['region'])}</p>
+      <p class="dd-crumb"><a href="../">Atlante della Sicurezza</a> · <a href="./">Le città</a> · {esc(c['region'])}</p>
       <h1 id="cp-title">Reati denunciati {esc(where)}, dal {Y[i0]} al {LAST}</h1>
       <p class="dek">{esc(lead)}</p>
       <a class="cp-open" href="../#{slug(name)}" data-city="{cid}">Apri la scheda interattiva di {esc(name)} <span aria-hidden="true">→</span></a>
@@ -478,7 +478,7 @@ def city_page(c):
 def hub_page():
     url = SITE + "citta/"
     top = RANKED[:3]
-    title = f"Classifica dei reati denunciati nei {N_CITIES} capoluoghi italiani, {LAST} · Atlante della sicurezza"
+    title = f"Classifica dei reati denunciati nei {N_CITIES} capoluoghi italiani, {LAST} · Atlante della Sicurezza"
     description = (
         f"I {N_CITIES} comuni capoluogo per delitti denunciati ogni 100.000 abitanti nel {LAST}: "
         + ", ".join(f"{c['name']} {nf0(rate(c, 'TOT', L))}" for c in top)
@@ -512,13 +512,13 @@ def hub_page():
                 ],
             },
         },
-        crumbs(("Atlante della sicurezza", SITE), ("Le città", url)),
+        crumbs(("Atlante della Sicurezza", SITE), ("Le città", url)),
     ]
     body = f"""
 <main id="app">
   <section class="dd-head" aria-labelledby="cp-title">
     <div class="wrap">
-      <p class="dd-crumb"><a href="../">Atlante della sicurezza</a> · Le città</p>
+      <p class="dd-crumb"><a href="../">Atlante della Sicurezza</a> · Le città</p>
       <h1 id="cp-title">I reati denunciati nei {N_CITIES} capoluoghi, città per città</h1>
       <p class="dek">Nel {LAST} in Italia sono stati denunciati {nf0(ITALY['n']['TOT'][L])} delitti, {nf0(IT_TOT[L])} ogni 100.000 abitanti. Qui sotto i {N_CITIES} comuni capoluogo in ordine di delitti denunciati per abitante: ogni nome apre la pagina della città, reato per reato e anno per anno dal {Y[0]}.</p>
     </div>
@@ -559,7 +559,7 @@ def deep_pages():
         if not f.exists():
             continue
         s = f.read_text(encoding="utf-8")
-        title = re.search(r"<title>(.*?)</title>", s).group(1).replace(" · Atlante della sicurezza", "")
+        title = re.search(r"<title>(.*?)</title>", s).group(1).replace(" · Atlante della Sicurezza", "")
         desc = re.search(r'<meta name="description" content="([^"]*)"', s).group(1)
         out.append(("approfondimenti/" + name, html.unescape(title), html.unescape(desc)))
     return out
@@ -684,7 +684,7 @@ def llms():
     en = []
     for loc, f, _ in en_pages():
         s = (ROOT / f).read_text(encoding="utf-8")
-        title = re.search(r"<title>(.*?)</title>", s).group(1).replace(" · Atlante della sicurezza", "")
+        title = re.search(r"<title>(.*?)</title>", s).group(1).replace(" · Atlante della Sicurezza", "")
         desc = re.search(r'<meta name="description" content="([^"]*)"', s).group(1)
         en.append(f"- [{html.unescape(title)}]({SITE}{loc}): {html.unescape(desc)}")
     en = "\n".join(en) or "- (none yet)"
@@ -693,7 +693,7 @@ def llms():
         for c in sorted(CITIES, key=lambda c: c["name"])
     )
 
-    return f"""# Atlante della sicurezza
+    return f"""# Atlante della Sicurezza
 
 > Strumento civico gratuito sui reati denunciati in Italia, con soli dati ufficiali: ISTAT {Y[0]}–{LAST} per i {N_CITIES} comuni capoluogo e la scheda di ogni comune italiano (per i non capoluoghi, i dati della provincia), più Eurostat per i rimpatri. Mostra dove si denuncia di più e di meno, quali reati salgono e quali scendono, le impennate improvvise e quanto le persone si sentono a rischio. Di Jacopo Ottaviani, data journalist.
 

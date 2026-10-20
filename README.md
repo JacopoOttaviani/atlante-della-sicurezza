@@ -1,4 +1,4 @@
-# Atlante della sicurezza
+# Atlante della Sicurezza
 
 Strumento civico sui reati denunciati nei 108 comuni capoluogo italiani, 2006–2024, costruito con dati ufficiali ISTAT (più Eurostat per i rimpatri). Mostra dove si denuncia di più e di meno, cosa sale e cosa scende, e dove ci sono state impennate improvvise, accanto a quanto le persone si sentono a rischio. Una ricerca apre la scheda di qualsiasi comune italiano: per i capoluoghi i dati del comune, per gli altri quelli ufficiali della provincia.
 

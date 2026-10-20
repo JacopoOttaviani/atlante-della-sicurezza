@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlante della sicurezza — approfondimento sugli autori ignoti.
+"""Atlante della Sicurezza — approfondimento sugli autori ignoti.
 
 Di quanti delitti denunciati si conosce l'autore: l'ISTAT pubblica, sui dati delle forze di polizia (SDI/SSD),
 i delitti commessi nell'anno di cui l'autore è noto al momento della denuncia o è stato scoperto entro l'anno.
