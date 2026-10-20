@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=57">
+<link rel="stylesheet" href="../vc.css?v=58">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -97,16 +97,6 @@
         "url": "https://jacopoottaviani.com/"
       },
       "isBasedOn": [
-        {
-          "@type": "Organization",
-          "name": "Ministero della Giustizia",
-          "url": "https://www.giustizia.it/"
-        },
-        {
-          "@type": "Organization",
-          "name": "Garante nazionale dei diritti delle persone private della libertà personale",
-          "url": "https://www.garantenazionaleprivatiliberta.it/"
-        },
         "http://www.ristretti.it/areestudio/disagio/ricerca/index.htm",
         "https://www.rapportoantigone.it/"
       ],
@@ -131,6 +121,18 @@
           "@type": "DataDownload",
           "encodingFormat": "application/json",
           "contentUrl": "https://atlantedellasicurezza.it/data/istituti.json"
+        }
+      ],
+      "sourceOrganization": [
+        {
+          "@type": "Organization",
+          "name": "Ministero della Giustizia",
+          "url": "https://www.giustizia.it/"
+        },
+        {
+          "@type": "Organization",
+          "name": "Garante nazionale dei diritti delle persone private della libertà personale",
+          "url": "https://www.garantenazionaleprivatiliberta.it/"
         }
       ]
     },
@@ -205,6 +207,7 @@
 </header>
 
 <main id="app">
+<noscript class="sintesi"><div class="wrap"><p><strong>Senza JavaScript i grafici non si vedono. In breve:</strong></p><p>A fine settembre 2026 nelle carceri per adulti c’erano 66.063 persone per 51.319 posti regolamentari: 129 ogni 100 posti. Nel 2025 il Garante nazionale conta 254 morti, di cui 76 suicidi; le serie partono dal 2015, e i conteggi cambiano a seconda di chi li fa.</p><p><a href="/citta/">I 108 capoluoghi, città per città</a> · <a href="/llms.txt">i numeri principali</a></p></div></noscript>
   <section class="dd-head" aria-labelledby="dd-title">
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Approfondimenti</a> · Carcere per carcere</p>
@@ -419,7 +422,7 @@
           <span class="kicker">Minori</span>
           <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
           <h3>I minorenni denunciati e arrestati</h3>
-          <p>Quanti sono tra le persone denunciate, per quali reati e come è cambiato dal 2004, regione per regione.</p>
+          <p>Quanti sono tra le persone denunciate, per quali reati e regione per regione: i numeri dal 2004, la loro quota dal 2014.</p>
           <span class="dd-go">Leggi l’approfondimento <span aria-hidden="true">→</span></span>
         </a>
         <a class="dd-card" href="custodia-cautelare.html" data-dd="cautelari">
@@ -473,6 +476,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=57"></script>
+<script src="../vc.js?v=58"></script>
 </body>
 </html>

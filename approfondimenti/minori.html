@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=57">
+<link rel="stylesheet" href="../vc.css?v=58">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -52,7 +52,7 @@
       "image": "https://atlantedellasicurezza.it/img/og-image.jpg",
       "inLanguage": "it",
       "datePublished": "2026-10-18",
-      "dateModified": "2026-10-18",
+      "dateModified": "2026-10-20",
       "author": {
         "@type": "Person",
         "@id": "https://atlantedellasicurezza.it/progetto/#autore",
@@ -96,14 +96,7 @@
         "name": "Jacopo Ottaviani",
         "url": "https://jacopoottaviani.com/"
       },
-      "isBasedOn": [
-        {
-          "@type": "Organization",
-          "name": "ISTAT, Istituto nazionale di statistica",
-          "url": "https://www.istat.it/"
-        },
-        "https://esploradati.istat.it/"
-      ],
+      "isBasedOn": "https://esploradati.istat.it/",
       "keywords": [
         "minori",
         "minorenni",
@@ -123,6 +116,13 @@
           "@type": "DataDownload",
           "encodingFormat": "application/json",
           "contentUrl": "https://atlantedellasicurezza.it/data/minori.json"
+        }
+      ],
+      "sourceOrganization": [
+        {
+          "@type": "Organization",
+          "name": "ISTAT, Istituto nazionale di statistica",
+          "url": "https://www.istat.it/"
         }
       ]
     },
@@ -197,6 +197,7 @@
 </header>
 
 <main id="app">
+<noscript class="sintesi"><div class="wrap"><p><strong>Senza JavaScript i grafici non si vedono. In breve:</strong></p><p>Nel 2024 i minorenni erano il 4,6% delle segnalazioni di persone denunciate o arrestate (3,4% nel 2014); per le rapine in strada il 25,2%. Sono segnalazioni, non persone, e denunciato non vuol dire colpevole.</p><p><a href="/citta/">I 108 capoluoghi, città per città</a> · <a href="/llms.txt">i numeri principali</a></p></div></noscript>
   <section class="dd-head" aria-labelledby="dd-title">
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Approfondimenti</a> · Minori</p>
@@ -403,6 +404,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=57"></script>
+<script src="../vc.js?v=58"></script>
 </body>
 </html>

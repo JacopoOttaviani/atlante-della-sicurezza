@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=57">
+<link rel="stylesheet" href="../../vc.css?v=58">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -97,16 +97,6 @@
         "url": "https://jacopoottaviani.com/"
       },
       "isBasedOn": [
-        {
-          "@type": "Organization",
-          "name": "Ministry of Justice (Ministero della Giustizia)",
-          "url": "https://www.giustizia.it/"
-        },
-        {
-          "@type": "Organization",
-          "name": "National Guarantor for the rights of persons deprived of liberty (Garante nazionale)",
-          "url": "https://www.garantenazionaleprivatiliberta.it/"
-        },
         "http://www.ristretti.it/areestudio/disagio/ricerca/index.htm",
         "https://www.rapportoantigone.it/"
       ],
@@ -131,6 +121,18 @@
           "@type": "DataDownload",
           "encodingFormat": "application/json",
           "contentUrl": "https://atlantedellasicurezza.it/data/istituti.json"
+        }
+      ],
+      "sourceOrganization": [
+        {
+          "@type": "Organization",
+          "name": "Ministry of Justice (Ministero della Giustizia)",
+          "url": "https://www.giustizia.it/"
+        },
+        {
+          "@type": "Organization",
+          "name": "National Guarantor for the rights of persons deprived of liberty (Garante nazionale)",
+          "url": "https://www.garantenazionaleprivatiliberta.it/"
         }
       ]
     },
@@ -205,6 +207,7 @@
 </header>
 
 <main id="app">
+<noscript class="sintesi"><div class="wrap"><p><strong>Without JavaScript the charts do not show. In short:</strong></p><p>At the end of September 2026 adult prisons held 66,063 people for 51,319 official places: 129 per 100 places. In 2025 the national Guarantor counted 254 deaths, 76 of them suicides; its series starts in 2015, and the counts differ depending on who does them.</p><p><a href="/citta/">The 108 provincial capitals (in Italian)</a> · <a href="/llms.txt">the main figures</a></p></div></noscript>
   <section class="dd-head" aria-labelledby="dd-title">
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Deep dives</a> · Prison by prison</p>
@@ -226,7 +229,7 @@
         <aside class="dd-callout" aria-labelledby="callout-title">
           <h3 id="callout-title">Two ways of counting places</h3>
           <p><b>Official capacity</b> (capienza regolamentare) is what the Ministry publishes every month: nine square metres for one person alone in a cell, five more for each additional person, the same standard used to decide whether a home is fit to live in. It includes cells that cannot be used.</p>
-          <p><b>Places actually available</b> (posti regolarmente disponibili) leave out cells and wings closed for works, damage or because they are unfit for use. The prison administration counts them and the National Guarantor for the rights of persons deprived of liberty publishes them a few times a year. They are the places on which the Guarantor calculates overcrowding.</p>
+          <p><b>Places actually available</b> (<span lang="it">posti regolarmente disponibili</span>) leave out cells and wings closed for works, damage or because they are unfit for use. The prison administration counts them and the National Guarantor for the rights of persons deprived of liberty publishes them a few times a year. They are the places on which the Guarantor calculates overcrowding.</p>
         </aside>
       </div>
       <div class="facts" id="ist-facts"></div>
@@ -419,7 +422,7 @@
           <span class="kicker">Minors</span>
           <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
           <h3>Minors reported and arrested</h3>
-          <p>How many there are among the people reported, for which crimes and how that has changed since 2004, region by region.</p>
+          <p>How many there are among the people reported, for which crimes and region by region: the numbers since 2004, their share since 2014.</p>
           <span class="dd-go">Read the deep dive <span aria-hidden="true">→</span></span>
         </a>
         <a class="dd-card" href="custodia-cautelare.html" data-dd="cautelari">
@@ -473,6 +476,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=57"></script>
+<script src="../../vc.js?v=58"></script>
 </body>
 </html>

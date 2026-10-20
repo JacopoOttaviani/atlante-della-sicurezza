@@ -321,6 +321,8 @@ button, select, input { font: inherit; color: inherit; }
 .vh-pause[aria-pressed="true"] .i-pause { display: none; }
 @keyframes vh-roll { from { background-position: 0 -30%, 0 0; } to { background-position: 0 130%, 0 0; } }
 @keyframes vh-blink { 50% { opacity: 0; } }
+/* «Ferma il video» ferma tutto quello che si muove nella testata (vc.js, hold) */
+.vh-held .vh-lines, .vh-held .vh-grain, .vh-held .rec::before { animation-play-state: paused !important; }
 @keyframes vh-grain {
   0%   { transform: translate(0, 0); }
   20%  { transform: translate(-7%, 4%); }
@@ -388,7 +390,7 @@ button, select, input { font: inherit; color: inherit; }
 .hero-car .car-head { display: grid; }
 .hero-car .car-meta { grid-area: 1 / 1; opacity: 0; pointer-events: none; transition: opacity 0.4s var(--rv-ease); }
 .hero-car .car-meta.on { opacity: 1; pointer-events: auto; }
-.hero-car .car-strip { position: relative; flex: 1 1 auto; min-height: 240px; overflow: hidden; touch-action: pan-y; }
+.hero-car .car-strip { position: relative; flex: 1 1 auto; min-height: 240px; overflow: hidden; overflow: clip; touch-action: pan-y; }
 .hero-car .car-track { display: flex; height: 100%; transform: translateX(calc(var(--i, 0) * -100%)); transition: transform 0.55s var(--rv-ease); }
 .hero-car .car-panel { position: relative; flex: 0 0 100%; height: 100%; min-width: 0; }
 .hero-car .car-panel .chart { position: absolute; inset: 0; flex: none; height: auto; min-height: 0; }
@@ -398,6 +400,9 @@ button, select, input { font: inherit; color: inherit; }
 .hero-car .arr { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); cursor: pointer; display: grid; place-items: center; padding: 0; }
 .hero-car .arr:hover { border-color: var(--ink-2); }
 .hero-car .arr svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* fermare lo scorrimento (vc.js heroCarousel): due barre, o il triangolo quando è fermo */
+.hero-car .car-pause .i-play, .hero-car .car-pause[aria-pressed="true"] .i-pause { display: none; }
+.hero-car .car-pause[aria-pressed="true"] .i-play { display: inline; }
 .hero-car .car-dots { display: flex; gap: 8px; align-items: center; }
 .hero-car .car-dots button { position: relative; width: 8px; height: 8px; border-radius: 999px; border: 0; padding: 0; background: var(--mid); cursor: pointer; overflow: hidden; transition: width 0.3s var(--rv-ease), background-color 0.3s; }
 .hero-car .car-dots button:hover { background: var(--ink-2); }
@@ -585,6 +590,7 @@ th { position: sticky; top: 0; background: var(--surface); font-weight: 600; col
 /* il link per saltare al contenuto: invisibile finché non lo raggiunge la tastiera */
 .skip { position: absolute; left: -9999px; top: 8px; z-index: 1000; padding: 8px 14px; background: var(--ink); color: var(--surface); border-radius: 6px; font-weight: 600; text-decoration: none; }
 .skip:focus { left: 16px; }
+main#app:focus { outline: none; }
 td.num, th.num { text-align: right; }
 /* variazione troppo piccola per dire che sia cambiato qualcosa (pagine statiche delle città, build_seo.py) */
 td.num.ns { color: var(--muted); }
@@ -685,7 +691,8 @@ td.num.ns { color: var(--muted); }
 .rank.regions .name { font-weight: 600; font-size: var(--step--1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rank.regions .bar i { background: var(--fall); }
 .facts.carceri { margin-top: 0; }
-.fact .fv small { font-size: 0.55em; font-weight: 600; color: var(--ink-2); margin-left: 4px; }
+/* lo spazio tra numero e unità è nel testo (<small> 22 su 100), così copiando non si attaccano */
+.fact .fv small { font-size: 0.55em; font-weight: 600; color: var(--ink-2); margin-left: 1px; }
 .fact.na .fv { color: var(--muted); font-size: var(--step-1); }
 .carceri-notes { margin-top: 36px; }
 .dumb-key { display: flex; gap: 16px; font-size: var(--step--1); color: var(--ink-2); margin-bottom: 6px; align-items: center; }
@@ -810,6 +817,8 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
 .cityd h2 { font-size: var(--step-3); font-weight: 750; font-stretch: 108%; margin: 0; line-height: 1.05; }
 .cityd .body { padding: 18px 20px 24px; }
 .cityd .close { font-size: var(--step--1); }
+/* EN/IT dentro la scheda, accanto a Chiudi (vc.js cardLang) */
+.cityd .card-lang { margin-left: auto; margin-right: -8px; font-size: var(--step--1); text-decoration: none; }
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 20px; }
 .fact { border-top: 2px solid var(--ink); padding-top: 6px; }
 .fact .fv { font-size: var(--step-2); font-weight: 700; line-height: 1.1; }
@@ -1068,7 +1077,7 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   .yearpick { width: 100%; }
   .yearpick input[type="range"] { flex: 1; width: auto; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 
 /* ---------------------------------------------------------------- scheda: quartiere per quartiere (prototipo, Milano) */
 .quart { margin: 36px 0 10px; padding-top: 22px; border-top: 2px solid var(--ink); }

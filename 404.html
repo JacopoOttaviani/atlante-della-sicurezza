@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="/vc.css?v=57">
+<link rel="stylesheet" href="/vc.css?v=58">
 <style>
   html[lang="en"] .nf-it, html:not([lang="en"]) .nf-en { display: none; }
   .nf-links { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 0; margin: 18px 0 0; list-style: none; font-weight: 600; }
@@ -250,7 +250,10 @@
   (function () {
     const m = location.pathname.match(/^\/(?:en\/)?citta\/([^\/]+?)(?:\.html)?\/?$/);
     if (!m) return;
-    const q = decodeURIComponent(m[1]).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    let raw = m[1];
+    try { raw = decodeURIComponent(raw); } catch (e) { /* indirizzo con un % sbagliato: si usa com'è */ }
+    const q = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    if (q.length < 3) return;
     const cities = [["agrigento","Agrigento"],["alessandria","Alessandria"],["ancona","Ancona"],["andria","Andria"],["aosta","Aosta"],["arezzo","Arezzo"],["ascoli-piceno","Ascoli Piceno"],["asti","Asti"],["avellino","Avellino"],["bari","Bari"],["barletta","Barletta"],["belluno","Belluno"],["benevento","Benevento"],["bergamo","Bergamo"],["biella","Biella"],["bologna","Bologna"],["bolzano","Bolzano"],["brescia","Brescia"],["brindisi","Brindisi"],["cagliari","Cagliari"],["caltanissetta","Caltanissetta"],["campobasso","Campobasso"],["caserta","Caserta"],["catania","Catania"],["catanzaro","Catanzaro"],["chieti","Chieti"],["como","Como"],["cosenza","Cosenza"],["cremona","Cremona"],["crotone","Crotone"],["cuneo","Cuneo"],["enna","Enna"],["fermo","Fermo"],["ferrara","Ferrara"],["firenze","Firenze"],["foggia","Foggia"],["forli","Forlì"],["frosinone","Frosinone"],["genova","Genova"],["gorizia","Gorizia"],["grosseto","Grosseto"],["imperia","Imperia"],["isernia","Isernia"],["l-aquila","L'Aquila"],["la-spezia","La Spezia"],["latina","Latina"],["lecce","Lecce"],["lecco","Lecco"],["livorno","Livorno"],["lodi","Lodi"],["lucca","Lucca"],["macerata","Macerata"],["mantova","Mantova"],["massa","Massa"],["matera","Matera"],["messina","Messina"],["milano","Milano"],["modena","Modena"],["monza","Monza"],["napoli","Napoli"],["novara","Novara"],["nuoro","Nuoro"],["oristano","Oristano"],["padova","Padova"],["palermo","Palermo"],["parma","Parma"],["pavia","Pavia"],["perugia","Perugia"],["pesaro","Pesaro"],["pescara","Pescara"],["piacenza","Piacenza"],["pisa","Pisa"],["pistoia","Pistoia"],["pordenone","Pordenone"],["potenza","Potenza"],["prato","Prato"],["ragusa","Ragusa"],["ravenna","Ravenna"],["reggio-calabria","Reggio Calabria"],["reggio-emilia","Reggio Emilia"],["rieti","Rieti"],["rimini","Rimini"],["roma","Roma"],["rovigo","Rovigo"],["salerno","Salerno"],["sassari","Sassari"],["savona","Savona"],["siena","Siena"],["siracusa","Siracusa"],["sondrio","Sondrio"],["taranto","Taranto"],["teramo","Teramo"],["terni","Terni"],["torino","Torino"],["trani","Trani"],["trapani","Trapani"],["trento","Trento"],["treviso","Treviso"],["trieste","Trieste"],["udine","Udine"],["varese","Varese"],["venezia","Venezia"],["verbania","Verbania"],["vercelli","Vercelli"],["verona","Verona"],["vibo-valentia","Vibo Valentia"],["vicenza","Vicenza"],["viterbo","Viterbo"]];
     const dist = (a, b) => {
       const d = Array.from({ length: b.length + 1 }, (_, j) => j);
@@ -270,6 +273,6 @@
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="/vc.js?v=57"></script>
+<script src="/vc.js?v=58"></script>
 </body>
 </html>

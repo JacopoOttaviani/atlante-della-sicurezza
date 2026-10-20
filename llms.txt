@@ -7,11 +7,22 @@ Numeri principali (calcolati dai dati del sito, aggiornati al 2026-10-20):
 - Nel 2024 in Italia sono stati denunciati 2.399.347 delitti, 4.070 ogni 100.000 abitanti: −14% rispetto al 2006 (4.746), +6% rispetto al 2019 (3.854).
 - I capoluoghi con più delitti denunciati per abitante nel 2024: Firenze (11.429 ogni 100.000), Milano (10.301 ogni 100.000), Bologna (9.950 ogni 100.000). Con meno: Potenza (2.386), Enna (2.498), Andria (2.515).
 - Dal 2019 al 2024, in Italia, sono cresciute soprattutto le denunce per delitti informatici (+69%), violenze sessuali (+42%) e truffe e frodi informatiche (+37%); sono calate quelle per usura (−25%), furti su auto in sosta (−24%) e stupefacenti (−14%).
-- Nel 2024 il 23,2% delle famiglie italiane sente a rischio di criminalità la zona in cui vive (nel 2022 il 20,4%).
-- A fine 2025 gli stranieri erano il 31,7% dei detenuti nelle carceri italiane e il 9,1% dei residenti; il confronto non misura la propensione a delinquere (vedi l’approfondimento sulle carceri).
-- Nel 2025 l’Italia ha ordinato a 21.295 cittadini di paesi non UE di lasciare il territorio e ne ha rimpatriati 4.780: circa 22 ogni 100.
+- A fine 2025 gli stranieri erano il 31,7% delle persone detenute; al 1° gennaio 2025 erano il 9,1% dei residenti. Il confronto non misura la propensione a delinquere: tra i detenuti c’è anche chi in Italia non risiede, gli stranieri sono in media più giovani e restano più spesso in carcere in attesa di giudizio.
+- Nel 2025 l’Italia ha ordinato a 21.295 cittadini di paesi non UE di lasciare il territorio e ne ha rimpatriati 4.780: circa 22 ogni 100. Ordini e rimpatri dello stesso anno non riguardano sempre le stesse persone.
+- Nel 2024 il 23,2% delle famiglie sente molto o abbastanza a rischio di criminalità la propria zona. Tra il 2015 e il 2023 le famiglie che segnalano criminalità o vandalismo nella zona sono passate dal 19,0% al 6,3%, mentre i delitti denunciati per abitante cambiavano di −11%: nel tempo la paura si muove molto più dei reati.
+- Dei delitti commessi e denunciati nel 2024, entro l’anno l’autore era noto per il 20,0%; tra i furti per il 5,4%. Autore noto non vuol dire condannato.
+- Nel 2024 i minorenni erano il 4,6% delle segnalazioni di persone denunciate o arrestate (3,4% nel 2014); per le rapine in strada il 25,2%. Sono segnalazioni, non persone, e denunciato non vuol dire colpevole.
+- A fine 2025 erano senza una condanna definitiva 15.326 delle 63.499 persone detenute: il 24,1%. Per la Costituzione non sono considerate colpevoli fino alla condanna definitiva, e la riparazione per ingiusta detenzione non vuol dire errore del giudice.
+- A fine settembre 2026 nelle carceri per adulti c’erano 66.063 persone per 51.319 posti regolamentari: 129 ogni 100 posti. Nel 2025 il Garante nazionale conta 254 morti, di cui 76 suicidi; le serie partono dal 2015, e i conteggi cambiano a seconda di chi li fa.
 
-Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all’autorità giudiziaria, non tutti i reati commessi; molti reati non vengono denunciati e la propensione a denunciare cambia da reato a reato. I tassi sono ogni 100.000 residenti, quindi pesano di più dove arrivano ogni giorno pendolari, studenti e turisti. Il tasso dice quanto si denuncia in una città, non quanto rischia chi ci abita.
+Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all’autorità giudiziaria, non tutti i reati commessi; molti reati non vengono denunciati e la propensione a denunciare cambia da reato a reato. I tassi sono ogni 100.000 residenti, quindi pesano di più dove arrivano ogni giorno pendolari, studenti e turisti. Il tasso dice quanto si denuncia in una città, non quanto rischia chi ci abita. Le variazioni contano come aumenti o cali solo se il caso da solo non le spiega e poggiano su almeno 20 casi in tutti e due gli anni; le altre sono «non significative».
+
+## Domande frequenti
+
+- Le città in cima alla classifica sono le più pericolose? Non per forza: vi arrivano ogni giorno pendolari, studenti e turisti, e i reati che subiscono o commettono si contano lì, mentre loro tra i residenti non ci sono. Il tasso dice quanto si denuncia, non quanto rischia chi ci abita.
+- Gli stranieri commettono più reati degli italiani? Questi dati non bastano per dirlo: tra i detenuti c’è anche chi in Italia non risiede, gli stranieri sono in media più giovani e restano più spesso in carcere in attesa di giudizio.
+- Più denunce vuol dire più reati? Non sempre: per alcuni reati, come le violenze sessuali, più denunce possono voler dire anche più fiducia nel denunciare.
+- Ci sentiamo in pericolo quanto lo siamo? Nel tempo la paura si muove molto più dei reati denunciati; da un luogo all’altro le due cose vanno più d’accordo, con eccezioni vistose.
 
 ## Pagine
 
@@ -38,9 +49,11 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [Minors reported and arrested](https://atlantedellasicurezza.it/en/approfondimenti/minori.html): How many minors are reported or arrested in Italy, for which crimes and what share they make up of all the people reported: the numbers since 2004, the share since 2014, official ISTAT data, sourced from the Ministry of the Interior.
 - [Before the verdict: pre-trial detention and wrongful detention](https://atlantedellasicurezza.it/en/approfondimenti/custodia-cautelare.html): How many people are in prison in Italy without a final conviction, how many precautionary measures the courts order and how much the State pays for wrongful detention, district by district: official data from ISTAT and the Ministry of Justice.
 - [Prison by prison: overcrowding and deaths in Italy’s prisons](https://atlantedellasicurezza.it/en/approfondimenti/carcere-per-carcere.html): How many people are held in each of Italy’s adult prisons compared with the places available, month by month since 2019, and how many die there: data from the Ministry of Justice and the National Guarantor, with the counts of Ristretti Orizzonti and Antigone.
-- [About](https://atlantedellasicurezza.it/en/progetto/): Why the Atlante della Sicurezza exists, who made it, frequently asked questions and how to read its numbers: methodology and sources: ISTAT, Eurostat, the Ministry of Justice and the national Guarantor.
+- [About](https://atlantedellasicurezza.it/en/progetto/): Why the Atlante della Sicurezza exists, who made it, frequently asked questions and how to read its numbers. Methodology and sources: ISTAT, Eurostat, the Ministry of Justice and the national Guarantor.
 
 ## Le città
+
+Delitti denunciati ogni 100.000 residenti e posizione tra i capoluoghi: misurano le denunce, non il rischio, e pesano di più dove arrivano pendolari e turisti.
 
 - [Agrigento](https://atlantedellasicurezza.it/citta/agrigento.html): 3.824 delitti denunciati ogni 100.000 abitanti nel 2024, 88° su 108
 - [Alessandria](https://atlantedellasicurezza.it/citta/alessandria.html): 4.178 delitti denunciati ogni 100.000 abitanti nel 2024, 74° su 108

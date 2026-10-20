@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=57">
+<link rel="stylesheet" href="../../vc.css?v=58">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -52,7 +52,7 @@
       "image": "https://atlantedellasicurezza.it/img/og-image-en.jpg",
       "inLanguage": "en",
       "datePublished": "2026-10-19",
-      "dateModified": "2026-10-19",
+      "dateModified": "2026-10-20",
       "author": {
         "@type": "Person",
         "@id": "https://atlantedellasicurezza.it/progetto/#autore",
@@ -96,19 +96,7 @@
         "name": "Jacopo Ottaviani",
         "url": "https://jacopoottaviani.com/"
       },
-      "isBasedOn": [
-        {
-          "@type": "Organization",
-          "name": "ISTAT, Italian National Institute of Statistics",
-          "url": "https://www.istat.it/"
-        },
-        {
-          "@type": "Organization",
-          "name": "Ministry of Justice (Italy)",
-          "url": "https://www.giustizia.it/"
-        },
-        "https://esploradati.istat.it/"
-      ],
+      "isBasedOn": "https://esploradati.istat.it/",
       "keywords": [
         "pre-trial detention",
         "precautionary measures",
@@ -130,6 +118,18 @@
           "@type": "DataDownload",
           "encodingFormat": "application/json",
           "contentUrl": "https://atlantedellasicurezza.it/data/cautelari.json"
+        }
+      ],
+      "sourceOrganization": [
+        {
+          "@type": "Organization",
+          "name": "ISTAT, Italian National Institute of Statistics",
+          "url": "https://www.istat.it/"
+        },
+        {
+          "@type": "Organization",
+          "name": "Ministry of Justice (Italy)",
+          "url": "https://www.giustizia.it/"
         }
       ]
     },
@@ -204,6 +204,7 @@
 </header>
 
 <main id="app">
+<noscript class="sintesi"><div class="wrap"><p><strong>Without JavaScript the charts do not show. In short:</strong></p><p>At the end of 2025, 15,326 of the 63,499 people in prison had no final conviction: 24.1%. Under the Constitution they are not considered guilty until the final judgment, and compensation for unjust detention does not mean that a judge made a mistake.</p><p><a href="/citta/">The 108 provincial capitals (in Italian)</a> · <a href="/llms.txt">the main figures</a></p></div></noscript>
   <section class="dd-head" aria-labelledby="dd-title">
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Deep dives</a> · Pre-trial detention</p>
@@ -430,7 +431,7 @@
           <span class="kicker">Minors</span>
           <span class="dd-num"><span class="dd-fig"></span><span class="dd-cap"></span></span>
           <h3>Minors reported and arrested</h3>
-          <p>How many there are among the people reported, for which crimes and how that has changed since 2004, region by region.</p>
+          <p>How many there are among the people reported, for which crimes and region by region: the numbers since 2004, their share since 2014.</p>
           <span class="dd-go">Read the deep dive <span aria-hidden="true">→</span></span>
         </a>
         <a class="dd-card" href="carcere-per-carcere.html" data-dd="istituti">
@@ -484,6 +485,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=57"></script>
+<script src="../../vc.js?v=58"></script>
 </body>
 </html>

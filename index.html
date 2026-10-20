@@ -42,7 +42,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=57">
+<link rel="stylesheet" href="vc.css?v=58">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -195,6 +195,7 @@
 </header>
 
 <main id="app">
+<noscript class="sintesi"><div class="wrap"><p><strong>Senza JavaScript i grafici non si vedono. In breve:</strong></p><p>Nel 2024 in Italia sono stati denunciati 2.399.347 delitti, 4.070 ogni 100.000 abitanti: −14% rispetto al 2006, +6% rispetto al 2019. Più denunce per abitante: Firenze (11.429), Milano (10.301), Bologna (9.950); meno: Potenza (2.386), Enna (2.498), Andria (2.515). Sono denunce, non tutti i reati commessi, e il tasso sui residenti pesa di più dove arrivano pendolari e turisti: la classifica dice quanto si denuncia, non quanto rischia chi ci abita.</p><p><a href="/citta/">I 108 capoluoghi, città per città</a> · <a href="/llms.txt">i numeri principali</a></p></div></noscript>
   <!-- Apertura: un film di Roma a tutta larghezza come da una telecamera a circuito chiuso, con il titolo della pagina.
        Scivola sotto la barra, che ci passa sopra trasparente (on-film, già nel markup così la barra non lampeggia
        prima di vc.js). Il film è decorativo (aria-hidden): vc.js sceglie il file, lo ferma fuori schermo e scrive l'ora;
@@ -219,7 +220,7 @@
         <p class="vh-kicker">Dati ufficiali ISTAT · 108 comuni capoluogo · 2006–2024</p>
         <h2 id="hero-title">In Italia si denunciano meno reati di quindici anni fa. <em>Ma non ovunque, e non tutti.</em></h2>
       </div>
-      <button type="button" class="vh-pause" id="vh-pause" aria-pressed="false" aria-label="Ferma il video">
+      <button type="button" class="vh-pause" id="vh-pause" aria-label="Ferma il video">
         <svg class="i-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="1.5" width="3" height="11" rx="0.5"/><rect x="8.5" y="1.5" width="3" height="11" rx="0.5"/></svg>
         <svg class="i-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 1.8v10.4a.5.5 0 0 0 .76.43l8.4-5.2a.5.5 0 0 0 0-.86l-8.4-5.2a.5.5 0 0 0-.76.43z"/></svg>
       </button>
@@ -238,7 +239,7 @@
             <span class="lead">Nei grafici</span>
             <span><i class="k-up"></i>rosso: in aumento</span>
             <span><i class="k-down"></i>blu: in calo</span>
-            <span><i class="k-flat"></i>grigio: differenza troppo piccola per dire che qualcosa sia cambiato</span>
+            <span><i class="k-flat"></i>grigio: differenza troppo piccola, o con troppo pochi casi, per dire che qualcosa sia cambiato</span>
             <span><i class="k-gold"></i>oro: impennata, un aumento improvviso</span>
           </div>
         </div>
@@ -320,7 +321,7 @@
             <div class="seg" id="base-seg">
               <button type="button" data-base="2023" aria-pressed="false">2023</button>
               <button type="button" data-base="2019" aria-pressed="true">2019, prima del Covid</button>
-              <button type="button" data-base="2014">2014</button>
+              <button type="button" data-base="2014" aria-pressed="false">2014</button>
             </div>
           </div>
         </div>
@@ -350,7 +351,7 @@
       <header>
         <div class="kicker">Il quadro nazionale</div>
         <h2 id="mix-title">Cosa sale e cosa scende</h2>
-        <p class="dek" id="mix-dek">I reati non calano tutti insieme. Tocca un reato per vederlo in tutte le città.</p>
+        <p class="dek" id="mix-dek" aria-live="polite">I reati non calano tutti insieme. Tocca un reato per vederlo in tutte le città.</p>
         <!-- il periodo del confronto: vale solo per questa sezione (vc.js scrive l'ultimo anno nei bottoni) -->
         <div class="seg mix-period" id="mix-base-seg" role="group" aria-label="Periodo del confronto">
           <button type="button" data-mbase="2014" aria-pressed="false">Tra il 2014 e il 2024</button>
@@ -360,7 +361,7 @@
       <div class="mix-key" aria-hidden="true">
         <span><i class="k-up"></i>in aumento</span>
         <span><i class="k-down"></i>in calo</span>
-        <span><i class="k-flat"></i>differenza troppo piccola</span>
+        <span><i class="k-flat"></i>minima o incerta</span>
         <span><i class="k-zero"></i>nessuna variazione</span>
         <span><i class="k-ref"></i>tutti i delitti</span>
       </div>
@@ -388,7 +389,7 @@
           <button type="button" data-ssort="rel" aria-pressed="true">In proporzione</button>
           <button type="button" data-ssort="abs" aria-pressed="false">Per casi in più</button>
         </div>
-        <span class="small" id="spike-count"></span>
+        <span class="small" id="spike-count" aria-live="polite"></span>
       </div>
       <div class="cards" id="spike-cards"></div>
       <div class="more"><button type="button" class="btn" id="spike-more">Mostra altre città</button></div>
@@ -539,6 +540,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=57"></script>
+<script src="vc.js?v=58"></script>
 </body>
 </html>

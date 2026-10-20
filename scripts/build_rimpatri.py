@@ -35,7 +35,8 @@ POINTS_EXTRA = {"XK": [20.9, 42.6], "TW": [121.0, 23.7]}
 
 
 def jsonstat(flow, query, cache_name):
-    """Valori di un dataset Eurostat filtrato fino a lasciare libere solo cittadinanza e anno: {(cittadinanza, anno): valore}."""
+    """Valori di un dataset Eurostat filtrato fino a lasciare libere solo cittadinanza e anno: {(cittadinanza, anno): valore},
+    e i flag di stato delle celle ({(cittadinanza, anno): "m"} per i dati che mancano davvero)."""
     log(f"Eurostat {flow} [{query}]")
     d = json.loads(fetch(EUROSTAT.format(flow=flow, query=query), cache_name))
     ids, size = d["id"], d["size"]
@@ -43,14 +44,15 @@ def jsonstat(flow, query, cache_name):
     loose = [k for k in ids if len(cats[k]) > 1 and k not in ("citizen", "time")]
     if loose:
         raise SystemExit(f"{flow}: il filtro lascia più valori per {loose}")
-    out = {}
-    for i, v in d["value"].items():
+    def key_of(i):
         i, key = int(i), {}
         for k, s in zip(reversed(ids), reversed(size)):
             key[k] = cats[k][i % s]
             i //= s
-        out[(key["citizen"], key["time"])] = v
-    return cats, out, d["dimension"]["citizen"]["category"]["label"]
+        return key["citizen"], key["time"]
+    out = {key_of(i): v for i, v in d["value"].items()}
+    status = {key_of(i): f for i, f in (d.get("status") or {}).items()}
+    return cats, out, d["dimension"]["citizen"]["category"]["label"], status
 
 
 def italian_names():
@@ -76,8 +78,8 @@ def build_world():
 
 
 def build():
-    cr, R, en = jsonstat("migr_eirtn", "geo=IT&age=TOTAL&sex=T&c_dest=TOTAL&unit=PER", "eurostat_eirtn_it.json")
-    co, O, _ = jsonstat("migr_eiord", "geo=IT&age=TOTAL&sex=T&unit=PER", "eurostat_eiord_it.json")
+    cr, R, en, Rs = jsonstat("migr_eirtn", "geo=IT&age=TOTAL&sex=T&c_dest=TOTAL&unit=PER", "eurostat_eirtn_it.json")
+    co, O, _, Os = jsonstat("migr_eiord", "geo=IT&age=TOTAL&sex=T&unit=PER", "eurostat_eiord_it.json")
     years = sorted(set(cr["time"]) & set(co["time"]))
 
     tot_r = [R.get(("TOTAL", y)) for y in years]
@@ -91,8 +93,11 @@ def build():
     for c in cr["citizen"]:
         if len(c) != 2:
             continue  # aggregati, apolidi, sconosciuti
-        r = [R.get((c, y)) for y in years]
-        o = [O.get((c, y)) for y in years]
+        # In alcuni anni (rimpatri 2021 e 2023) Eurostat elenca solo le cittadinanze con almeno un caso: una cella che non
+        # c'è, senza il flag "m" (dato mancante, come il Regno Unito finché era nell'UE), in un anno con il totale vale 0.
+        # Il controllo più sotto verifica che i paesi elencati tornino comunque con il totale.
+        r = [R.get((c, y), None if Rs.get((c, y)) == "m" else 0) for y in years]
+        o = [O.get((c, y), None if Os.get((c, y)) == "m" else 0) for y in years]
         if not any(r) and not any(o):  # anche i paesi con ordini e nessun rimpatrio
             continue
         name = NAMES.get(c) or it_names.get(c)
