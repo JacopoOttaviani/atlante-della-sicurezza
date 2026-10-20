@@ -1226,6 +1226,63 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
 :is(.sbar, .sbar-key) .o4 { background: var(--fall-soft); color: #121614; }
 .caut-disc { margin-top: 28px; }
 
+/* carcere per carcere: le due barre posti/persone, la carta dei cerchi, la scheda del carcere scelto, la tabella */
+.ist-bar { margin-bottom: 22px; }
+.ist-bar-h { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 12px; margin-bottom: 6px; font-size: var(--step--1); color: var(--ink-2); }
+.ist-bar-h b { color: var(--ink); font-size: var(--step-0); }
+.ist-track { position: relative; height: 22px; }
+.ist-track i { position: absolute; top: 0; bottom: 0; transform-origin: 0 50%; }
+.ist-track .pl { left: 0; background: var(--ink); border-radius: 3px 0 0 3px; }
+.ist-track .ov { background: var(--rise); border-radius: 0 3px 3px 0; box-shadow: inset 1px 0 0 var(--surface); --t0: 0.5s; }
+.ist-bar-k { display: flex; justify-content: space-between; gap: 12px; margin-top: 5px; font-size: var(--step--1); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.ist-bar-k .ov { color: var(--rise); font-weight: 700; }
+.ist-map .ist-land { fill: var(--land); }
+.ist-map .ist-regs { fill: none; stroke: var(--surface); stroke-width: 1; stroke-linejoin: round; }
+.ist-map svg { --stag: 4ms; }
+.ist-dot { stroke: var(--surface); stroke-width: 0.8; cursor: pointer; }
+.ist-dot:hover { stroke: var(--ink); stroke-width: 1.5; }
+.ist-dot.sel { stroke: var(--ink); stroke-width: 2.4; }
+.ist-side { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.ist-side .subhead { margin: 18px 0 4px; }
+.ist-pick-l { font-size: var(--step--1); font-weight: 600; color: var(--ink-2); }
+.ist-pick { width: 100%; }
+.ist-card { border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); padding: 14px 16px 12px; }
+.ist-card .ist-name { margin: 0; font-size: var(--step-1); font-weight: 700; line-height: 1.25; }
+.ist-card .ist-meta { margin: 2px 0 10px; font-size: var(--step--1); color: var(--ink-2); }
+.ist-card .facts { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 10px 14px; margin-bottom: 10px; }
+.ist-card .fact { border-top-width: 1px; border-top-color: var(--rule); }
+.ist-card .fact .fv { font-size: var(--step-1); }
+.ist-card .ist-txt { margin: 8px 0 6px; font-family: var(--font-body); font-size: var(--step-0); color: var(--ink-2); }
+.ist-card .small { margin: 0; }
+.ist-spark svg { display: block; width: 100%; height: auto; }
+.ist-spark .small { display: block; margin-top: 2px; }
+.ist-rank li[data-id], #ist-rank li[data-id] { cursor: pointer; }
+#ist-rank li[data-id]:hover .name { text-decoration: underline; }
+#ist-rank .bar i { background: var(--rise); }
+.ist-table th[scope="row"] { font-weight: 600; }
+.ist-table th[scope="row"] button { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+.ist-table th[scope="row"] button:hover { text-decoration-color: currentColor; }
+.ist-table th[scope="row"] button:focus-visible { outline: 2px solid var(--focus); }
+.ist-table abbr { text-decoration: none; color: var(--ink-2); }
+.ist-table td.ist-r { font-weight: 700; box-shadow: inset 4px 0 0 var(--c); }
+.ist-tablewrap { max-height: 560px; }
+.ist-fvg { margin-top: 30px; max-width: 78ch; }
+.ist-help { margin: 0 0 30px; border-left-color: var(--fall); max-width: 78ch; }
+.ist-help a { font-weight: 700; white-space: nowrap; }
+.ist-count { max-height: none; }
+.ist-count td.ist-what { white-space: normal; min-width: 260px; color: var(--ink-2); }
+.ist-count th[scope="row"] { white-space: nowrap; font-weight: 600; }
+.ist-why { margin: 16px 0 0; padding-left: 20px; max-width: 78ch; font-family: var(--font-body); font-size: var(--step-0); color: var(--ink-2); }
+.ist-why li { margin-bottom: 8px; }
+.ist-why b { color: var(--ink); font-family: var(--font-display); }
+.ist-key { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 0 0; padding: 0; font-size: var(--step--1); color: var(--ink-2); }
+.ist-key i { display: inline-block; width: 16px; height: 3px; margin-right: 6px; vertical-align: middle; border-radius: 2px; }
+@media (max-width: 560px) {
+  #ist-mode, #ist-sort { display: flex; width: 100%; }
+  #ist-mode button, #ist-sort button { flex: 1 1 0; min-width: 0; padding-inline: 6px; white-space: normal; line-height: 1.2; }
+  .ist-count td.ist-what { min-width: 200px; }
+}
+
 @media (max-width: 920px) {
   .dd-split, .dd-cards, .dd-cards.two, .dd-cards.four, .autori-provgrid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
@@ -1261,7 +1318,7 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
     linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0) 100%),
     repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
 }
-.dd-card:is([data-dd="carceri"], [data-dd="rimpatri"], [data-dd="percezione"], [data-dd="autori"], [data-dd="minori"], [data-dd="cautelari"])::before {
+.dd-card:is([data-dd="carceri"], [data-dd="rimpatri"], [data-dd="percezione"], [data-dd="autori"], [data-dd="minori"], [data-dd="cautelari"], [data-dd="istituti"])::before {
   content: "";
   flex: none;
   margin: -18px -20px 4px;
@@ -1279,6 +1336,7 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
 .dd-card[data-dd="autori"]::before     { background-image: var(--cctv), url("img/dd/autori.jpg"); --shot-pos: 50% 70%; }
 .dd-card[data-dd="minori"]::before     { background-image: var(--cctv), url("img/dd/minori.jpg"); --shot-pos: 50% 35%; }
 .dd-card[data-dd="cautelari"]::before  { background-image: var(--cctv), url("img/dd/cautelari.jpg"); --shot-pos: 50% 55%; }
+.dd-card[data-dd="istituti"]::before   { background-image: var(--cctv), url("img/dd/istituti.jpg"); }
 .dd-card:hover::before, .dd-card:focus-visible::before { animation: dd-roll 4s linear infinite; }
 @keyframes dd-roll {
   from { background-position: 0 0, 0 0, 0 -30%, 0 0, var(--shot-pos, 50% 50%); }
@@ -1287,6 +1345,12 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
 /* due colonne (.four) o una sola su tablet: la scheda è larga, la foto si fa più bassa */
 @media (min-width: 921px) {
   .dd-cards.four .dd-card[data-dd]::before { aspect-ratio: 5 / 2; }
+}
+/* sette schede su tre colonne (home e indice): l'ultima, sola nella sua riga, prende tutta la riga, con la foto a sinistra */
+@media (min-width: 921px) {
+  .dd-cards:not(.two):not(.four) > .dd-card:last-child:nth-child(3n + 1) { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); column-gap: 24px; row-gap: 8px; align-content: start; }
+  .dd-cards:not(.two):not(.four) > .dd-card:last-child:nth-child(3n + 1) > * { grid-column: 2; }
+  .dd-cards:not(.two):not(.four) > .dd-card:last-child:nth-child(3n + 1)::before { grid-column: 1; grid-row: 1 / span 6; margin: -18px 0 -16px -20px; aspect-ratio: auto; min-height: 100%; border-radius: 7px 0 0 7px; }
 }
 @media (max-width: 920px) and (min-width: 561px) {
   .dd-card[data-dd]::before { aspect-ratio: 3 / 1; }

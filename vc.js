@@ -128,13 +128,14 @@
   // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
   // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT", cautMode: "ord" };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT", cautMode: "ord", istMode: "reg", istSort: "ratio", istSel: null };
   let CARCERI = null;
   let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
   let AUTORI = null; // delitti con autore noto (data/autori.json), per il suo approfondimento e la sua scheda
   let MINORI = null; // minorenni denunciati e arrestati (data/minori.json), idem
   let CAUT = null, DIST_OF = {}; // custodia cautelare e ingiusta detenzione (data/cautelari.json); DIST_OF: provincia della carta -> distretto
+  let IST = null; // carcere per carcere: persone, posti e morti per istituto (data/istituti.json)
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
   let PROV = null, PROV_META = null, UNITS = null, INDEX = [], CITY_PROV = {}, placesPromise = null, placesFailed = false;
 
@@ -767,6 +768,13 @@
       fill("cautelari", `${nf1.format(dispShare(I, L))}%`, EN
         ? `of people in prison at the end of ${CAUT.meta.last} had no final conviction; in ${Yc[0]}, ${nf1.format(dispShare(I, 0))}%`
         : `delle persone detenute a fine ${CAUT.meta.last} non aveva una condanna definitiva; nel ${Yc[0]}, ${pctA("il", dispShare(I, 0))}`);
+    }
+    if (IST) {
+      const D = IST, M = D.meta.months, iL = M.length - 1, G = D.posti[D.posti.length - 1];
+      const r = Math.round((100 * D.italia.pres[iL]) / D.italia.cap[iL]), rd = Math.round((100 * G[1]) / G[2]);
+      fill("istituti", EN ? `${nf0.format(r)} per 100` : `${nf0.format(r)} ogni 100`, EN
+        ? `people held for every 100 official prison places at the end of ${monthLong(M[iL])}; counting only the places that can be used, ${nf0.format(rd)} (${dayLong(isoDate(G[0]))})`
+        : `persone detenute ogni 100 posti regolamentari a fine ${monthLong(M[iL])}; sui posti davvero disponibili, ${nf0.format(rd)} (${dayLong(isoDate(G[0]))})`);
     }
   }
 
@@ -2456,6 +2464,7 @@
     if (AUTORI && has("autori-facts")) renderAutori();
     if (MINORI && has("minori-facts")) renderMinori();
     if (CAUT && has("caut-facts")) renderCautelari();
+    if (IST && has("ist-facts")) renderIstituti();
     renderDeepCards();
     if (state.city) renderCity();
     if (state.place) renderProv();
@@ -3737,6 +3746,555 @@
       : `${top.d.name} spicca in ogni misura: ${nf0.format(top.o)} ordinanze e ${nf1.format(top.e / 1e6)} milioni di euro in sette anni, per un distretto di ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} abitanti, ${nf0.format(xIt(top))} volte la media italiana. Segue ${second.d.name}. La relazione non dice da quali procedimenti vengano le ordinanze né quando sia cominciata la custodia: un solo grande processo che finisce con molte assoluzioni può riempire più anni di pagamenti.`;
   }
 
+  // ------------------------------------------------------------------ carcere per carcere (affollamento e morti negli istituti)
+
+  async function loadIstituti() {
+    try {
+      const r = await fetch(ROOT + "data/istituti.json");
+      if (!r.ok) throw new Error(r.status);
+      IST = await r.json();
+      addSources(IST.meta.sources, "istituti");
+      if (has("ist-mode")) seg("#ist-mode", "imode", (v) => { state.istMode = v; renderIstMap(); });
+      if (has("ist-sort")) seg("#ist-sort", "isort", (v) => { state.istSort = v; renderIstTable(); });
+      if (has("ist-pick")) $("#ist-pick").addEventListener("change", (ev) => istSelect(ev.target.value));
+      // un clic su una riga della classifica o sul nome nella tabella apre la scheda di quel carcere
+      if (has("ist-rank")) $("#ist-rank").addEventListener("click", (ev) => { const li = ev.target.closest("li[data-id]"); if (li) istSelect(li.dataset.id, true); });
+      if (has("ist-table")) $("#ist-table").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-id]"); if (b) istSelect(b.dataset.id, true); });
+      if (has("ist-facts")) renderIstituti();
+      renderDeepCards();
+    } catch (e) {
+      if (has("ist-facts")) $("#ist-facts").innerHTML = `<p class="note">${L("I dati sulle carceri non si sono caricati", "The data on prisons did not load")} (${esc(e.message)}).</p>`;
+      console.error(e);
+    }
+  }
+
+  // La capienza di un istituto nel mese di indice i: cambia di rado, e nel file c'è solo quando cambia ([indice, posti]).
+  const istCap = (x, i) => { let c = null; for (const [j, v] of x.cap) { if (j > i) break; c = v; } return c; };
+  // il tipo nel mese i: Arienzo e Sanremo l'hanno cambiato, e x.tipi dice da quando
+  const istTipo = (x, i) => { if (!x.tipi) return x.tipo; let t = x.tipi[0][1]; for (const [j, v] of x.tipi) { if (j > i) break; t = v; } return t; };
+  // date: «2026-09» è la fine di settembre; nei testi «30 settembre 2026» o «settembre 2026»
+  const monthEnd = (k) => new Date(+k.slice(0, 4), +k.slice(5, 7), 0);
+  const isoDate = (s) => new Date(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+  const dayLong = (d) => d.toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" });
+  const monthLong = (k) => monthEnd(k).toLocaleDateString(LOCALE, { month: "long", year: "numeric" });
+  // «il 30 settembre», ma «l’8 agosto» e «l’11 luglio»
+  const dayArt = (d) => (EN ? dayLong(d) : (/^(8|11)\b/.test(String(d.getDate())) ? "l’" : "il ") + dayLong(d));
+  const TIPO_IT = { CC: "casa circondariale", CCF: "casa circondariale femminile", CR: "casa di reclusione", CRF: "casa di reclusione femminile", CL: "casa lavoro", IP: "casa circondariale e di reclusione", ICAM: "istituto a custodia attenuata per detenute madri" };
+  const TIPO_EN = { CC: "remand prison (casa circondariale)", CCF: "women’s remand prison", CR: "prison for sentenced people (casa di reclusione)", CRF: "women’s prison for sentenced people", CL: "work house (casa lavoro)", IP: "remand and sentenced prison", ICAM: "low-security unit for mothers with children" };
+  const tipoName = (t) => (EN ? TIPO_EN : TIPO_IT)[t] || t;
+  // il confronto tra tipi: case circondariali (anche femminili) e case di reclusione; casa lavoro, Reggio Emilia e Lauro a parte
+  const TIPO_GRP = { CC: "cc", CCF: "cc", CR: "cr", CRF: "cr" };
+
+  // Persone ogni 100 posti: sui posti regolamentari dell'ultimo mese (Ministero) o sui posti disponibili del Garante,
+  // con le persone contate dal Garante lo stesso giorno, così numeratore e denominatore sono della stessa rilevazione.
+  function istRatio(x, mode) {
+    const iL = IST.meta.months.length - 1;
+    if (mode === "disp") return x.posti ? (100 * x.pres_g) / x.posti : null;
+    const c = istCap(x, iL), p = x.pres[iL];
+    return p && c ? (100 * p) / c : null;
+  }
+  // blu sotto i posti, grigio a 100, rosso sopra, pieno a 200 persone ogni 100 posti
+  function crowdColor(v) {
+    if (v == null) return css("--land");
+    return v <= 100 ? d3.interpolateLab(css("--fall"), css("--mid"))(Math.max(0, (v - 40) / 60)) : d3.interpolateLab(css("--mid"), css("--rise"))(Math.min(1, (v - 100) / 100));
+  }
+  const istAlive = (x, i) => x.pres[i] != null && x.pres[i] > 0;
+
+  // Una serie al mese (indici di IST.meta.months), con eventuali punti in date sparse (i rilievi del Garante).
+  // o = { months, series: [{ name, values, color, width, dash, at, dy, dyEnd }], points: { name, color, list: [[data ISO, valore]] },
+  //       gap, ref, yMin, yMax, fmt, yFmt, tip(i), label, height }
+  function monthChart(el, o) {
+    const M = o.months, n = M.length, fmt = o.fmt || ((v) => nf0.format(v));
+    const w = Math.max(280, el.clientWidth), h = o.height || (w < 480 ? 220 : 270);
+    const m = { t: 18, r: 18, b: 24, l: o.ml || 52 };
+    const t = (k) => +k.slice(0, 4) + (+k.slice(5, 7) - 0.5) / 12;
+    const td = (s) => +s.slice(0, 4) + (+s.slice(5, 7) - 1 + (+s.slice(8, 10) - 0.5) / 31) / 12;
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", o.label || "");
+    svg.selectAll("*").remove();
+    const x = d3.scaleLinear([t(M[0]) - 0.5 / 12, t(M[n - 1]) + 0.04], [m.l, w - m.r]);
+    const pts = o.points ? o.points.list : [];
+    const all = o.series.flatMap((s) => s.values).concat(pts.map((p) => p[1])).filter((v) => v != null);
+    const y = d3.scaleLinear([o.yMin ?? d3.min(all) * 0.92, o.yMax ?? d3.max(all) * 1.05], [h - m.b, m.t]).nice(4);
+    // la primavera del 2020: le uscite dal carcere per l'epidemia
+    if (M.includes("2020-03")) {
+      svg.append("rect").attr("x", x(2020.17)).attr("width", x(2020.5) - x(2020.17)).attr("y", m.t).attr("height", h - m.t - m.b).style("fill", "var(--covid)");
+      svg.append("text").attr("class", "lbl").attr("x", x(2020.33)).attr("y", m.t + 10).attr("text-anchor", "middle").text("Covid");
+    }
+    const ya = svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`)
+      .call(d3.axisLeft(y).ticks(4).tickSize(-(w - m.l - m.r)).tickFormat((v) => (o.yFmt ? o.yFmt(v) : nf0.format(v))));
+    ya.select(".domain").remove();
+    ya.selectAll(".tick line").style("stroke", "var(--grid)");
+    const years = d3.range(+M[0].slice(0, 4), +M[n - 1].slice(0, 4) + 1).filter((yy) => x(yy) >= m.l && (w > 480 || yy % 2 === 1 || yy === +M[n - 1].slice(0, 4)));
+    const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
+      .call(d3.axisBottom(x).tickValues(years).tickFormat(d3.format("d")).tickSize(4));
+    xa.select(".domain").style("stroke", "var(--rule)");
+    if (o.ref != null) svg.append("line").attr("x1", m.l).attr("x2", w - m.r).attr("y1", y(o.ref)).attr("y2", y(o.ref)).style("stroke", "var(--ink-2)").style("stroke-dasharray", "2 3");
+    const line = d3.line().defined((v) => v != null).x((_, i) => x(t(M[i]))).y((v) => y(v));
+    if (o.gap) {
+      const [a, b] = o.series;
+      svg.append("path").attr("class", "area rv-fade")
+        .attr("d", d3.area().defined((_, i) => a.values[i] != null && b.values[i] != null && a.values[i] > b.values[i]).x((_, i) => x(t(M[i]))).y0((_, i) => y(b.values[i])).y1((_, i) => y(a.values[i]))(M))
+        .style("fill", "var(--rise)").style("fill-opacity", 0.12);
+    }
+    o.series.forEach((s, k) => {
+      svg.append("path").attr("class", s.dash ? "rv-fade" : "rv-draw").attr("pathLength", s.dash ? null : 1).style("--t0", `${k * 0.15}s`).attr("d", line(s.values))
+        .style("fill", "none").style("stroke", s.color).style("stroke-width", s.width || 2).style("stroke-dasharray", s.dash || null)
+        .style("stroke-linejoin", "round").style("stroke-linecap", "round");
+    });
+    if (pts.length) {
+      svg.append("path").attr("class", "rv-fade").attr("d", d3.line().x((p) => x(td(p[0]))).y((p) => y(p[1]))(pts))
+        .style("fill", "none").style("stroke", o.points.color).style("stroke-width", 1.25).style("stroke-dasharray", "3 3");
+      svg.append("g").selectAll("circle").data(pts).join("circle").attr("class", "rv-pop").attr("cx", (p) => x(td(p[0]))).attr("cy", (p) => y(p[1])).attr("r", 2.8)
+        .style("fill", "var(--surface)").style("stroke", o.points.color).style("stroke-width", 1.5);
+    }
+    // etichette dopo le linee, con l'alone che le stacca
+    const label = (name, color, xi, yv, dy, anchor) => svg.append("text").attr("class", "lbl halo mark rv-fade").attr("x", xi).attr("y", y(yv) + dy).attr("text-anchor", anchor || "start").style("fill", color).text(name);
+    o.series.forEach((s) => {
+      const idx = s.values.map((v, i) => (v != null ? i : -1)).filter((i) => i >= 0);
+      if (!idx.length) return;
+      const iL = idx[idx.length - 1], iA = s.at != null ? M.indexOf(s.at) : idx[0];
+      svg.append("circle").attr("class", "mark rv-pop").attr("cx", x(t(M[iL]))).attr("cy", y(s.values[iL])).attr("r", 4).style("fill", s.color).style("stroke", "var(--surface)").style("stroke-width", 2);
+      svg.append("text").attr("class", "lbl-strong halo mark rv-fade").attr("x", x(t(M[iL])) - 6).attr("y", y(s.values[iL]) + (s.dyEnd ?? -10)).attr("text-anchor", "end").text(fmt(s.values[iL]));
+      if (s.name && iA >= 0 && s.values[iA] != null) label(s.name, s.color, x(t(M[iA])) + 4, s.values[iA], s.dy ?? -10);
+    });
+    if (pts.length && o.points.name) {
+      const p = pts[o.points.at ?? 0];
+      label(o.points.name, o.points.color, x(td(p[0])) + 4, p[1], o.points.dy ?? 16);
+    }
+    const guide = svg.append("line").attr("y1", m.t).attr("y2", h - m.b).style("stroke", "var(--rule)").style("display", "none");
+    const dots = o.series.map((s) => svg.append("circle").attr("r", 4).style("fill", s.color).style("stroke", "var(--surface)").style("stroke-width", 2).style("display", "none"));
+    const off = () => { guide.style("display", "none"); dots.forEach((d) => d.style("display", "none")); hideTip(); };
+    svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", w - m.l - m.r).attr("height", h - m.t - m.b).style("fill", "transparent")
+      .on("mousemove", (ev) => {
+        const v0 = x.invert(d3.pointer(ev)[0]);
+        const i = Math.max(0, Math.min(n - 1, Math.round((v0 - t(M[0])) * 12)));
+        if (o.series.every((s) => s.values[i] == null)) { off(); return; }
+        guide.style("display", null).attr("x1", x(t(M[i]))).attr("x2", x(t(M[i])));
+        o.series.forEach((s, k) => { const v = s.values[i]; dots[k].style("display", v == null ? "none" : null).attr("cx", x(t(M[i]))).attr("cy", v == null ? 0 : y(v)); });
+        showTip(o.tip(i), ev);
+      })
+      .on("mouseleave", off);
+    reveal(el);
+  }
+
+  function renderIstituti() {
+    const D = IST, M = D.meta.months, iL = M.length - 1, I = D.italia, last = M[iL];
+    const end = monthEnd(last), pres = I.pres[iL], cap = I.cap[iL];
+    const G = D.posti[D.posti.length - 1], gDay = isoDate(G[0]);
+    const rReg = (100 * pres) / cap, rDisp = (100 * G[1]) / G[2];
+    const live = D.istituti.filter((x) => istAlive(x, iL));
+    const over = live.filter((x) => x.pres[iL] > istCap(x, iL)), over150 = live.filter((x) => x.pres[iL] >= 1.5 * istCap(x, iL));
+    if (!state.istSel) state.istSel = live.slice().sort((a, b) => istRatio(b, "reg") - istRatio(a, "reg"))[0].id;
+
+    $("#ist-lead").textContent = EN ? `${nf0.format(pres)} people for ${nf0.format(cap)} places` : `${nf0.format(pres)} persone per ${nf0.format(cap)} posti`;
+    $("#ist-lead-sub").textContent = EN
+      ? `On ${dayLong(end)}, Italy’s ${live.length} adult prisons in use held ${nf0.format(Math.round(rReg))} people for every 100 official places. Counting only the places that can actually be used, as the National Guarantor does, there were ${nf0.format(Math.round(rDisp))} for every 100 on ${dayLong(gDay)}.`
+      : `${dayArt(end).charAt(0).toUpperCase() + dayArt(end).slice(1)} nelle ${live.length} carceri italiane per adulti in funzione c’erano ${nf0.format(Math.round(rReg))} persone ogni 100 posti regolamentari. Contando solo i posti che si possono davvero usare, come fa il Garante nazionale, erano ${nf0.format(Math.round(rDisp))} ogni 100 ${dayArt(gDay)}.`;
+
+    // due barre sulla stessa scala: posti e persone, la parte oltre i posti in rosso
+    const mx = Math.max(pres, G[1]);
+    const bar = (lab, when, places, people) => `<div class="ist-bar">
+        <div class="ist-bar-h"><b>${lab}</b><span>${when}</span></div>
+        <div class="ist-track" role="img" aria-label="${esc(EN ? `${nf0.format(people)} people for ${nf0.format(places)} places` : `${nf0.format(people)} persone per ${nf0.format(places)} posti`)}"><i class="pl rv-grow" style="width:${(100 * places) / mx}%"></i><i class="ov rv-grow" style="left:${(100 * places) / mx}%;width:${(100 * (people - places)) / mx}%"></i></div>
+        <div class="ist-bar-k"><span>${EN ? `${nf0.format(places)} places` : `${nf0.format(places)} posti`}</span><span class="ov">${EN ? `+${nf0.format(people - places)} people over` : `+${nf0.format(people - places)} persone in più`}</span></div>
+      </div>`;
+    $("#ist-bars").innerHTML = bar(L("Posti regolamentari", "Official places"), EN ? `Ministry of Justice, ${dayLong(end)}` : `Ministero della Giustizia, ${dayLong(end)}`, cap, pres)
+      + bar(L("Posti davvero disponibili", "Places actually available"), EN ? `National Guarantor, ${dayLong(gDay)}` : `Garante nazionale, ${dayLong(gDay)}`, G[2], G[1]);
+    reveal($("#ist-bars"), $("#ist-bars").querySelectorAll(".ist-bar"));
+
+    const iMin = d3.minIndex(I.pres), dCap = cap - I.cap[iMin];
+    const [s25, a25, n25, x25, t25] = D.morti_totale_testo, Gs = D.garante, yG = Gs.anni[Gs.anni.length - 1];
+    const record = Gs.totale.slice(0, -1).every((v) => v < t25);
+    const E = D.eventi, iE = E.anni.indexOf(yG), Ri = D.ristretti.anni.indexOf(yG), Ai = D.antigone.anni.indexOf(yG);
+    const counts = [E.suicidi[iE], Gs.suicidi[Gs.anni.length - 1], D.ristretti.suicidi[Ri], Ai >= 0 ? D.antigone.suicidi[Ai] : null].filter((v) => v != null);
+    $("#ist-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${over.length}<small>of ${live.length}</small></div><div class="fl">prisons held more people than official places at the end of ${monthLong(last)}; in ${over150.length}, at least one and a half times as many.</div></div>
+      <div class="fact"><div class="fv">+${nf0.format(pres - I.pres[iMin])}</div><div class="fl">people in prison compared with ${monthLong(M[iMin])}, the lowest point since ${M[0].slice(0, 4)}. Official places changed by ${dCap >= 0 ? "+" : "−"}${nf0.format(Math.abs(dCap))}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(t25)}</div><div class="fl">deaths in prison recorded by the prison administration in ${yG}${record ? `, the highest since the series began in ${Gs.anni[0]}` : ""}: ${s25} suicides, ${n25} from natural causes, ${a25} with the cause still to be established.</div></div>
+      <div class="fact"><div class="fv">${d3.min(counts)}–${d3.max(counts)}</div><div class="fl">suicides in prison in ${yG}, depending on who counts them: the Ministry, the National Guarantor, Ristretti Orizzonti or Antigone.</div></div>` : `
+      <div class="fact"><div class="fv">${over.length}<small>su ${live.length}</small></div><div class="fl">carceri avevano più persone che posti regolamentari a fine ${monthLong(last)}; in ${over150.length} le persone erano almeno una volta e mezzo i posti.</div></div>
+      <div class="fact"><div class="fv">+${nf0.format(pres - I.pres[iMin])}</div><div class="fl">persone detenute rispetto a ${monthLong(M[iMin])}, il punto più basso dal ${M[0].slice(0, 4)}. I posti regolamentari sono cambiati di ${dCap >= 0 ? "+" : "−"}${nf0.format(Math.abs(dCap))}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(t25)}</div><div class="fl">morti in carcere registrate dall’amministrazione penitenziaria nel ${yG}${record ? `, il numero più alto dall’inizio della serie, nel ${Gs.anni[0]}` : ""}: ${s25} suicidi, ${n25} per cause naturali, ${a25} con la causa ancora da accertare.</div></div>
+      <div class="fact"><div class="fv">${d3.min(counts)}–${d3.max(counts)}</div><div class="fl">suicidi in carcere nel ${yG}, a seconda di chi li conta: il Ministero, il Garante nazionale, Ristretti Orizzonti o Antigone.</div></div>`;
+
+    renderIstTime();
+    renderIstMap();
+    renderIstCard();
+    renderIstTable();
+    renderIstTypes();
+    renderIstDeaths();
+  }
+
+  function renderIstTime() {
+    const D = IST, M = D.meta.months, iL = M.length - 1, I = D.italia;
+    const r = (i) => (100 * I.pres[i]) / I.cap[i];
+    const pts = D.posti.filter((p) => p[0] >= M[0]);
+    $("#ist-time-title").textContent = EN
+      ? `From ${nf0.format(Math.round(r(0)))} to ${nf0.format(Math.round(r(iL)))} people for every 100 official places`
+      : `Da ${nf0.format(Math.round(r(0)))} a ${nf0.format(Math.round(r(iL)))} persone ogni 100 posti regolamentari`;
+    $("#ist-time-sub").textContent = EN
+      ? `Adult prisons, last day of each month, ${monthLong(M[0])} to ${monthLong(M[iL])}. Circles: places actually available, counted by the National Guarantor on the dates of its reports.`
+      : `Carceri per adulti, ultimo giorno di ogni mese, da ${monthLong(M[0])} a ${monthLong(M[iL])}. I cerchi: i posti davvero disponibili, contati dal Garante nazionale nei giorni dei suoi report.`;
+    monthChart($("#ist-time"), {
+      months: M, label: L("Persone detenute, posti regolamentari e posti disponibili, a fine mese", "People in prison, official places and available places, end of each month"),
+      gap: true, yMin: 44000,
+      series: [
+        { name: L("persone detenute", "people in prison"), values: I.pres, color: "var(--rise)", width: 2.5, at: "2019-04", dy: -10 },
+        { name: L("posti regolamentari", "official places"), values: I.cap, color: "var(--ink)", at: "2021-06", dy: -8, dyEnd: 16 },
+      ],
+      points: { name: L("posti disponibili", "available places"), color: "var(--fall)", list: pts.map((p) => [p[0], p[2]]), at: 4, dy: 16 },
+      tip: (i) => {
+        const p = pts.filter((q) => q[0].slice(0, 7) === M[i]).pop();
+        return EN
+          ? `<b>${monthLong(M[i])}</b><br>${nf0.format(I.pres[i])} people<br>${nf0.format(I.cap[i])} official places (${nf0.format(Math.round(r(i)))} people per 100)${p ? `<br>${nf0.format(p[2])} available places on ${dayLong(isoDate(p[0]))}` : ""}`
+          : `<b>${monthLong(M[i])}</b><br>${nf0.format(I.pres[i])} persone<br>${nf0.format(I.cap[i])} posti regolamentari (${nf0.format(Math.round(r(i)))} persone ogni 100)${p ? `<br>${nf0.format(p[2])} posti disponibili al ${dayLong(isoDate(p[0]))}` : ""}`;
+      },
+    });
+    const iFeb = M.indexOf("2020-02"), iMin = d3.minIndex(I.pres), i20 = d3.minIndex(I.pres, (v, i) => (M[i] >= "2020-03" && M[i] <= "2020-06" ? v : Infinity)), pMax = d3.maxIndex(pts, (p) => p[2]), pL = pts[pts.length - 1];
+    $("#ist-time-note").textContent = EN
+      ? `In spring 2020, during the epidemic, the number of people in prison fell from ${nf0.format(I.pres[iFeb])} at the end of February to ${nf0.format(I.pres[i20])} at the end of ${monthLong(M[i20]).replace(/ \d{4}$/, "")}, and stayed around that level until ${monthLong(M[iMin])} (${nf0.format(I.pres[iMin])}). Since then it has grown again: ${nf0.format(I.pres[iL])} at the end of ${monthLong(M[iL])}. Official places have stayed between ${nf0.format(d3.min(I.cap))} and ${nf0.format(d3.max(I.cap))}. The places that can actually be used are fewer and, according to the Guarantor, have fallen from ${nf0.format(pts[pMax][2])} in ${monthLong(pts[pMax][0].slice(0, 7))} to ${nf0.format(pL[2])} in ${monthLong(pL[0].slice(0, 7))}: cells and wings closed for works or because they cannot be used.`
+      : `Nella primavera del 2020, con l’epidemia, le persone detenute scesero da ${nf0.format(I.pres[iFeb])} a fine febbraio a ${nf0.format(I.pres[i20])} a fine ${monthLong(M[i20]).replace(/ \d{4}$/, "")}, e restarono intorno a quel livello fino a ${monthLong(M[iMin])} (${nf0.format(I.pres[iMin])}). Da allora sono tornate a crescere: ${nf0.format(I.pres[iL])} a fine ${monthLong(M[iL])}. I posti regolamentari sono rimasti tra ${nf0.format(d3.min(I.cap))} e ${nf0.format(d3.max(I.cap))}. Quelli che si possono davvero usare sono meno e, secondo il Garante, sono scesi dai ${nf0.format(pts[pMax][2])} di ${monthLong(pts[pMax][0].slice(0, 7))} ai ${nf0.format(pL[2])} di ${monthLong(pL[0].slice(0, 7))}: celle e sezioni chiuse per lavori o perché inagibili.`;
+  }
+
+  function istTipText(x) {
+    const iL = IST.meta.months.length - 1, c = istCap(x, iL), p = x.pres[iL], rr = istRatio(x, "reg"), rd = istRatio(x, "disp");
+    const last = IST.meta.months[iL], gd = isoDate(IST.meta.garante);
+    return EN
+      ? `<b>${esc(x.nome)}</b><br><span class="small">${esc(tipoName(x.tipo))}, ${esc(x.reg)}</span><br>${nf0.format(p)} people for ${nf0.format(c)} official places${rr != null ? ` (${nf0.format(Math.round(rr))} per 100)` : ""}, end of ${monthLong(last)}${rd != null ? `<br>${nf0.format(Math.round(rd))} per 100 available places, ${dayLong(gd)}` : ""}`
+      : `<b>${esc(x.nome)}</b><br><span class="small">${esc(tipoName(x.tipo))}, ${esc(x.reg)}</span><br>${nf0.format(p)} persone per ${nf0.format(c)} posti regolamentari${rr != null ? ` (${nf0.format(Math.round(rr))} ogni 100)` : ""}, fine ${monthLong(last)}${rd != null ? `<br>${nf0.format(Math.round(rd))} ogni 100 posti disponibili, ${dayLong(gd)}` : ""}`;
+  }
+
+  function renderIstMap() {
+    const D = IST, M = D.meta.months, iL = M.length - 1, mode = state.istMode, last = M[iL], gd = isoDate(D.meta.garante);
+    const I = D.italia, G = D.posti[D.posti.length - 1];
+    const itv = mode === "disp" ? (100 * G[1]) / G[2] : (100 * I.pres[iL]) / I.cap[iL];
+    $("#ist-map-title").textContent = mode === "disp"
+      ? L(`Persone ogni 100 posti davvero disponibili, ${dayLong(gd)}`, `People per 100 places actually available, ${dayLong(gd)}`)
+      : L(`Persone ogni 100 posti regolamentari, fine ${monthLong(last)}`, `People per 100 official places, end of ${monthLong(last)}`);
+    $("#ist-map-sub").textContent = mode === "disp"
+      ? L(`Posti e persone contati dal Garante nazionale sui dati dell’amministrazione penitenziaria. In Italia, ${nf0.format(Math.round(itv))}.`, `Places and people counted by the National Guarantor from prison administration data. Italy: ${nf0.format(Math.round(itv))}.`)
+      : L(`Ministero della Giustizia. In Italia, ${nf0.format(Math.round(itv))}.`, `Ministry of Justice. Italy: ${nf0.format(Math.round(itv))}.`);
+    const rows = D.istituti.filter((x) => istAlive(x, iL)).map((x) => ({ x, v: istRatio(x, mode), n: mode === "disp" && x.pres_g != null ? x.pres_g : x.pres[iL] }));
+
+    // la carta: regioni sullo sfondo, un cerchio per carcere grande quanto le persone, colorato per affollamento
+    const el = $("#ist-map"), w = Math.max(260, el.clientWidth), h = Math.round(w * 1.18);
+    const { obj, land } = provShapes("reg");
+    const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[6, 6], [w - 6, h - 6]], land);
+    const path = d3.geoPath(proj);
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", $("#ist-map-title").textContent);
+    svg.selectAll("*").remove();
+    svg.append("path").attr("class", "ist-land").attr("d", path(land));
+    svg.append("path").attr("class", "ist-regs").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a !== b && a.properties.reg_istat_code !== b.properties.reg_istat_code)));
+    svg.append("path").attr("class", "coast").attr("d", path(topojson.mesh(TOPO, obj, (a, b) => a === b)));
+    const rad = d3.scaleSqrt([0, d3.max(rows, (d) => d.n)], [0, Math.max(10, w / 30)]);
+    // le carceri dello stesso comune (Roma, Napoli, Firenze…) in cerchio attorno al suo punto
+    const byPt = d3.group(rows.filter((d) => d.x.pt), (d) => d.x.pt.join(","));
+    const placed = [];
+    byPt.forEach((g) => {
+      const [px, py] = proj(g[0].x.pt), k = g.length, ring = k > 1 ? d3.max(g, (d) => rad(d.n)) * 0.9 + 1.5 : 0;
+      g.forEach((d, j) => placed.push({ ...d, cx: px + ring * Math.cos((2 * Math.PI * j) / k - Math.PI / 2), cy: py + ring * Math.sin((2 * Math.PI * j) / k - Math.PI / 2) }));
+    });
+    placed.sort((a, b) => b.n - a.n);
+    svg.append("g").selectAll("circle").data(placed).join("circle")
+      .attr("class", (d) => `ist-dot rv-pop${d.x.id === state.istSel ? " sel" : ""}`).attr("data-id", (d) => d.x.id)
+      .attr("cx", (d) => d.cx).attr("cy", (d) => d.cy).attr("r", (d) => Math.max(2, rad(d.n)))
+      .style("fill", (d) => crowdColor(d.v))
+      .on("mousemove", (ev, d) => showTip(istTipText(d.x), ev))
+      .on("mouseleave", hideTip)
+      .on("click", (ev, d) => istSelect(d.x.id));
+    reveal(el);
+    const stops = d3.range(50, 201, 10).map((v) => `${crowdColor(v)} ${(100 * (v - 50)) / 150}%`).join(", ");
+    $("#ist-legend").innerHTML = `<div class="lg"><div class="lg-t">${L("Persone ogni 100 posti", "People per 100 places")}</div><div class="lg-bar" style="background:linear-gradient(to right, ${stops})"></div><div class="lg-ticks"><span>50</span><span>100</span><span>150</span><span>200+</span></div></div>`;
+
+    // i più affollati, con un asterisco quelli piccoli
+    const top = rows.filter((d) => d.v != null).sort((a, b) => b.v - a.v).slice(0, 12);
+    barList($("#ist-rank"), top.map((d) => ({ name: d.x.nome, v: d.v, few: d.n < 100, title: istTipText(d.x).replace(/<br>/g, " · ").replace(/<[^>]+>/g, "") })), { max: top[0].v * 1.02, ref: itv, fmt: (v) => nf0.format(v) });
+    $("#ist-rank").querySelectorAll("li").forEach((li, j) => { li.dataset.id = top[j].x.id; });
+    const empty = D.istituti.filter((x) => x.pres[iL] != null && !istAlive(x, iL)), abroad = D.istituti.filter((x) => istAlive(x, iL) && !x.pt);
+    const noG = rows.filter((d) => d.v == null).map((d) => d.x.nome);
+    $("#ist-map-note").textContent = (EN
+      ? `The bars are the ${top.length} most crowded prisons; the line is Italy. An asterisk marks prisons with fewer than 100 people, where a few arrivals change the figure a lot. The figure is for the whole institution: within the same prison some wings can be far more crowded than others.`
+      : `Le barre sono le ${top.length} carceri più affollate, la linea è l’Italia. L’asterisco indica le carceri con meno di 100 persone, dove pochi ingressi cambiano molto il dato. Il dato è dell’istituto intero: nello stesso carcere alcune sezioni possono essere molto più piene di altre.`)
+      + (empty.length ? (EN ? ` Not shown: ${empty.map((x) => x.nome).join(" and ")}, with nobody held at the end of ${monthLong(last)}.` : ` Mancano ${empty.map((x) => x.nome).join(" e ")}, dove a fine ${monthLong(last)} non c’era nessuno.`) : "")
+      + (abroad.length ? L(` ${abroad.map((x) => x.nome).join(", ")} non è sulla carta.`, ` ${abroad.map((x) => x.nome).join(", ")} is not on the map.`) : "")
+      + (mode === "disp" && noG.length ? L(` Senza i posti del Garante: ${noG.join(", ")}.`, ` No Guarantor figures for: ${noG.join(", ")}.`) : "");
+
+    // l'elenco per scegliere un carcere, per regione
+    const pick = $("#ist-pick");
+    if (!pick.options.length) {
+      const all = D.istituti.filter((x) => x.pres[iL] != null);
+      pick.innerHTML = Array.from(d3.group(all, (x) => x.reg)).sort((a, b) => a[0].localeCompare(b[0], LOCALE))
+        .map(([reg, xs]) => `<optgroup label="${esc(reg)}">${xs.slice().sort((a, b) => a.nome.localeCompare(b.nome, LOCALE)).map((x) => `<option value="${x.id}">${esc(x.nome)}</option>`).join("")}</optgroup>`).join("");
+    }
+    pick.value = state.istSel;
+  }
+
+  function istSelect(id, scroll) {
+    state.istSel = id;
+    d3.selectAll("#ist-map .ist-dot").classed("sel", function () { return this.dataset.id === id; });
+    renderIstCard();
+    if (scroll) $("#ist-card").scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+
+  function renderIstCard() {
+    const D = IST, M = D.meta.months, iL = M.length - 1, last = M[iL], x = D.istituti.find((d) => d.id === state.istSel);
+    if (!x) return;
+    if (has("ist-pick")) $("#ist-pick").value = x.id;
+    const c = istCap(x, iL), p = x.pres[iL], rr = istRatio(x, "reg"), rd = istRatio(x, "disp"), gd = isoDate(D.meta.garante);
+    const m = x.m25, dead = m ? d3.sum(m) : 0, y25 = D.garante.anni[D.garante.anni.length - 1];
+    const parts = m ? [[m[0], L("suicidi", "suicides"), L("suicidio", "suicide")], [m[2], L("per cause naturali", "from natural causes"), L("per cause naturali", "from natural causes")],
+      [m[1], L("con la causa da accertare", "with the cause to be established"), L("con la causa da accertare", "with the cause to be established")], [m[3], L("per incidente", "accidental"), L("per incidente", "accidental")]]
+      .filter((q) => q[0]).map((q) => (q[0] === 1 && q[1] !== q[2] ? `${L("un", "one")} ${q[2]}` : `${q[0]} ${q[1]}`)) : [];
+    const deaths = !m
+      ? L(`Nel ${y25} l’amministrazione penitenziaria non vi ha registrato morti.`, `In ${y25} the prison administration recorded no deaths here.`)
+      : EN ? `In ${y25} the prison administration recorded ${dead === 1 ? "one death" : `${dead} deaths`} here: ${parts.join(", ")}.`
+        : `Nel ${y25} l’amministrazione penitenziaria vi ha registrato la morte di ${dead === 1 ? "una persona" : `${dead} persone`}: ${parts.join(", ")}.`;
+    const s24 = x.s24 ? L(` Nel 2024, fino al 20 dicembre, ${x.s24 === 1 ? "un suicidio" : `${x.s24} suicidi`}.`, ` In 2024, up to 20 December, ${x.s24 === 1 ? "one suicide" : `${x.s24} suicides`}.`) : "";
+    const fact = (v, l) => `<div class="fact"><div class="fv">${v}</div><div class="fl">${l}</div></div>`;
+    $("#ist-card").innerHTML = `
+      <h3 class="ist-name">${esc(x.nome)}</h3>
+      <p class="ist-meta">${esc(tipoName(x.tipo))} · ${x.comune ? esc(x.comune) + ", " : ""}${esc(x.reg)}</p>
+      <div class="facts">${fact(nf0.format(p), EN ? `people, end of ${monthLong(last)}` : `persone, fine ${monthLong(last)}`)}${fact(rr != null ? nf0.format(Math.round(rr)) : "–", EN ? `per 100 official places (${nf0.format(c)})` : `ogni 100 posti regolamentari (${nf0.format(c)})`)}${fact(rd != null ? nf0.format(Math.round(rd)) : "–", EN ? `per 100 available places (${x.posti != null ? nf0.format(x.posti) : "n/a"}), ${dayLong(gd)}` : `ogni 100 posti disponibili (${x.posti != null ? nf0.format(x.posti) : "n.d."}), ${dayLong(gd)}`)}${fact(nf0.format(dead), EN ? `${dead === 1 ? "death" : "deaths"} recorded in ${y25}` : `${dead === 1 ? "morte registrata" : "morti registrate"} nel ${y25}`)}</div>
+      <div class="ist-spark" aria-hidden="true"><svg></svg><span class="small">${EN ? `People (red) and official places (black), end of each month since ${monthLong(M[0])}` : `Persone (rosso) e posti regolamentari (nero), a fine mese da ${monthLong(M[0])}`}</span></div>
+      <p class="ist-txt">${p ? (EN ? `At the end of ${monthLong(last)}: ${x.donne ? `${nf0.format(x.donne)} women, ` : ""}${nf0.format(x.str)} foreign nationals. ` : `A fine ${monthLong(last)}: ${x.donne ? `${nf0.format(x.donne)} donne, ` : ""}${nf0.format(x.str)} persone straniere. `) : ""}${deaths}${s24}</p>
+      <p class="small">${L("Nome nelle tabelle del Ministero", "Name in the Ministry tables")}: ${esc(x.ufficiale)}</p>`;
+    // la serie del carcere: persone e posti a fine mese
+    const sv = $("#ist-card .ist-spark svg"), w = Math.max(200, sv.parentNode.clientWidth), h = 64, pad = { t: 6, r: 4, b: 4, l: 2 };
+    const caps = M.map((_, i) => (x.pres[i] != null ? istCap(x, i) : null));
+    const xs = d3.scaleLinear([0, M.length - 1], [pad.l, w - pad.r]), ys = d3.scaleLinear([0, d3.max(x.pres.concat(caps)) || 1], [h - pad.b, pad.t]);
+    const s = d3.select(sv).attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
+    s.selectAll("*").remove();
+    s.append("line").attr("x1", pad.l).attr("x2", w - pad.r).attr("y1", ys(0)).attr("y2", ys(0)).style("stroke", "var(--rule)");
+    s.append("path").attr("d", d3.line().defined((v) => v != null).curve(d3.curveStepAfter).x((_, i) => xs(i)).y((v) => ys(v))(caps)).style("fill", "none").style("stroke", "var(--ink)").style("stroke-width", 1.25);
+    s.append("path").attr("d", d3.line().defined((v) => v != null).x((_, i) => xs(i)).y((v) => ys(v))(x.pres)).style("fill", "none").style("stroke", "var(--rise)").style("stroke-width", 1.75);
+  }
+
+  function renderIstTable() {
+    const D = IST, M = D.meta.months, iL = M.length - 1, last = M[iL], gd = isoDate(D.meta.garante), y25 = D.garante.anni[D.garante.anni.length - 1];
+    const rows = D.istituti.filter((x) => x.pres[iL] != null).map((x) => ({ x, rr: istRatio(x, "reg"), rd: istRatio(x, "disp"), c: istCap(x, iL), m: x.m25 }));
+    const by = { ratio: (a, b) => (b.rr ?? -1) - (a.rr ?? -1), pres: (a, b) => b.x.pres[iL] - a.x.pres[iL], reg: (a, b) => a.x.reg.localeCompare(b.x.reg, LOCALE) || a.x.nome.localeCompare(b.x.nome, LOCALE) }[state.istSort];
+    rows.sort(by);
+    $("#ist-table-sub").textContent = EN
+      ? `${rows.length} adult prisons. People and official places: Ministry of Justice, end of ${monthLong(last)}. Available places: National Guarantor, ${dayLong(gd)}. Deaths in ${y25}: recorded by the prison administration (National Guarantor), suicides in brackets.`
+      : `${rows.length} carceri per adulti. Persone e posti regolamentari: Ministero della Giustizia, fine ${monthLong(last)}. Posti disponibili: Garante nazionale, ${dayLong(gd)}. Morti nel ${y25}: registrate dall’amministrazione penitenziaria (Garante nazionale), tra parentesi i suicidi.`;
+    const f = (v) => (v == null ? "–" : nf0.format(Math.round(v)));
+    $("#ist-table").innerHTML = `<table class="ist-table"><thead><tr>
+        <th scope="col">${L("Carcere", "Prison")}</th><th scope="col">${L("Regione", "Region")}</th><th scope="col">${L("Tipo", "Type")}</th>
+        <th scope="col" class="num">${L("Persone", "People")}</th><th scope="col" class="num">${L("Posti reg.", "Official places")}</th><th scope="col" class="num">${L("Ogni 100", "Per 100")}</th>
+        <th scope="col" class="num">${L("Posti disp.", "Available places")}</th><th scope="col" class="num">${L("Ogni 100", "Per 100")}</th><th scope="col" class="num">${L(`Morti ${y25}`, `Deaths ${y25}`)}</th></tr></thead><tbody>${rows.map((r) =>
+      `<tr><th scope="row"><button type="button" data-id="${r.x.id}">${esc(r.x.nome)}</button></th><td>${esc(r.x.reg)}</td><td><abbr title="${esc(tipoName(r.x.tipo))}">${r.x.tipo}</abbr></td>
+        <td class="num">${nf0.format(r.x.pres[iL])}</td><td class="num">${nf0.format(r.c)}</td><td class="num ist-r" style="--c:${crowdColor(r.rr)}">${f(r.rr)}</td>
+        <td class="num">${r.x.posti != null ? nf0.format(r.x.posti) : "–"}</td><td class="num ist-r" style="--c:${crowdColor(r.rd)}">${f(r.rd)}</td>
+        <td class="num">${r.m ? `${d3.sum(r.m)}${r.m[0] ? ` <span class="small">(${r.m[0]})</span>` : ""}` : "0"}</td></tr>`).join("")}</tbody></table>`;
+  }
+
+  function renderIstTypes() {
+    const D = IST, M = D.meta.months, iL = M.length - 1;
+    const grp = (g) => M.map((_, i) => {
+      let p = 0, c = 0;
+      D.istituti.forEach((x) => { if (x.pres[i] != null && TIPO_GRP[istTipo(x, i)] === g) { p += x.pres[i]; c += istCap(x, i); } });
+      return { p, c, r: (100 * p) / c };
+    });
+    const cc = grp("cc"), cr = grp("cr");
+    $("#ist-type-sub").textContent = EN ? `Remand prisons (case circondariali) and prisons for sentenced people (case di reclusione), official places, end of each month` : `Case circondariali e case di reclusione, posti regolamentari, a fine mese`;
+    monthChart($("#ist-type"), {
+      months: M, label: L("Persone ogni 100 posti nelle case circondariali e nelle case di reclusione", "People per 100 places in remand prisons and in prisons for sentenced people"),
+      ref: 100, yMin: 80, yFmt: (v) => nf0.format(v), height: 240,
+      series: [
+        { name: L("case circondariali", "remand prisons"), values: cc.map((d) => d.r), color: "var(--rise)", width: 2.5, at: "2021-01", dy: -10 },
+        { name: L("case di reclusione", "prisons for sentenced people"), values: cr.map((d) => d.r), color: "var(--ink)", at: "2021-01", dy: 18, dyEnd: 16 },
+      ],
+      tip: (i) => EN
+        ? `<b>${monthLong(M[i])}</b><br>Remand prisons: ${nf0.format(cc[i].p)} people, ${nf0.format(cc[i].c)} places (${nf0.format(Math.round(cc[i].r))} per 100)<br>Sentenced: ${nf0.format(cr[i].p)} people, ${nf0.format(cr[i].c)} places (${nf0.format(Math.round(cr[i].r))} per 100)`
+        : `<b>${monthLong(M[i])}</b><br>Case circondariali: ${nf0.format(cc[i].p)} persone, ${nf0.format(cc[i].c)} posti (${nf0.format(Math.round(cc[i].r))} ogni 100)<br>Case di reclusione: ${nf0.format(cr[i].p)} persone, ${nf0.format(cr[i].c)} posti (${nf0.format(Math.round(cr[i].r))} ogni 100)`,
+    });
+    const share = (100 * cc[iL].p) / D.italia.pres[iL];
+    $("#ist-type-note").textContent = EN
+      ? `At the end of ${monthLong(M[iL])} remand prisons held ${nf0.format(Math.round(cc[iL].r))} people for every 100 places, prisons for sentenced people ${nf0.format(Math.round(cr[iL].r))}. ${nf1.format(share)}% of everyone in prison was in a remand prison. The other three institutions (the work house in Vasto, Reggio Emilia, which is both, and the unit for mothers in Lauro) are left out of this comparison.`
+      : `A fine ${monthLong(M[iL])} le case circondariali avevano ${nf0.format(Math.round(cc[iL].r))} persone ogni 100 posti, le case di reclusione ${nf0.format(Math.round(cr[iL].r))}. Nelle case circondariali c’era ${pctA("il", share)} delle persone detenute. Gli altri tre istituti (la casa lavoro di Vasto, Reggio Emilia, che è insieme circondariale e di reclusione, e l’istituto per madri di Lauro) restano fuori dal confronto.`;
+    renderIstRegions();
+  }
+
+  // Fine 2025, una regione per cerchio: quota delle persone nelle case circondariali e quota senza condanna definitiva.
+  function renderIstRegions() {
+    const R = IST.regioni, rows = R.righe.map((d) => ({ d, x: (100 * d.cc) / d.all, y: (100 * d.disp) / d.all, s: (100 * d.str) / d.all }));
+    const tot = (k) => d3.sum(R.righe, (d) => d[k]), it = { x: (100 * tot("cc")) / tot("all"), y: (100 * tot("disp")) / tot("all") };
+    const el = $("#ist-reg"), w = Math.max(280, el.clientWidth), h = w < 480 ? 250 : 280, m = { t: 14, r: 16, b: 36, l: 44 };
+    $("#ist-reg-sub").textContent = EN
+      ? `End of ${R.anno}. Each circle is a region, sized by the number of people in prison; the cross is Italy. Correlation between the two shares across the 20 regions: ${nf2.format(R.r)}.`
+      : `Fine ${R.anno}. Ogni cerchio è una regione, grande quanto le persone detenute; la croce è l’Italia. Correlazione tra le due quote nelle 20 regioni: ${nf2.format(R.r)}.`;
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+      .attr("role", "img").attr("aria-label", L("Regioni: quota di persone detenute nelle case circondariali e quota senza condanna definitiva", "Regions: share of people held in remand prisons and share without a final conviction"));
+    svg.selectAll("*").remove();
+    const x = d3.scaleLinear([Math.floor(d3.min(rows, (d) => d.x) / 10) * 10, 100], [m.l, w - m.r - 6]);
+    const y = d3.scaleLinear([0, Math.ceil(d3.max(rows, (d) => d.y) / 10) * 10], [h - m.b, m.t]);
+    const ya = svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat((v) => v + "%"));
+    ya.select(".domain").remove();
+    ya.selectAll(".tick line").style("stroke", "var(--grid)");
+    const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat((v) => v + "%").tickSize(4));
+    xa.select(".domain").style("stroke", "var(--rule)");
+    svg.append("text").attr("class", "lbl").attr("x", w - m.r).attr("y", h - 4).attr("text-anchor", "end").text(L("nelle case circondariali →", "in remand prisons →"));
+    svg.append("text").attr("class", "lbl").attr("x", m.l + 4).attr("y", m.t + 2).text(L("↑ senza condanna definitiva", "↑ without a final conviction"));
+    const r = d3.scaleSqrt([0, d3.max(rows, (d) => d.d.all)], [0, 15]);
+    const fvg = (d) => /Friuli/.test(d.d.name);
+    const ck = (d) => d.x > 99.9;
+    svg.append("g").selectAll("circle").data(rows.slice().sort((a, b) => b.d.all - a.d.all)).join("circle").attr("class", "rv-pop")
+      .attr("cx", (d) => x(d.x)).attr("cy", (d) => y(d.y)).attr("r", (d) => Math.max(3, r(d.d.all)))
+      .style("fill", (d) => (fvg(d) ? "var(--rise)" : ck(d) ? "var(--ink-2)" : "var(--mid)")).style("fill-opacity", 0.85).style("stroke", "var(--surface)").style("stroke-width", 1)
+      .on("mousemove", (ev, d) => showTip(EN
+        ? `<b>${esc(d.d.name)}</b><br>${nf1.format(d.x)}% in remand prisons<br>${nf1.format(d.y)}% without a final conviction<br><span class="small">${nf0.format(d.d.all)} people in prison, end of ${R.anno}</span>`
+        : `<b>${esc(d.d.name)}</b><br>${nf1.format(d.x)}% nelle case circondariali<br>${nf1.format(d.y)}% senza condanna definitiva<br><span class="small">${nf0.format(d.d.all)} persone detenute, fine ${R.anno}</span>`, ev))
+      .on("mouseleave", hideTip);
+    svg.append("path").attr("d", `M${x(it.x) - 5},${y(it.y)}h10M${x(it.x)},${y(it.y) - 5}v10`).style("stroke", "var(--ink)").style("stroke-width", 1.5);
+    rows.filter(ck).forEach((d) => svg.append("text").attr("class", `lbl halo${fvg(d) ? " lbl-strong" : ""}`).attr("x", x(d.x) - Math.max(3, r(d.d.all)) - 4).attr("y", y(d.y) + 4)
+      .attr("text-anchor", "end").style("fill", fvg(d) ? "var(--rise)" : null).text(d.d.name));
+    reveal(el);
+
+    // la prova per il Friuli-Venezia Giulia: solo case circondariali, ma anche altre regioni le hanno, con quote basse
+    const F = rows.find(fvg);
+    if (!F) return;
+    const same = rows.filter((d) => ck(d) && !fvg(d)), yrs = R.anni, ser = F.d.disp_serie;
+    let k = ser.length - 1;
+    while (k > 0 && ser[k - 1] >= 40) k--;
+    const lowOthers = d3.extent(same, (d) => d.y);
+    const alike = rows.filter((d) => !fvg(d) && d.s >= F.s - 1 && d.y < 25).sort((a, b) => b.d.all - a.d.all).slice(0, 3);
+    const names = (xs) => xs.map((d) => d.d.name).join(EN ? ", " : ", ").replace(/, ([^,]*)$/, EN ? " and $1" : " e $1");
+    $("#ist-reg-note").innerHTML = EN
+      ? `The page on <a href="custodia-cautelare.html#regioni">pre-trial detention</a> left a question open: why ${nf1.format(F.y)}% of the people held in Friuli-Venezia Giulia have no final conviction, the highest share in Italy. One possible explanation is the type of prison: people awaiting trial are held in remand prisons, and Friuli-Venezia Giulia has only those, five of them. The data support this only in part. Across regions, the more weight remand prisons have, the higher the share without a final conviction tends to be (correlation ${nf2.format(R.r)}). But ${names(same)} also have only remand prisons, and there the share ranges from ${nf1.format(lowOthers[0])}% to ${nf1.format(lowOthers[1])}%. Foreign nationals, who are more often awaiting trial, do not explain it either: they are ${nf1.format(F.s)}% of the people held in Friuli-Venezia Giulia, about as many as in ${names(alike)}, where the share without a final conviction is below 25%.${k < ser.length - 3 ? ` Nor is it a one-year blip: the share has been above 40% every year since ${yrs[k]}.` : ""} The type of prison explains part of the differences between regions, not the one in Friuli-Venezia Giulia. To understand it, one would need the legal status of people prison by prison, which the Ministry does not publish.`
+      : `Nell’approfondimento sulla <a href="custodia-cautelare.html#regioni">custodia cautelare</a> restava una domanda: perché in Friuli-Venezia Giulia ${pctA("il", F.y)} delle persone detenute non ha una condanna definitiva, la quota più alta d’Italia. Una spiegazione possibile è il tipo di carcere: chi aspetta il processo sta nelle case circondariali, e in Friuli-Venezia Giulia ci sono solo quelle, cinque. I dati la sostengono solo in parte. Tra le regioni, dove pesano di più le case circondariali la quota senza condanna definitiva tende a essere più alta (correlazione ${nf2.format(R.r)}). Ma anche ${names(same)} hanno solo case circondariali, e lì la quota va ${pctA("dal", lowOthers[0])} ${pctA("al", lowOthers[1])}. Non bastano a spiegarla nemmeno le persone straniere, più spesso in attesa di giudizio: in Friuli-Venezia Giulia sono ${pctA("il", F.s)} delle persone detenute, più o meno quante in ${names(alike)}, dove la quota senza condanna definitiva è sotto il 25%.${k < ser.length - 3 ? ` E non è il dato di un anno: la quota è sopra il 40% in ogni anno dal ${yrs[k]}.` : ""} Il tipo di carcere spiega una parte delle differenze tra le regioni, non quella del Friuli-Venezia Giulia. Per capirla servirebbe la posizione giuridica delle persone carcere per carcere, che il Ministero non pubblica.`;
+  }
+
+  function renderIstDeaths() {
+    const D = IST, E = D.eventi, G = D.garante, R = D.ristretti, A = D.antigone, M = D.meta.months;
+    const yG = G.anni[G.anni.length - 1], [s25, a25, n25, x25, t25] = D.morti_totale_testo, g26 = G.anno_2026;
+    const record = G.totale.slice(0, -1).every((v) => v < t25);
+    $("#ist-death-title").textContent = EN ? `${nf0.format(t25)} people died in prison in ${yG}` : `Nel ${yG} sono morte in carcere ${nf0.format(t25)} persone`;
+    $("#ist-death-sub").textContent = EN
+      ? `So says the National Guarantor, from prison administration records: ${s25} suicides, ${n25} deaths from natural causes, ${a25} with the cause still to be established, ${x25} accidental.${record ? ` It is the highest number in its series, which starts in ${G.anni[0]}.` : ""}${g26 ? ` From 1 January to ${dayLong(isoDate(g26.fino_al))} the deaths recorded were ${g26.totale}, of which ${g26.suicidi} suicides.` : ""}`
+      : `Lo dice il Garante nazionale, sui dati dell’amministrazione penitenziaria: ${s25} suicidi, ${n25} morti per cause naturali, ${a25} con la causa ancora da accertare, ${x25} per incidente.${record ? ` È il numero più alto della sua serie, che comincia nel ${G.anni[0]}.` : ""}${g26 ? ` Dal 1° gennaio ${dayArt(isoDate(g26.fino_al)).replace(/^il /, "al ").replace(/^l’/, "all’")} le morti registrate sono ${g26.totale}, i suicidi ${g26.suicidi}.` : ""}`;
+
+    // tassi del Ministero dal 1992, sulle persone presenti in media nell'anno
+    const rs = E.suicidi.map((v, i) => (1e4 * v) / E.media[i]), rn = E.naturali.map((v, i) => (1e4 * v) / E.media[i]);
+    const yE = E.anni, iE = yE.length - 1;
+    $("#ist-rates-sub").textContent = EN ? `Ministry of Justice, per 10,000 people held on average during the year, ${yE[0]}–${yE[iE]}` : `Ministero della Giustizia, ogni 10.000 persone presenti in media nell’anno, ${yE[0]}–${yE[iE]}`;
+    seriesChart($("#ist-rates"), {
+      years: yE, label: L("Suicidi e morti per cause naturali ogni 10.000 persone detenute", "Suicides and deaths from natural causes per 10,000 people in prison"), height: 240, yMin: 0,
+      fmt: (v) => nf1.format(v),
+      series: [
+        { name: L("cause naturali", "natural causes"), values: rn, color: "var(--ink)", at: 1996, dy: -10 },
+        { name: L("suicidi", "suicides"), values: rs, color: "var(--rise)", width: 2.5, at: 1996, dy: 18, dyEnd: 16 },
+      ],
+      tip: (i) => EN
+        ? `<b>${yE[i]}</b><br>${E.suicidi[i]} suicides (${nf1.format(rs[i])} per 10,000)<br>${E.naturali[i]} natural deaths (${nf1.format(rn[i])} per 10,000)<br><span class="small">${nf0.format(E.media[i])} people held on average</span>`
+        : `<b>${yE[i]}</b><br>${E.suicidi[i]} suicidi (${nf1.format(rs[i])} ogni 10.000)<br>${E.naturali[i]} morti per cause naturali (${nf1.format(rn[i])} ogni 10.000)<br><span class="small">${nf0.format(E.media[i])} persone presenti in media</span>`,
+    });
+    // i quattro conteggi dei suicidi, dal primo anno del Garante
+    const yC = G.anni, pick = (ys, vs) => yC.map((y) => { const j = ys.indexOf(y); return j >= 0 ? vs[j] : null; });
+    const cM = pick(yE, E.suicidi), cG = G.suicidi, cR = pick(R.anni, R.suicidi), cA = pick(A.anni, A.suicidi);
+    $("#ist-counters-sub").textContent = EN ? `Suicides in prison each year, ${yC[0]}–${yC[yC.length - 1]}` : `Suicidi in carcere ogni anno, ${yC[0]}–${yC[yC.length - 1]}`;
+    seriesChart($("#ist-counters"), {
+      years: yC, label: L("Suicidi in carcere secondo il Ministero, il Garante, Ristretti Orizzonti e Antigone", "Suicides in prison according to the Ministry, the Guarantor, Ristretti Orizzonti and Antigone"), height: 240, yMin: 30, yMax: 100, xTicks: yC.filter((y) => y % 2 === 1),
+      series: [
+        { name: "Ristretti", values: cR, color: "var(--rise)", width: 2.5, label: false },
+        { name: L("Garante", "Guarantor"), values: cG, color: "var(--fall)", label: false },
+        { name: L("Ministero", "Ministry"), values: cM, color: "var(--ink)", label: false },
+        { name: "Antigone", values: cA, color: "var(--gold)", label: false },
+      ],
+      tip: (i) => `<b>${yC[i]}</b><br>${L("Ministero", "Ministry")}: ${cM[i] ?? "–"}<br>${L("Garante", "Guarantor")}: ${cG[i] ?? "–"}<br>Ristretti: ${cR[i] ?? "–"}${cA[i] != null ? `<br>Antigone: ${L("almeno", "at least")} ${cA[i]}` : ""}`,
+    });
+    // le quattro linee sono troppo vicine per scriverci sopra nomi e valori: una legenda sotto, i numeri nella tabella
+    d3.select("#ist-counters").selectAll("text.lbl-strong").remove();
+    $("#ist-counters").insertAdjacentHTML("beforeend", `<ul class="ist-key">${[["var(--rise)", "Ristretti Orizzonti"], ["var(--fall)", L("Garante nazionale", "National Guarantor")], ["var(--ink)", L("Ministero della Giustizia", "Ministry of Justice")], ["var(--gold)", L("Antigone (almeno)", "Antigone (at least)")]].map(([c, n]) => `<li><i style="background:${c}"></i>${n}</li>`).join("")}</ul>`);
+    const iMax = d3.maxIndex(rs);
+    $("#ist-rates-note").textContent = EN
+      ? `In ${yE[iE]} the Ministry counted ${nf1.format(rs[iE])} suicides per 10,000 people held; the highest rate in the series was in ${yE[iMax]} (${nf1.format(rs[iMax])}). Deaths from natural causes were ${nf1.format(rn[iE])} per 10,000. People in prison are almost all adult men, so these rates cannot be compared directly with those of the general population. On the right, the four counts of suicides: until ${yC[cR.findIndex((v, i) => v !== cG[i]) - 1]} Ristretti Orizzonti and the Guarantor give the same numbers, then they part ways.`
+      : `Nel ${yE[iE]} il Ministero ha contato ${nf1.format(rs[iE])} suicidi ogni 10.000 persone detenute; il tasso più alto della serie è del ${yE[iMax]} (${nf1.format(rs[iMax])}). Le morti per cause naturali sono state ${nf1.format(rn[iE])} ogni 10.000. Le persone detenute sono quasi tutte uomini adulti: questi tassi non si confrontano direttamente con quelli della popolazione. A destra i quattro conteggi dei suicidi: fino al ${yC[cR.findIndex((v, i) => v !== cG[i]) - 1]} Ristretti Orizzonti e il Garante danno gli stessi numeri, poi si separano.`;
+
+    // chi conta che cosa, negli ultimi tre anni
+    const ys = yC.slice(-3), col = (vs) => ys.map((y) => { const v = vs[yC.indexOf(y)]; return `<td class="num">${v == null ? "–" : v}</td>`; }).join("");
+    const rowsT = EN ? [
+      ["Ministry of Justice", "Suicides inside the institution, in its series on critical events", cM],
+      ["National Guarantor", "The same prison administration records, including people in custody who died outside the institution: in hospital, during a transfer or on leave", cG],
+      ["Ristretti Orizzonti", "A dossier kept since 1992 from news reports, alerts and official data; it also counts cases the administration classifies otherwise", cR],
+      ["Antigone", "Cross-checks Ristretti and the Guarantor; it also counts suicides in REMS and in juvenile institutions (“at least”)", cA],
+    ] : [
+      ["Ministero della Giustizia", "Suicidi dentro l’istituto, nella serie degli eventi critici", cM],
+      ["Garante nazionale", "Gli stessi archivi dell’amministrazione penitenziaria, con le persone detenute morte fuori dall’istituto: in ospedale, durante un trasferimento o un permesso", cG],
+      ["Ristretti Orizzonti", "Un dossier tenuto dal 1992 su notizie, segnalazioni e dati ufficiali; conta anche casi che l’amministrazione classifica in altro modo", cR],
+      ["Antigone", "Incrocia Ristretti e Garante; conta anche i suicidi nelle REMS e negli istituti per minorenni («almeno»)", cA],
+    ];
+    $("#ist-count-sub").textContent = EN ? "Suicides in prison, by source" : "Suicidi in carcere, per fonte";
+    $("#ist-count-table").innerHTML = `<table><thead><tr><th scope="col">${L("Chi conta", "Who counts")}</th><th scope="col">${L("Che cosa conta", "What it counts")}</th>${ys.map((y) => `<th scope="col" class="num">${y}</th>`).join("")}</tr></thead><tbody>${rowsT.map(([who, what, vs]) => `<tr><th scope="row">${who}</th><td class="ist-what">${what}</td>${col(vs)}</tr>`).join("")}</tbody></table>`;
+
+    // perché i numeri non coincidono
+    const ext = G.esterno_suicidi, same = yC.filter((y, i) => ext[i] != null && cM[i] != null && cM[i] + ext[i] === cG[i]);
+    const notSame = yC.filter((y, i) => ext[i] != null && cM[i] != null && cM[i] + ext[i] !== cG[i]);
+    const iY = yC.length - 1, iY1 = iY - 1;
+    const nE = E.naturali[yE.indexOf(yG)], nG = G.naturali[iY], nX = G.esterno_naturali[iY];
+    const list = (xs) => xs.join(", ").replace(/, ([^,]*)$/, EN ? " and $1" : " e $1");
+    const why = EN ? [
+      `<b>Inside or outside the institution.</b> The Ministry and the Guarantor read the same prison administration records. The comparison suggests that the Ministry counts only those who die inside the institution: in ${list(same)} the gap is exactly the number of suicides the Guarantor records as happening outside the institution; in ${list(notSame)} it comes close but does not add up.`,
+      `<b>Uncertain cases.</b> Ristretti Orizzonti also counts deaths the administration has not classified as suicide, when the intention is hard to establish, and people who died in hospital shortly afterwards. In ${yC[iY]} it counts ${cR[iY] - cG[iY]} more cases than the Guarantor, in ${yC[iY1]} ${cR[iY1] - cG[iY1]} more. One of the ${yC[iY]} cases was in a juvenile institution, outside the adult prison statistics.`,
+      `<b>Other places of detention.</b> Antigone starts from Ristretti and the Guarantor and adds suicides in REMS, the health facilities for people found not criminally responsible, which come under the Ministry of Health. That is why it writes “at least”.`,
+      `<b>Causes still to be established.</b> For the Guarantor, ${G.accertare[iY1]} deaths in ${yC[iY1]} and ${G.accertare[iY]} in ${yC[iY]} had no established cause yet. Some may turn out to be suicides once investigations are closed: the administration updates its figures years later.`,
+      `<b>Natural causes too.</b> In ${yG} the Ministry counts ${nE} deaths from natural causes, the Guarantor ${nG}, of which ${nX} outside the institution.`,
+    ] : [
+      `<b>Dentro o fuori dall’istituto.</b> Ministero e Garante leggono gli stessi archivi dell’amministrazione penitenziaria. Il confronto suggerisce che il Ministero conti solo chi muore dentro l’istituto: nel ${list(same)} la differenza è esattamente il numero di suicidi che il Garante segna come avvenuti fuori dall’istituto; nel ${list(notSame)} ci va vicino ma non torna.`,
+      `<b>I casi incerti.</b> Ristretti Orizzonti conta anche morti che l’amministrazione non ha classificato come suicidi, quando l’intenzione è difficile da stabilire, e le persone morte in ospedale poco dopo. Nel ${yC[iY]} conta ${cR[iY] - cG[iY]} casi più del Garante, nel ${yC[iY1]} ${cR[iY1] - cG[iY1]}. Uno dei casi del ${yC[iY]} è in un istituto per minorenni, fuori dalle statistiche delle carceri per adulti.`,
+      `<b>Gli altri luoghi di detenzione.</b> Antigone parte da Ristretti e dal Garante e aggiunge i suicidi nelle REMS, le strutture sanitarie per chi ha commesso un reato ed è stato giudicato non imputabile, che dipendono dal Ministero della Salute. Per questo scrive «almeno».`,
+      `<b>Le cause da accertare.</b> Per il Garante, nel ${yC[iY1]} le morti con la causa ancora da accertare erano ${G.accertare[iY1]}, nel ${yC[iY]} ${G.accertare[iY]}. Alcune potrebbero rivelarsi suicidi a indagini chiuse: l’amministrazione aggiorna i numeri anche anni dopo.`,
+      `<b>Anche le morti per malattia.</b> Nel ${yG} il Ministero conta ${nE} morti per cause naturali, il Garante ${nG}, di cui ${nX} fuori dall’istituto.`,
+    ];
+    $("#ist-why").innerHTML = why.map((t) => `<li>${t}</li>`).join("");
+
+    // dove: istituti con almeno una morte, suicidi per tipo di carcere e per affollamento, sulla presenza media del 2025
+    const idx = M.map((k, i) => (k.startsWith(yG + "-") ? i : -1)).filter((i) => i >= 0);
+    const inYear = D.istituti.filter((x) => idx.some((i) => istAlive(x, i)));
+    const withDeath = D.istituti.filter((x) => x.m25);
+    const agg = (f) => {
+      const o = {};
+      inYear.forEach((x) => {
+        const ii = idx.filter((i) => x.pres[i] != null), p = d3.sum(ii, (i) => x.pres[i]) / idx.length, c = d3.sum(ii, (i) => istCap(x, i));
+        const k = f(x, (100 * d3.sum(ii, (i) => x.pres[i])) / c);
+        if (k == null) return;
+        o[k] = o[k] || { p: 0, s: 0, n: 0 };
+        o[k].p += p; o[k].s += x.m25 ? x.m25[0] : 0; o[k].n += 1;
+      });
+      return o;
+    };
+    const byT = agg((x) => TIPO_GRP[x.tipo] || null);
+    const BANDS = [[0, 100], [100, 130], [130, 150], [150, Infinity]];
+    const byB = agg((x, r) => BANDS.findIndex(([a, b]) => r > a && r <= b));
+    const rate = (o) => (1e4 * o.s) / o.p;
+    const bandRates = BANDS.map((_, j) => byB[j]).filter(Boolean).map(rate);
+    const rising = bandRates.every((v, j) => j === 0 || v >= bandRates[j - 1]);
+    const top = withDeath.slice().sort((a, b) => d3.sum(b.m25) - d3.sum(a.m25))[0], iL = M.length - 1;
+    const sizeRank = D.istituti.filter((x) => istAlive(x, iL)).sort((a, b) => b.pres[iL] - a.pres[iL]).indexOf(top) + 1;
+    $("#ist-where-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${withDeath.length}<small>of ${inYear.length}</small></div><div class="fl">prisons with people held in ${yG} where the administration recorded at least one death.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(rate(byT.cc))}<small>vs ${nf1.format(rate(byT.cr))}</small></div><div class="fl">suicides per 10,000 people in ${yG} in remand prisons and in prisons for sentenced people.</div></div>
+      <div class="fact"><div class="fv">${d3.sum(top.m25)}</div><div class="fl">deaths recorded in ${esc(top.nome)} in ${yG}, ${top.m25[2]} of them from natural causes${sizeRank === 1 ? ". It is the largest prison in Italy" : ""}.</div></div>` : `
+      <div class="fact"><div class="fv">${withDeath.length}<small>su ${inYear.length}</small></div><div class="fl">carceri con persone detenute nel ${yG} in cui l’amministrazione ha registrato almeno una morte.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(rate(byT.cc))}<small>vs ${nf1.format(rate(byT.cr))}</small></div><div class="fl">suicidi ogni 10.000 persone nel ${yG} nelle case circondariali e nelle case di reclusione.</div></div>
+      <div class="fact"><div class="fv">${d3.sum(top.m25)}</div><div class="fl">morti registrate a ${esc(top.nome)} nel ${yG}, ${top.m25[2]} per cause naturali${sizeRank === 1 ? ". È il carcere più grande d’Italia" : ""}.</div></div>`;
+    const bandTxt = BANDS.map((b, j) => byB[j] && `${j === 0 ? L("fino a 100", "up to 100") : b[1] === Infinity ? L(`oltre ${b[0]}`, `over ${b[0]}`) : `${b[0]}–${b[1]}`}: ${nf1.format(rate(byB[j]))}`).filter(Boolean).join("; ");
+    $("#ist-where-note").textContent = EN
+      ? `Deaths per prison are in the prison profile and in the table above, as counts only. With numbers this small one or two cases change everything, so no rates are calculated prison by prison. Deaths from illness are concentrated in the largest prisons and, probably, in those with a health unit, which also take in sick people from other prisons. In remand prisons, where people arrive straight after arrest and turnover is high, suicides in ${yG} were about twice as frequent as in prisons for sentenced people. Between more and less crowded prisons ${rising ? "suicides rise with crowding" : "there is no steady difference"}: grouping prisons by people per 100 official places in ${yG}, suicides per 10,000 people were ${bandTxt}. These numbers do not say whether overcrowding increases suicides: that would require knowing in which wing and in what conditions each person lived.`
+      : `Le morti carcere per carcere sono nella scheda di ogni istituto e nella tabella più sopra, solo come conteggi: con numeri così piccoli uno o due casi cambiano tutto, e qui non si calcolano tassi carcere per carcere. Le morti per malattia si concentrano nelle carceri più grandi e, probabilmente, in quelle con un reparto sanitario, che ricoverano persone malate anche da altre carceri. Nelle case circondariali, dove si entra subito dopo l’arresto e le persone cambiano di continuo, nel ${yG} i suicidi sono stati circa il doppio che nelle case di reclusione. Tra carceri più e meno affollate ${rising ? "i suicidi crescono con l’affollamento" : "non c’è una differenza regolare"}: raggruppando le carceri per persone ogni 100 posti regolamentari nel ${yG}, i suicidi ogni 10.000 persone sono stati ${bandTxt}. Questi numeri non dicono se il sovraffollamento faccia aumentare i suicidi: servirebbe sapere in che sezione e in che condizioni viveva ogni persona.`;
+
+    // metodo: posti e morti, con i numeri dei file
+    const P = D.posti, p0 = P[0], ir = D.interrogazione, fixed = D.istituti.filter((x) => x.posti_dal_tasso), fixedReg = [...new Set(fixed.map((x) => x.reg))];
+    const fixedWhere = EN ? `${fixed.length} prisons${fixedReg.length === 1 ? ` in ${fixedReg[0]}` : ""}` : `${fixed.length} carceri${fixedReg.length === 1 ? ` (${fixedReg[0]})` : ""}`;
+    if (has("ist-method-posti")) $("#ist-method-posti").textContent = EN
+      ? `The Guarantor publishes the places that can actually be used, prison by prison, only in some of its reports; the most recent, used here, is from ${dayLong(isoDate(D.meta.garante))}. In that table, for ${fixedWhere}, the places column repeats the number of people, while the crowding rate is calculated on the real places: the places were recovered from the rate (${fixed.map((x) => x.nome).join(", ")}), and their total matches the published national figure (${nf0.format(P[P.length - 1][2])}). The national series, from ${dayLong(isoDate(p0[0]))}, comes from the same reports. The people counted by the Guarantor differ from the Ministry’s by a few units per prison, because they are extracted on a different day; the capacity is the same, prison by prison. A parliamentary question of 7 October 2025 (4/06085) put the effective places at about ${nf0.format(ir.posti)}, for more than ${nf0.format(ir.persone)} people, at ${dayLong(isoDate(ir.data))}.`
+      : `Il Garante pubblica i posti che si possono davvero usare, carcere per carcere, solo in alcuni report; il più recente, usato qui, è ${dayArt(isoDate(D.meta.garante)).replace(/^il /, "del ").replace(/^l’/, "dell’")}. In quella tabella, per ${fixedWhere}, la colonna dei posti ripete le persone, mentre il tasso di affollamento è calcolato sui posti veri: i posti sono stati ricavati dal tasso (${fixed.map((x) => x.nome).join(", ")}), e il loro totale torna con il dato nazionale pubblicato (${nf0.format(P[P.length - 1][2])}). La serie nazionale, dal ${dayLong(isoDate(p0[0]))}, viene dagli stessi report. Le persone contate dal Garante differiscono da quelle del Ministero di poche unità per carcere, perché estratte in un altro giorno; la capienza è la stessa, carcere per carcere. Un’interrogazione parlamentare del 7 ottobre 2025 (4/06085) parlava di circa ${nf0.format(ir.posti)} posti effettivi per oltre ${nf0.format(ir.persone)} persone al ${dayLong(isoDate(ir.data))}.`;
+    if (has("ist-method-morti")) $("#ist-method-morti").textContent = EN
+      ? `The Ministry series (critical events, ${yE[0]}–${yE[iE]}) gives suicides and deaths from natural causes, with rates on the average number of people present (the mean of the end-of-month counts) and on all those held during the year. The Guarantor publishes deaths by cause and by prison, read from the prison administration’s systems: for ${yG}, the table by prison adds up to ${a25} deaths with the cause still to be established and ${n25} natural ones, as in the text of the report, while its total row prints ${a25 + 1} and ${n25 - 1}; for 2024 the causes in its summary table add up to 243 against a printed total of 246. Suicides by prison in 2024 come from the Guarantor’s focus updated to 20 December 2024. Ristretti Orizzonti’s dossier is updated to ${dayLong(isoDate(R.aggiornamento))}; its ${R.anni[R.anni.length - 1]} is partial.`
+      : `La serie del Ministero (eventi critici, ${yE[0]}–${yE[iE]}) dà suicidi e morti per cause naturali, con i tassi sulle persone presenti in media (la media dei conteggi di fine mese) e su tutte quelle passate dal carcere nell’anno. Il Garante pubblica le morti per causa e per istituto, lette negli applicativi dell’amministrazione penitenziaria: per il ${yG} la tabella per istituto somma ${a25} morti con la causa da accertare e ${n25} naturali, come il testo del report, mentre la sua riga del totale stampa ${a25 + 1} e ${n25 - 1}; per il 2024 le cause della tabella riassuntiva sommano 243, il totale stampato è 246. I suicidi per istituto del 2024 vengono dal focus del Garante aggiornato al 20 dicembre 2024. Il dossier di Ristretti Orizzonti è aggiornato ${dayArt(isoDate(R.aggiornamento)).replace(/^il /, "al ").replace(/^l’/, "all’")}; il suo ${R.anni[R.anni.length - 1]} è parziale.`;
+  }
+
   function wireHome() {
     // il menu dei reati, uguale nella mappa e nella griglia delle città: ognuno cambia solo la sua sezione
     const groups = d3.group(TYPES, (t) => t.group);
@@ -3915,6 +4473,7 @@
       if (has("autori-facts") || $('[data-dd="autori"]') || allSources) loads.push(loadAutori());
       if (has("minori-facts") || $('[data-dd="minori"]') || allSources) loads.push(loadMinori());
       if (has("caut-facts") || $('[data-dd="cautelari"]') || allSources) loads.push(loadCautelari());
+      if (has("ist-facts") || $('[data-dd="istituti"]') || allSources) loads.push(loadIstituti());
       if (allSources) QINDEX.forEach((id) => loadQuart(id));
       let h = location.hash.slice(1);
       try { h = decodeURIComponent(h); } catch (e) { /* ignorato */ }

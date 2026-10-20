@@ -10,7 +10,7 @@ aggiunge solo gli strati, con gli stessi valori di .vh-media. La chiave è il da
 prende la foto appena c'è il file e la sua regola in vc.css (blocco «approfondimenti: la foto delle schede»).
 
 Foto da Unsplash, licenza Unsplash (uso libero, anche commerciale, senza obbligo di citazione): le citiamo lo stesso,
-qui sotto. Luoghi e oggetti, nessun volto: accanto a titoli su stranieri in carcere, rimpatri e minori una persona
+qui sotto. Luoghi e oggetti, nessun volto: accanto a titoli su stranieri in carcere, rimpatri, minori e morti in carcere una persona
 riconoscibile sembrerebbe indicata come esempio.
 «lift» schiarisce i notturni prima del filtro (gamma), che con il contrasto a 1.5 altrimenti diventano neri.
 
@@ -36,6 +36,7 @@ SHOTS = {
     "autori":     ("photo-1676829482890-08da580bf542", "a-couple-of-police-cars-parked-next-to-each-other-Fn57NtC4ddk", "Alex Suprun", 0.5, 0.6, 0.75),
     "minori":     ("photo-1544919982-b61976f0ba43", "portable-basketball-hoop-20K-JZ2ppbE", "Piotr Osmenda", 0.5, 0.5, 0.75),
     "cautelari":  ("photo-1660784670019-33a36fd82515", "a-courtroom-with-a-large-wooden-bench-ZV0kXnONoHo", "Rai Singh Uriarte", 0.5, 0.45, 1.0),
+    "istituti":   ("photo-1791469257164-f2a100f93630", "stone-wall-with-barred-windows-32Yl7cAOqwQ", "Dan Stephens", 0.5, 0.5, 1.0),
 }
 
 

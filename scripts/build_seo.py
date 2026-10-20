@@ -728,6 +728,7 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [data/autori.json]({SITE}data/autori.json): delitti commessi nell’anno e denunciati, e quanti con autore noto, per tipo (Italia e dodici grandi comuni) e per provincia.
 - [data/minori.json]({SITE}data/minori.json): segnalazioni di minorenni e di tutte le persone denunciate e arrestate, per tipo di delitto, in Italia e nelle regioni.
 - [data/cautelari.json]({SITE}data/cautelari.json): persone detenute a fine anno per posizione giuridica (Italia e regioni, per cittadinanza e sesso), misure cautelari disposte ed esiti, domande e ordinanze di riparazione per ingiusta detenzione per distretto di Corte d’appello, procedimenti disciplinari.
+- [data/istituti.json]({SITE}data/istituti.json): persone presenti e capienza regolamentare per istituto penitenziario a fine mese dal 2019, posti regolarmente disponibili per istituto, morti in carcere per causa (dal 1992) e per istituto (2025), con i conteggi dei suicidi di Ministero, Garante nazionale, Ristretti Orizzonti e Antigone.
 - [Codice e script dei dati su GitHub](https://github.com/JacopoOttaviani/atlante-della-sicurezza): chiunque può rifare i conti.
 
 ## Fonti
@@ -741,6 +742,8 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - Eurostat, migr_eiord e migr_eirtn, su dati del Ministero dell’Interno
 - Ministero della Giustizia, Relazione al Parlamento sulle misure cautelari personali e sulla riparazione per ingiusta detenzione (legge 47/2015, art. 15), dati 2024; importi delle riparazioni di fonte Ministero dell’Economia
 - ISTAT, Demografia in cifre: popolazione residente per provincia (demo.istat.it)
+- Ministero della Giustizia, Detenuti italiani e stranieri presenti e capienze per istituto (tabelle mensili dal 2019) ed Eventi critici negli istituti penitenziari (1992-2025), su dati del DAP
+- Garante nazionale dei diritti delle persone private della libertà personale, report analitici sui posti disponibili e report sui decessi in carcere, su dati del DAP; Ristretti Orizzonti, dossier «Morire di carcere»; Antigone, rapporti sulle condizioni di detenzione
 
 ## Autore
 

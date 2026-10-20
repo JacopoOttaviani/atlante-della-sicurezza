@@ -24,18 +24,20 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [Quanti reati restano senza un autore](https://atlantedellasicurezza.it/approfondimenti/autori-ignoti.html): Di quanti delitti denunciati si conosce l’autore, reato per reato, nelle grandi città e provincia per provincia: dati ufficiali ISTAT su fonte del Ministero dell’Interno.
 - [I minorenni denunciati e arrestati](https://atlantedellasicurezza.it/approfondimenti/minori.html): Quanti minorenni sono denunciati o arrestati in Italia, per quali reati e quanto pesano tra tutte le persone denunciate, dal 2004 a oggi: dati ufficiali ISTAT su fonte del Ministero dell’Interno.
 - [Prima della condanna: custodia cautelare e ingiusta detenzione](https://atlantedellasicurezza.it/approfondimenti/custodia-cautelare.html): Quante persone sono in carcere senza una condanna definitiva, quante misure cautelari dispongono i giudici e quanto paga lo Stato per le ingiuste detenzioni, distretto per distretto: dati ufficiali ISTAT e del Ministero della Giustizia.
+- [Carcere per carcere: affollamento e morti negli istituti penitenziari](https://atlantedellasicurezza.it/approfondimenti/carcere-per-carcere.html): Quante persone ci sono in ognuna delle carceri italiane per adulti rispetto ai posti, mese per mese dal 2019, e quante ci muoiono: dati del Ministero della Giustizia e del Garante nazionale, con i conteggi di Ristretti Orizzonti e Antigone.
 - [Il progetto](https://atlantedellasicurezza.it/progetto/): perché esiste l’atlante, l’autore, le domande frequenti, metodologia e fonti.
 
 ## In English
 
 - [Atlante della sicurezza: reported crime in Italy, city by city, 2006–2024](https://atlantedellasicurezza.it/en/): Atlante della sicurezza: how many crimes are really reported in Italian cities, and how that is changing. Official ISTAT data for 2006–2024 on the 108 provincial capitals, with rankings, a map and spikes.
-- [Deep dives](https://atlantedellasicurezza.it/en/approfondimenti/): The deep dives of the Atlante della sicurezza: foreign nationals in prison, orders to leave Italy and the returns carried out country by country, perceived risk alongside reported crimes, the crimes that remain without a known offender, minors reported and arrested, and people in prison without a final conviction and compensation for wrongful detention.
+- [Deep dives](https://atlantedellasicurezza.it/en/approfondimenti/): The deep dives of the Atlante della sicurezza: foreign nationals in prison, orders to leave Italy and the returns carried out country by country, perceived risk alongside reported crimes, the crimes that remain without a known offender, minors reported and arrested, people in prison without a final conviction and compensation for wrongful detention, and overcrowding and deaths prison by prison.
 - [Foreign nationals in Italian prisons](https://atlantedellasicurezza.it/en/approfondimenti/carceri.html): How many foreign nationals are in Italian prisons, which countries they come from, for which crimes and with what legal status, alongside their share of the resident population: official ISTAT data, sourced from the Ministry of Justice.
 - [Returns: how many are ordered, how many carried out](https://atlantedellasicurezza.it/en/approfondimenti/rimpatri.html): How many citizens of non-EU countries Italy orders to leave and how many it actually returns, country by country since 2008: Eurostat data, sourced from the Ministry of the Interior.
 - [How unsafe we feel, and how unsafe we are](https://atlantedellasicurezza.it/en/approfondimenti/percezione.html): Fear of crime alongside reported crimes: the national series since 2006, the big cities and the Italian provinces, with official ISTAT and EU-SILC data.
 - [How many crimes remain without a known offender](https://atlantedellasicurezza.it/en/approfondimenti/autori-ignoti.html): How many reported crimes have a known offender, crime by crime, in the big cities and province by province: official ISTAT data, sourced from the Ministry of the Interior.
 - [Minors reported and arrested](https://atlantedellasicurezza.it/en/approfondimenti/minori.html): How many minors are reported or arrested in Italy, for which crimes and what share they make up of all the people reported, from 2004 to today: official ISTAT data, sourced from the Ministry of the Interior.
 - [Before the verdict: pre-trial detention and wrongful detention](https://atlantedellasicurezza.it/en/approfondimenti/custodia-cautelare.html): How many people are in prison in Italy without a final conviction, how many precautionary measures the courts order and how much the State pays for wrongful detention, district by district: official data from ISTAT and the Ministry of Justice.
+- [Prison by prison: overcrowding and deaths in Italy’s prisons](https://atlantedellasicurezza.it/en/approfondimenti/carcere-per-carcere.html): How many people are held in each of Italy’s adult prisons compared with the places available, month by month since 2019, and how many die there: data from the Ministry of Justice and the National Guarantor, with the counts of Ristretti Orizzonti and Antigone.
 - [About](https://atlantedellasicurezza.it/en/progetto/): Why the Atlante della sicurezza exists, who made it, frequently asked questions and how to read its numbers: methodology and official sources, ISTAT and Eurostat.
 
 ## Le città
@@ -158,6 +160,7 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - [data/autori.json](https://atlantedellasicurezza.it/data/autori.json): delitti commessi nell’anno e denunciati, e quanti con autore noto, per tipo (Italia e dodici grandi comuni) e per provincia.
 - [data/minori.json](https://atlantedellasicurezza.it/data/minori.json): segnalazioni di minorenni e di tutte le persone denunciate e arrestate, per tipo di delitto, in Italia e nelle regioni.
 - [data/cautelari.json](https://atlantedellasicurezza.it/data/cautelari.json): persone detenute a fine anno per posizione giuridica (Italia e regioni, per cittadinanza e sesso), misure cautelari disposte ed esiti, domande e ordinanze di riparazione per ingiusta detenzione per distretto di Corte d’appello, procedimenti disciplinari.
+- [data/istituti.json](https://atlantedellasicurezza.it/data/istituti.json): persone presenti e capienza regolamentare per istituto penitenziario a fine mese dal 2019, posti regolarmente disponibili per istituto, morti in carcere per causa (dal 1992) e per istituto (2025), con i conteggi dei suicidi di Ministero, Garante nazionale, Ristretti Orizzonti e Antigone.
 - [Codice e script dei dati su GitHub](https://github.com/JacopoOttaviani/atlante-della-sicurezza): chiunque può rifare i conti.
 
 ## Fonti
@@ -171,6 +174,8 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 - Eurostat, migr_eiord e migr_eirtn, su dati del Ministero dell’Interno
 - Ministero della Giustizia, Relazione al Parlamento sulle misure cautelari personali e sulla riparazione per ingiusta detenzione (legge 47/2015, art. 15), dati 2024; importi delle riparazioni di fonte Ministero dell’Economia
 - ISTAT, Demografia in cifre: popolazione residente per provincia (demo.istat.it)
+- Ministero della Giustizia, Detenuti italiani e stranieri presenti e capienze per istituto (tabelle mensili dal 2019) ed Eventi critici negli istituti penitenziari (1992-2025), su dati del DAP
+- Garante nazionale dei diritti delle persone private della libertà personale, report analitici sui posti disponibili e report sui decessi in carcere, su dati del DAP; Ristretti Orizzonti, dossier «Morire di carcere»; Antigone, rapporti sulle condizioni di detenzione
 
 ## Autore
 
