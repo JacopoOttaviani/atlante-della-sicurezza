@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=56">
+<link rel="stylesheet" href="../../vc.css?v=57">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -150,6 +150,7 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#app">Skip to content</a>
 <header class="masthead">
   <div class="wrap">
     <p class="wordmark"><a href="../" aria-label="Atlante della Sicurezza: back to the home page"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span></a></p>
@@ -218,7 +219,7 @@
     <div class="wrap">
       <header>
         <div class="kicker">Country by country</div>
-        <h2 id="rc-title">How many orders become returns, by citizenship</h2>
+        <h2 id="rc-title">Orders and returns, by citizenship</h2>
         <p class="dek">For each country the light bar shows the orders to leave Italy and the solid bar the returns carried out, on the same scale. The period and sort order apply to this chart only.</p>
       </header>
       <div class="chips" role="group" aria-label="Period and sort order of the chart">
@@ -279,11 +280,11 @@
       </header>
       <div class="method">
         <h3>What these numbers count</h3>
-        <p>They are citizens of non-EU countries whom Italy has ordered to leave its territory (the orders) and those who left after an order, through a forced or voluntary return (the returns), counted by Eurostat from Ministry of the Interior data. They do not include people turned back at the border, or people who leave Italy without anyone recording it. They may not match the figures on returns published by the Viminale, the Interior Ministry, which uses its own counts. Eurostat rounds every value to 5: the sum of the countries can differ slightly from the total.</p>
+        <p>They are citizens of non-EU countries whom Italy has ordered to leave its territory (the orders) and those who left after an order, through a forced or voluntary return (the returns), counted by Eurostat from Ministry of the Interior data. They do not include people turned back at the border, or people who leave Italy without anyone recording it. They may not match the figures on returns published by the Viminale, the Interior Ministry, which uses its own counts. Eurostat rounds every value to 5, and the totals also include stateless people and people of unknown citizenship, who do not appear in the list of countries: this is why the sum of the countries can differ from the total (by 1,140 orders in 2008, almost all of unknown citizenship).</p>
         <h3>Orders and returns are not the same people</h3>
         <p>The ratio of returns to orders in the same period is an approximation: someone returned in one year may have received the order in an earlier year, and the same person can receive more than one order. This is why a country can have more returns than orders in a given year. The ratio is affected by, among other things, readmission agreements with individual countries and the availability of flights and of places in detention centres.</p>
         <h3>Why the ratio is shown only where there are enough orders</h3>
-        <p>When there are few orders, a handful of people can move the ratio by many points. The ranking by returns per 100 orders therefore only includes countries with at least 250 orders for each year of the chosen period; in the other sort orders, the ratio for countries below that threshold is shown in grey.</p>
+        <p>When there are few orders, a handful of people can move the ratio by many points. The ranking by returns per 100 orders therefore only includes countries with at least 250 orders a year on average over the chosen period (1,000 over four years); in the other sort orders, the ratio for countries below that threshold is shown in grey.</p>
         <h3>From where, to where</h3>
         <p>Eurostat records the citizenship of the people returned, not the country where they land. The two almost always coincide, but for Italy the detail on the actual destination is not published. On the map every line starts from Italy as a whole: the data do not say from which city, airport or pre-removal detention centre each person left.</p>
         <h3>Sources</h3>
@@ -386,6 +387,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=56"></script>
+<script src="../../vc.js?v=57"></script>
 </body>
 </html>

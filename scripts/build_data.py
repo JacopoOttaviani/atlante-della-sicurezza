@@ -77,6 +77,35 @@ SARDINIA = {"090064": "Sassari", "091051": "Nuoro", "092009": "Cagliari", "09503
 # Nomi più leggibili per alcuni capoluoghi.
 RENAME = {"Bolzano/Bozen": "Bolzano", "Reggio nell'Emilia": "Reggio Emilia", "Reggio di Calabria": "Reggio Calabria"}
 
+# Furti e rapine si dividono in sottotipi: un sottotipo non può superare il suo totale (vedi check_tree).
+PARENT = {"BURGTHEF": "THEFT", "PICKTHEF": "THEFT", "BAGTHEF": "THEFT", "SHOPTHEF": "THEFT", "CARTHEF": "THEFT",
+          "VEHITHEF": "THEFT", "STREETROB": "ROBBER", "HOUSEROB": "ROBBER", "SHOPROB": "ROBBER"}
+
+# Note sulle schede delle città, in italiano e in inglese, scritte in vc.json (meta.note) e mostrate da vc.js.
+# "null": anni e reati che l'ISTAT pubblica ma che non tornano, tolti dai dati (diventano celle vuote): la scheda
+# lo dice, le impennate e i confronti li saltano. Quando l'ISTAT corregge il dato, basta togliere la voce.
+NOTES = {
+    "110002": {  # Barletta
+        "null": {2023: ["THEFT", "BURGTHEF", "PICKTHEF", "BAGTHEF", "SHOPTHEF", "CARTHEF", "VEHITHEF", "SWINCYB", "DAMAGE"]},
+        "it": "Per il 2023 l’ISTAT pubblica per Barletta numeri che non tornano tra loro: 17 furti in tutto, ma 964 furti "
+              "di automobili; 6 truffe, contro 157 nel 2022 e 152 nel 2024; 45 danneggiamenti, contro 187 e 188. Il totale "
+              "dei delitti è in linea con gli altri anni, quindi i reati sono stati contati ma assegnati male. Qui furti, "
+              "truffe e danneggiamenti del 2023 sono lasciati vuoti e restano fuori da impennate e confronti.",
+        "en": "For 2023 ISTAT publishes figures for Barletta that do not add up: 17 thefts in all, but 964 car thefts; "
+              "6 frauds, against 157 in 2022 and 152 in 2024; 45 cases of criminal damage, against 187 and 188. The total "
+              "for all crimes is in line with other years, so the crimes were counted but filed under the wrong headings. "
+              "Here thefts, frauds and criminal damage for 2023 are left blank and kept out of spikes and comparisons.",
+    },
+    "081021": {  # Trapani
+        "it": "Dal 2021 Trapani è più piccola: una parte del suo territorio è diventata il comune di Misiliscemi. Anche i "
+              "residenti calano di colpo (65.610 a inizio 2020, 56.054 a inizio 2022), e i tassi prima e dopo riguardano "
+              "due territori un po’ diversi.",
+        "en": "Since 2021 Trapani has been smaller: part of its territory became the new comune of Misiliscemi. Residents "
+              "drop suddenly too (65,610 at the start of 2020, 56,054 at the start of 2022), and rates before and after "
+              "refer to two slightly different territories.",
+    },
+}
+
 
 def log(*a):
     print(*a, file=sys.stderr, flush=True)
@@ -185,21 +214,23 @@ def load_population(codes):
 
 # ---------------------------------------------------------------- percezione
 
-def load_perception():
+def perception_households():
     # Famiglie per percezione del rischio di criminalità nella zona in cui abitano
     # (Indagine Aspetti della vita quotidiana) — province e grandi comuni, 2022-2024.
+    # Per area e anno: famiglie che si sentono molto e abbastanza a rischio, e tutte le famiglie.
     rows = sdmx("DF_DCSS_BEST_PPC_1_GC", "all", "best_ppc_1.csv")
     hh = defaultdict(lambda: defaultdict(dict))
     for r in rows:
         if r["GENDER"] != "T" or r["LIFE_SATISF"] != "ALL" or r["PERC_SAF_WAD"] != "ALL":
             continue
         hh[r["REF_AREA"]][int(r["TIME_PERIOD"])][r["PERC_CRIME_RISK"]] = float(r["OBS_VALUE"])
-    share = {}
-    for area, by_year in hh.items():
-        share[area] = {}
-        for y, d in by_year.items():
-            if d.get("ALL"):
-                share[area][y] = round(100 * (d.get("CR_V_MUCH", 0) + d.get("CR_QUITE_BIT", 0)) / d["ALL"], 1)
+    return {area: {y: (d.get("CR_V_MUCH", 0) + d.get("CR_QUITE_BIT", 0), d["ALL"]) for y, d in by_year.items() if d.get("ALL")}
+            for area, by_year in hh.items()}
+
+
+def load_perception():
+    share = {area: {y: round(100 * risk / tot, 1) for y, (risk, tot) in by_year.items()}
+             for area, by_year in perception_households().items()}
     # EU-SILC: famiglie che dichiarano problemi di criminalità, violenza o vandalismo
     # nella zona in cui abitano (% famiglie), Italia, 2004-2025.
     rows = sdmx("33_291", "all", "silc_33_291.csv")
@@ -318,6 +349,9 @@ def build():
         for t in TYPE_IDS:
             d = counts[code].get(t, {})
             series[t] = [d.get(y) for y in YEARS]
+        for y, types in NOTES.get(code, {}).get("null", {}).items():
+            for t in types:
+                series[t][YEARS.index(y)] = None
         p = pop[code]
         if p[-1] is None:
             raise SystemExit(f"popolazione mancante per {code} {name}: {p}")
@@ -329,8 +363,9 @@ def build():
             "perc": {str(y): v for y, v in sorted(perc.items())} if perc else None,
         })
 
+    check_tree(cities)
     italy = {
-        "rate": {t: [round(it_rate[t].get(y), 2) if it_rate[t].get(y) is not None else None for y in YEARS] for t in TYPE_IDS},
+        "rate": italy_rates(counts["IT"], it_rate),
         "n": {t: [counts["IT"][t].get(y) for y in YEARS] for t in TYPE_IDS},
         "perc": {str(y): v for y, v in sorted(share.get("IT", {}).items())},
         "silc": {str(y): v for y, v in silc.items()},
@@ -341,6 +376,8 @@ def build():
             "title": "Atlante della Sicurezza",
             "years": YEARS,
             "built": date.today().isoformat(),
+            "note": {code: dict(note, null={str(y): t for y, t in note["null"].items()}) if "null" in note else note
+                     for code, note in NOTES.items()},
             "sources": [
                 {"id": "73_67_DF_DCCV_DELITTIPS_1", "label": "ISTAT, Delitti denunciati dalle forze di polizia all'autorità giudiziaria — per tipo di delitto (fonte: Ministero dell'Interno, banca dati SDI/SSD)"},
                 {"id": "73_67_DF_DCCV_DELITTIPS_9", "label": "ISTAT, Delitti denunciati — tasso di delittuosità (Italia)"},
@@ -364,7 +401,51 @@ def build():
     check(data)
 
 
+def italy_rates(n, published):
+    """Tassi nazionali ricalcolati dai conteggi, con tre decimali.
+
+    L'ISTAT pubblica i tassi dell'Italia con un decimale: per i reati rari l'arrotondamento pesa (omicidi 2024:
+    0,6 pubblicato, 0,553 dai conteggi). La popolazione è quella implicita nel tasso di tutti i delitti
+    (delitti / tasso), la stessa che usa l'ISTAT; ogni tasso ricalcolato deve tornare con quello pubblicato."""
+    out = {}
+    for t in TYPE_IDS:
+        row = []
+        for y in YEARS:
+            pub, c, tot, rt = published[t].get(y), n.get(t, {}).get(y), n["TOT"].get(y), published["TOT"].get(y)
+            if t == "TOT" or c is None or not tot or not rt:
+                row.append(round(pub, 2) if pub is not None else None)
+                continue
+            mine = c / (tot / rt * 1e5) * 1e5
+            if pub is not None and abs(mine - pub) > 0.05 + 1e-4 * pub:
+                raise SystemExit(f"tasso nazionale {t} {y}: {mine:.3f} dai conteggi, {pub} pubblicato")
+            row.append(round(mine, 3))
+        out[t] = row
+    return out
+
+
 # ---------------------------------------------------------------- controlli
+
+def check_tree(cities):
+    """Un sottotipo di furto o rapina non può superare il suo totale, né un reato tutti i delitti.
+
+    Quando succede il dato ISTAT è sbagliato: lo script si ferma e li elenca tutti; le celle da togliere
+    vanno in NOTES (con una nota per la scheda) finché l'ISTAT non le corregge."""
+    bad = []
+    for c in cities:
+        for i, y in enumerate(YEARS):
+            for parent in ("THEFT", "ROBBER"):
+                kids = [k for k, p in PARENT.items() if p == parent]
+                tot, s = c["n"][parent][i], sum(c["n"][k][i] or 0 for k in kids)
+                if tot is not None and s > tot:
+                    bad.append(f"{c['name']} {y}: {parent} {tot}, sottotipi {s}")
+            for t in TYPE_IDS:
+                v, tot = c["n"][t][i], c["n"]["TOT"][i]
+                if t != "TOT" and v is not None and tot is not None and v > tot:
+                    bad.append(f"{c['name']} {y}: {t} {v} oltre tutti i delitti ({tot})")
+    if bad:
+        raise SystemExit("dati ISTAT incoerenti (aggiungere le celle a NOTES):\n  " + "\n  ".join(bad))
+    log("controllo sottotipi: nessun sottotipo supera il suo totale")
+
 
 def check(data):
     """Controlli di coerenza: i tassi calcolati devono riprodurre quelli ISTAT."""

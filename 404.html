@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pagina non trovata · Atlante della Sicurezza</title>
+<meta name="robots" content="noindex">
+<!-- Pagina generata da scripts/build_seo.py: modificare lo script, non questo file. GitHub Pages la mostra per ogni
+     indirizzo che non esiste, a qualsiasi profondità: per questo tutti i link partono dalla radice. -->
+<script>if (location.pathname.indexOf("/en/") === 0) { document.documentElement.lang = "en"; document.title = "Page not found · Atlante della Sicurezza"; }</script>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#f3f4f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1110" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="/vc.css?v=57">
+<style>
+  html[lang="en"] .nf-it, html:not([lang="en"]) .nf-en { display: none; }
+  .nf-links { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 0; margin: 18px 0 0; list-style: none; font-weight: 600; }
+  .nf-guess { margin-top: 16px; font-size: var(--step-1); }
+</style>
+</head>
+<body>
+<a class="skip" href="#app"><span class="nf-it">Vai al contenuto</span><span class="nf-en">Skip to content</span></a>
+<header class="masthead">
+  <div class="wrap">
+    <p class="wordmark"><a href="/" aria-label="Atlante della Sicurezza: torna alla pagina principale"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span></a></p>
+    <nav class="menu" aria-label="Sezioni dell'atlante">
+      <ul>
+        <li><a href="/#mappa">Mappa</a></li>
+        <li><a href="/#mix">Reati</a></li>
+        <li><a href="/#impennate">Impennate</a></li>
+        <li><a href="/#citta">Città</a></li>
+        <li><a href="/approfondimenti/">Approfondimenti</a></li>
+        <li><a href="/progetto/">Il progetto</a></li>
+      </ul>
+    </nav>
+    <div class="cta bar-cta">
+      <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+        <span>Offrimi un caffè</span>
+      </a>
+      <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+    </div>
+    <!-- La lente apre la ricerca del comune al posto delle voci; sul telefono le voci diventano il menu a tendina. -->
+    <div class="bar-tools">
+      <select id="section-select" aria-label="Vai a una sezione dell'atlante"></select>
+      <div class="control control-search">
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Cerca un comune" placeholder="Cerca un comune" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+      </div>
+      <a class="bar-lang" href="/en/" hreflang="en" lang="en" aria-label="English version" title="English version">EN</a>
+      <button type="button" class="bar-find" id="bar-find" aria-label="Cerca un comune" aria-expanded="false" aria-controls="city-combo">
+        <svg class="i-find" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="i-close" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<template id="nf-mast-en"><header class="masthead">
+  <div class="wrap">
+    <p class="wordmark"><a href="/en/" aria-label="Atlante della Sicurezza: back to the home page"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span></a></p>
+    <nav class="menu" aria-label="Sections of the atlas">
+      <ul>
+        <li><a href="/en/#mappa">Map</a></li>
+        <li><a href="/en/#mix">Crimes</a></li>
+        <li><a href="/en/#impennate">Spikes</a></li>
+        <li><a href="/en/#citta">Cities</a></li>
+        <li><a href="/en/approfondimenti/">Deep dives</a></li>
+        <li><a href="/en/progetto/">About</a></li>
+      </ul>
+    </nav>
+    <div class="cta bar-cta">
+      <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee (opens in a new tab)" title="Support this project">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+        <span>Buy me a coffee</span>
+      </a>
+      <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani on LinkedIn (opens in a new tab)" title="Jacopo Ottaviani on LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+    </div>
+    <!-- La lente apre la ricerca del comune al posto delle voci; sul telefono le voci diventano il menu a tendina. -->
+    <div class="bar-tools">
+      <select id="section-select" aria-label="Go to a section of the atlas"></select>
+      <div class="control control-search">
+        <div class="combo" id="city-combo">
+          <input type="search" id="city-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="city-list" aria-label="Search for a town" placeholder="Search for a town" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="city-list" role="listbox" aria-label="Towns found" hidden></ul>
+        </div>
+      </div>
+      <a class="bar-lang" href="/" hreflang="it" lang="it" aria-label="Versione italiana" title="Versione italiana">IT</a>
+      <button type="button" class="bar-find" id="bar-find" aria-label="Search for a town" aria-expanded="false" aria-controls="city-combo">
+        <svg class="i-find" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="i-close" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header></template>
+
+<main id="app">
+  <section class="dd-head" aria-labelledby="nf-title">
+    <div class="wrap">
+      <div class="kicker"><span class="nf-it">Errore 404</span><span class="nf-en">Error 404</span></div>
+      <h1 id="nf-title"><span class="nf-it">Questa pagina non c’è</span><span class="nf-en">This page does not exist</span></h1>
+      <p class="dek"><span class="nf-it">L’indirizzo è sbagliato, o la pagina è stata spostata. Cerca il tuo comune qui sotto, oppure riparti da una di queste pagine.</span><span class="nf-en">The address is wrong, or the page has moved. Look up your town below, or start again from one of these pages.</span></p>
+      <p class="nf-guess" id="nf-guess" hidden></p>
+      <ul class="nf-links nf-it">
+        <li><a href="/">La pagina principale</a></li>
+        <li><a href="/citta/">I 108 capoluoghi</a></li>
+        <li><a href="/approfondimenti/">Gli approfondimenti</a></li>
+        <li><a href="/progetto/">Il progetto e il metodo</a></li>
+      </ul>
+      <ul class="nf-links nf-en">
+        <li><a href="/en/">The home page</a></li>
+        <li><a href="/citta/">The 108 provincial capitals (in Italian)</a></li>
+        <li><a href="/en/approfondimenti/">The deep dives</a></li>
+        <li><a href="/en/progetto/">About and method</a></li>
+      </ul>
+    </div>
+  </section>
+<section class="finder" id="cerca" aria-labelledby="finder-title">
+    <div class="wrap finder-grid">
+      <div>
+        <div class="kicker">Il tuo comune</div>
+        <h2 id="finder-title">Com’è andata dove vivi?</h2>
+        <p class="finder-dek">Scrivi il nome del tuo comune e apri la sua scheda: tutti i reati denunciati, anno per anno dal 2006, accanto all’Italia, con la quota di famiglie che si sentono a rischio. Solo dati ufficiali ISTAT.</p>
+      </div>
+      <div>
+        <div class="combo combo-big" id="finder-combo">
+          <label for="finder-input" class="vh">Il tuo comune</label>
+          <svg class="combo-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" id="finder-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-list" aria-describedby="finder-hint" placeholder="Es. Roma, Rovereto, Foggia" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="finder-list" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        </div>
+        <p class="finder-hint" id="finder-hint">Tutti i comuni italiani. Per i 108 capoluoghi i dati sono del comune; per gli altri l’ISTAT pubblica solo quelli della provincia, e la scheda lo dice.</p>
+      </div>
+    </div>
+  </section>
+  <template id="nf-finder-en"><section class="finder" id="cerca" aria-labelledby="finder-title">
+    <div class="wrap finder-grid">
+      <div>
+        <div class="kicker">Your town</div>
+        <h2 id="finder-title">How have things gone where you live?</h2>
+        <p class="finder-dek">Type the name of your town and open its profile: every reported crime, year by year since 2006, alongside Italy as a whole, with the share of households that feel at risk. Official ISTAT data only.</p>
+      </div>
+      <div>
+        <div class="combo combo-big" id="finder-combo">
+          <label for="finder-input" class="vh">Your town</label>
+          <svg class="combo-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" id="finder-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-list" aria-describedby="finder-hint" placeholder="E.g. Roma, Rovereto, Foggia" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <ul class="combo-list" id="finder-list" role="listbox" aria-label="Towns found" hidden></ul>
+        </div>
+        <p class="finder-hint" id="finder-hint">Every Italian town. For the 108 provincial capitals the data are for the municipality itself; for the others ISTAT only publishes figures for the province, and the profile says so.</p>
+      </div>
+    </div>
+  </section></template>
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="credit">
+      <p class="made">Fatto con <span class="heart" aria-hidden="true">♥</span> da <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a>.</p>
+      <div class="cta">
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè (si apre in una nuova scheda)" title="Sostieni questo progetto">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Offrimi un caffè</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani su LinkedIn (si apre in una nuova scheda)" title="Jacopo Ottaviani su LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+      </div>
+      <div id="colophon">Atlante della Sicurezza · dati ISTAT</div>
+    </div>
+    <nav class="source-logos" aria-label="Fonti dei dati">
+      <span class="lbl">Fonti dei dati</span>
+      <a class="logo logo-istat" href="https://www.istat.it/" rel="noopener" aria-label="ISTAT, Istituto nazionale di statistica"></a>
+      <a class="logo logo-eurostat" href="https://ec.europa.eu/eurostat" rel="noopener" aria-label="Eurostat"></a>
+      <a class="logo logo-openpolis" href="https://www.openpolis.it/" rel="noopener" aria-label="Fondazione openpolis"></a>
+    </nav>
+  </div>
+</footer>
+<template id="nf-foot-en"><footer class="colophon">
+  <div class="wrap">
+    <div class="credit">
+      <p class="made">Made with <span class="heart" aria-hidden="true">♥</span> by <a href="https://jacopoottaviani.com/" target="_blank" rel="noopener noreferrer">Jacopo Ottaviani</a>.</p>
+      <div class="cta">
+        <a class="coffee" href="https://ko-fi.com/jacopoottaviani" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee (opens in a new tab)" title="Support this project">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="steam"><path d="M8 3v2.5M11.5 2v3.5M15 3v2.5"/></g><g class="cup"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 22h14"/></g></svg>
+          <span>Buy me a coffee</span>
+        </a>
+        <a class="li" href="https://www.linkedin.com/in/jacopo-ottaviani/" target="_blank" rel="noopener noreferrer" aria-label="Jacopo Ottaviani on LinkedIn (opens in a new tab)" title="Jacopo Ottaviani on LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+      </div>
+      <div id="colophon">Atlante della Sicurezza · ISTAT data</div>
+    </div>
+    <nav class="source-logos" aria-label="Data sources">
+      <span class="lbl">Data sources</span>
+      <a class="logo logo-istat" href="https://www.istat.it/" rel="noopener" aria-label="ISTAT, Italian National Institute of Statistics"></a>
+      <a class="logo logo-eurostat" href="https://ec.europa.eu/eurostat" rel="noopener" aria-label="Eurostat"></a>
+      <a class="logo logo-openpolis" href="https://www.openpolis.it/" rel="noopener" aria-label="Fondazione openpolis"></a>
+    </nav>
+  </div>
+</footer></template>
+
+<dialog class="cityd" id="city-dialog" aria-labelledby="city-name">
+  <div class="top">
+    <div>
+      <div class="kicker" id="city-kicker"></div>
+      <h2 id="city-name"></h2>
+    </div>
+    <button type="button" class="btn close" id="city-close">Chiudi</button>
+  </div>
+  <div class="body" id="city-body"></div>
+</dialog>
+<template id="nf-dialog-en"><dialog class="cityd" id="city-dialog" aria-labelledby="city-name">
+  <div class="top">
+    <div>
+      <div class="kicker" id="city-kicker"></div>
+      <h2 id="city-name"></h2>
+    </div>
+    <button type="button" class="btn close" id="city-close">Close</button>
+  </div>
+  <div class="body" id="city-body"></div>
+</dialog></template>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<script>
+  // in inglese: testata, ricerca, piè di pagina e scheda dalla pagina inglese, prima che vc.js li legga
+  if (document.documentElement.lang === "en") {
+    [["header.masthead", "nf-mast-en"], ["section.finder", "nf-finder-en"], ["footer.colophon", "nf-foot-en"], ["dialog.cityd", "nf-dialog-en"]].forEach(([sel, id]) => {
+      const el = document.querySelector(sel), t = document.getElementById(id);
+      if (el && t) el.replaceWith(t.content.cloneNode(true));
+    });
+  }
+  document.querySelectorAll("template").forEach((t) => t.remove());
+  // un indirizzo /citta/… sbagliato: la città col nome più vicino
+  (function () {
+    const m = location.pathname.match(/^\/(?:en\/)?citta\/([^\/]+?)(?:\.html)?\/?$/);
+    if (!m) return;
+    const q = decodeURIComponent(m[1]).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const cities = [["agrigento","Agrigento"],["alessandria","Alessandria"],["ancona","Ancona"],["andria","Andria"],["aosta","Aosta"],["arezzo","Arezzo"],["ascoli-piceno","Ascoli Piceno"],["asti","Asti"],["avellino","Avellino"],["bari","Bari"],["barletta","Barletta"],["belluno","Belluno"],["benevento","Benevento"],["bergamo","Bergamo"],["biella","Biella"],["bologna","Bologna"],["bolzano","Bolzano"],["brescia","Brescia"],["brindisi","Brindisi"],["cagliari","Cagliari"],["caltanissetta","Caltanissetta"],["campobasso","Campobasso"],["caserta","Caserta"],["catania","Catania"],["catanzaro","Catanzaro"],["chieti","Chieti"],["como","Como"],["cosenza","Cosenza"],["cremona","Cremona"],["crotone","Crotone"],["cuneo","Cuneo"],["enna","Enna"],["fermo","Fermo"],["ferrara","Ferrara"],["firenze","Firenze"],["foggia","Foggia"],["forli","Forlì"],["frosinone","Frosinone"],["genova","Genova"],["gorizia","Gorizia"],["grosseto","Grosseto"],["imperia","Imperia"],["isernia","Isernia"],["l-aquila","L'Aquila"],["la-spezia","La Spezia"],["latina","Latina"],["lecce","Lecce"],["lecco","Lecco"],["livorno","Livorno"],["lodi","Lodi"],["lucca","Lucca"],["macerata","Macerata"],["mantova","Mantova"],["massa","Massa"],["matera","Matera"],["messina","Messina"],["milano","Milano"],["modena","Modena"],["monza","Monza"],["napoli","Napoli"],["novara","Novara"],["nuoro","Nuoro"],["oristano","Oristano"],["padova","Padova"],["palermo","Palermo"],["parma","Parma"],["pavia","Pavia"],["perugia","Perugia"],["pesaro","Pesaro"],["pescara","Pescara"],["piacenza","Piacenza"],["pisa","Pisa"],["pistoia","Pistoia"],["pordenone","Pordenone"],["potenza","Potenza"],["prato","Prato"],["ragusa","Ragusa"],["ravenna","Ravenna"],["reggio-calabria","Reggio Calabria"],["reggio-emilia","Reggio Emilia"],["rieti","Rieti"],["rimini","Rimini"],["roma","Roma"],["rovigo","Rovigo"],["salerno","Salerno"],["sassari","Sassari"],["savona","Savona"],["siena","Siena"],["siracusa","Siracusa"],["sondrio","Sondrio"],["taranto","Taranto"],["teramo","Teramo"],["terni","Terni"],["torino","Torino"],["trani","Trani"],["trapani","Trapani"],["trento","Trento"],["treviso","Treviso"],["trieste","Trieste"],["udine","Udine"],["varese","Varese"],["venezia","Venezia"],["verbania","Verbania"],["vercelli","Vercelli"],["verona","Verona"],["vibo-valentia","Vibo Valentia"],["vicenza","Vicenza"],["viterbo","Viterbo"]];
+    const dist = (a, b) => {
+      const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+      for (let i = 1; i <= a.length; i++) {
+        let prev = d[0]; d[0] = i;
+        for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; }
+      }
+      return d[b.length];
+    };
+    let best = null;
+    cities.forEach(([s, name]) => { const k = s.startsWith(q) || q.startsWith(s) ? 0.5 : dist(q, s); if (!best || k < best.k) best = { s, name, k }; });
+    if (!best || best.k > Math.max(2, q.length / 3)) return;
+    const en = document.documentElement.lang === "en", p = document.getElementById("nf-guess");
+    p.innerHTML = (en ? "Were you looking for " : "Forse cercavi ") + `<a href="/citta/${best.s}.html">${best.name}</a>?`;
+    p.hidden = false;
+  })();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="/vc.js?v=57"></script>
+</body>
+</html>

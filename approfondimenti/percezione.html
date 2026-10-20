@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=56">
+<link rel="stylesheet" href="../vc.css?v=57">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -105,6 +105,7 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#app">Vai al contenuto</a>
 <header class="masthead">
   <div class="wrap">
     <p class="wordmark"><a href="../" aria-label="Atlante della Sicurezza: torna alla pagina principale"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span></a></p>
@@ -151,7 +152,7 @@
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Approfondimenti</a> · Percezione e realtà</p>
       <h1 id="dd-title">Quanto ci sentiamo in pericolo, e quanto lo siamo</h1>
-      <p class="dek">Nel tempo, la paura della criminalità si muove molto più dei reati denunciati. Da un luogo all’altro le due cose vanno più d’accordo, ma con eccezioni vistose. Due indagini ufficiali sulla percezione accanto ai delitti denunciati alle forze di polizia: in Italia, nelle grandi città e provincia per provincia.</p>
+      <p class="dek">Nel tempo, la paura della criminalità si muove molto più dei reati denunciati. Da un luogo all’altro le due cose vanno più d’accordo, ma con eccezioni vistose. Due indagini ufficiali sulla percezione accanto ai delitti denunciati dalle forze di polizia all’autorità giudiziaria: in Italia, nelle grandi città e provincia per provincia.</p>
       <nav class="dd-nav" aria-label="Gli approfondimenti"><a href="carceri.html">Carceri</a><a href="rimpatri.html">Rimpatri</a><a href="percezione.html" aria-current="page">Percezione e realtà</a><a href="autori-ignoti.html">Autori ignoti</a><a href="minori.html">Minori</a><a href="custodia-cautelare.html">Custodia cautelare</a><a href="carcere-per-carcere.html">Carcere per carcere</a></nav>
     </div>
   </section>
@@ -190,7 +191,7 @@
       </header>
       <div class="perc-grid">
         <div>
-          <p class="chart-title">Reati denunciati e rischio percepito, 2024</p>
+          <p class="chart-title">Reati denunciati e rischio percepito, <span id="perc-scatter-year">2024</span></p>
           <p class="chart-sub">Asse orizzontale: delitti ogni 100.000 abitanti. Asse verticale: famiglie che giudicano molto o abbastanza a rischio la propria zona. Il cerchio vuoto è l’Italia.</p>
           <div class="chart" id="perc-scatter"></div>
           <p class="note" id="perc-note"></p>
@@ -232,7 +233,7 @@
         <h3>Il tasso si calcola sui residenti</h3>
         <p>Nelle città che ogni giorno accolgono pendolari, studenti e turisti, i reati colpiscono anche chi non vi risiede, e il tasso sui residenti risulta più alto della probabilità reale di essere vittima per chi ci vive. La paura, invece, la dichiarano i residenti.</p>
         <h3>Le stime per provincia</h3>
-        <p>La percezione per provincia viene da un’indagine campionaria: nelle province piccole le famiglie intervistate sono poche e la stima oscilla da un anno all’altro. Per questo il grafico usa la media degli anni disponibili, per la percezione come per le denunce. In Sardegna i delitti seguono le quattro province storiche, come nel resto dell’atlante.</p>
+        <p>La percezione per provincia viene da un’indagine campionaria: nelle province piccole le famiglie intervistate sono poche e la stima oscilla da un anno all’altro. Per questo il grafico usa la media degli anni disponibili, per la percezione come per le denunce. In Sardegna i delitti seguono le quattro province storiche, come nel resto dell’atlante, mentre l’ISTAT misura la percezione sulle province di oggi: per confrontarle, la percezione di ogni provincia di oggi va nella provincia storica che ne contiene la maggior parte dei comuni, sommando le famiglie. Il punto di Cagliari mette insieme Cagliari e il Sud Sardegna; Nuoro, Oristano e Sassari differiscono da quelle storiche per pochi comuni.</p>
         <h3>Fonti</h3>
         <ul class="sources" id="sources" data-only="percezione"></ul>
         <p>Per il metodo di tutto l’atlante: <a href="../progetto/#metodo">Metodologia e fonti</a>.</p>
@@ -333,6 +334,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=56"></script>
+<script src="../vc.js?v=57"></script>
 </body>
 </html>

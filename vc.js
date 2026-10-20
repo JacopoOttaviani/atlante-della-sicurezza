@@ -137,7 +137,7 @@
   let CAUT = null, DIST_OF = {}; // custodia cautelare e ingiusta detenzione (data/cautelari.json); DIST_OF: provincia della carta -> distretto
   let IST = null; // carcere per carcere: persone, posti e morti per istituto (data/istituti.json)
   // tutti i comuni (data/comuni.json) e le province (data/province.json): caricati alla prima ricerca
-  let PROV = null, PROV_META = null, UNITS = null, INDEX = [], CITY_PROV = {}, placesPromise = null, placesFailed = false;
+  let PROV = null, PROV_META = null, PERC_SIGLA = {}, UNITS = null, INDEX = [], CITY_PROV = {}, placesPromise = null, placesFailed = false;
 
   // ------------------------------------------------------------------ formati
 
@@ -223,12 +223,14 @@
     // pari merito: stessa posizione (1, 2, 2, 4…)
     ranked.forEach((r, i) => (r.rank = i > 0 && r.lvl === ranked[i - 1].lvl ? ranked[i - 1].rank : i + 1));
     const it = ITALY.rate[t];
+    // per i reati rari l'Italia come le città: conteggi dei tre anni sulla popolazione dei tre anni
+    const nIt = ITALY.n && ITALY.n[t], pIt = Y.map((_, i) => itPop(i));
     const m = {
       t, base, rows, ranked, it, rare,
-      itLvl: rare ? d3.mean(it.slice(LAST - 2)) : it[LAST],
+      itLvl: rare ? (nIt && windowRateSeries(nIt, pIt, LAST - 2, LAST)) || d3.mean(it.slice(LAST - 2)) : it[LAST],
       max: d3.max(rows, (r) => d3.max(r.s)),
       label: TYPE[t].label,
-      levelNote: rare ? L("media 2022–2024", "2022–2024 average") : "2024",
+      levelNote: rare ? L(`media ${Y[LAST - 2]}–${Y[LAST]}`, `${Y[LAST - 2]}–${Y[LAST]} average`) : String(Y[LAST]),
     };
     cache.set(key, m);
     return m;
@@ -598,8 +600,10 @@
   // delle sezioni della home, confrontate con il 2019; carceri e rimpatri compaiono quando i loro dati sono arrivati. I link sono scritti come dalla home e si
   // risolvono sulla radice del sito (ROOT), così portano nello stesso posto da qualunque pagina.
   const shortLabel = (t) => lower(t.label.replace(/ \(.*\)$/, ""));
-  // numeri che si leggono con la vocale davanti (uno, otto, undici, ottanta…): "dell’8%", "l’11%", "all’83° posto"
+  // numeri che si leggono con la vocale davanti (uno, otto, undici, ottanta…): "dell’8%", "l’11%", "dell’1%"
   const vowelNum = (n) => n === 1 || n === 11 || /^8/.test(String(n));
+  // gli ordinali invece: 1° si legge «primo», quindi «al 1° posto»; 8° e 11° «all’8°», «all’11°»
+  const vowelOrd = (n) => n === 11 || /^8/.test(String(n));
   const delPct = (p) => { const n = Math.round(Math.abs(p) * 100); return EN ? `by ${nf0.format(n)}%` : `${vowelNum(n) ? "dell’" : "del "}${nf0.format(n)}%`; };
   const moved = (p, m, f) => (Math.round(p * 100) === 0 ? L("rimasti uguali", "stayed the same") : `${p > 0 ? m : f} ${delPct(p)}`);
   // in inglese: 1st, 2nd, 3rd, 4th… 11th, 12th, 13th
@@ -614,6 +618,18 @@
       return (n[iL] / n[iB]) / ((nt[iL] / rt[iL]) / (nt[iB] / rt[iB])) - 1;
     return ITALY.rate[id][iL] / ITALY.rate[id][iB] - 1;
   }
+  // Popolazione media dell'Italia implicita nel tasso di tutti i delitti (delitti / tasso), la stessa dell'ISTAT.
+  const itPop = (i) => (ITALY.n && ITALY.n.TOT[i] && ITALY.rate.TOT[i] ? (ITALY.n.TOT[i] / ITALY.rate.TOT[i]) * 1e5 : null);
+  // La regola delle città vale anche per l'Italia: una variazione è un aumento o un calo solo se supera il 3% e se
+  // il caso da solo non la spiega (|z| ≥ 2 sui conteggi); altrimenti è «flat», minima o non significativa.
+  // Omicidi 2019–2024: 318 → 326, +4% ma z = 0,5.
+  function natSig(id, iB, iL = LAST) {
+    const ch = natCh(id, iB, iL), n = ITALY.n && ITALY.n[id];
+    const r = n ? rrTest(n[iL], itPop(iL), n[iB], itPop(iB)) : null;
+    if (!isFinite(ch)) return "nd";
+    if (Math.abs(ch) <= 0.03 || (r && Math.abs(r.z) < 2)) return "flat";
+    return ch > 0 ? "up" : "down";
+  }
 
   function renderBrief() {
     const host = $("#brief");
@@ -623,9 +639,9 @@
     const card = (q, a, href, go) => cards.push(`<details class="faq-q rv-up"><summary><h3>${q}</h3></summary><div class="faq-a"><p>${a}</p><a class="go" href="${PAGES + href}">${go} <span aria-hidden="true">→</span></a></div></details>`);
 
     // cosa sale e cosa scende, in Italia
-    const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: natCh(t.id, iB) })).filter((d) => isFinite(d.ch));
-    const ups = ch.filter((d) => d.ch > 0.03).sort((a, b) => b.ch - a.ch).slice(0, 3);
-    const downs = ch.filter((d) => d.ch < -0.03).sort((a, b) => a.ch - b.ch).slice(0, 3);
+    const ch = TYPES.filter((t) => t.id !== "TOT").map((t) => ({ t, ch: natCh(t.id, iB), s: natSig(t.id, iB) })).filter((d) => isFinite(d.ch));
+    const ups = ch.filter((d) => d.s === "up").sort((a, b) => b.ch - a.ch).slice(0, 3);
+    const downs = ch.filter((d) => d.s === "down").sort((a, b) => a.ch - b.ch).slice(0, 3);
     const list = (l) => andList(l.map((d) => `${esc(shortLabel(d.t))} (${fmtPct(d.ch)})`));
     if (EN) card("Which crimes are rising, and which are falling?",
       `Between ${REF} and ${Y[LAST]}, crimes reported in Italy, taken together, have ${moved(tot[LAST] / tot[iB] - 1, "risen", "fallen")}. ` +
@@ -660,19 +676,20 @@
     const sy = Object.keys(ITALY.silc).map(Number).sort((a, b) => a - b), sv = sy.map((y) => ITALY.silc[y]);
     const ya = sy[d3.maxIndex(sv)], yb = sy[d3.minIndex(sv)], ylast = sy[sy.length - 1];
     if (sy.length && Y.includes(ya) && Y.includes(yb) && ya < yb) {
-      const crime = tot[Y.indexOf(yb)] / tot[Y.indexOf(ya)] - 1, after = tot[LAST] / tot[Y.indexOf(yb)] - 1;
-      const pts = CITIES.filter((c) => c.perc && c.perc["2024"] != null);
-      const most = pts.length ? pts.reduce((p, q) => (q.perc["2024"] > p.perc["2024"] ? q : p)) : null;
+      // «con le denunce quasi ferme» solo se i delitti dell'ultimo anno della percezione ci sono
+      const crime = tot[Y.indexOf(yb)] / tot[Y.indexOf(ya)] - 1, after = Y.includes(ylast) ? tot[Y.indexOf(ylast)] / tot[Y.indexOf(yb)] - 1 : null;
+      const py = String(percYear()), pts = CITIES.filter((c) => c.perc && c.perc[py] != null);
+      const most = pts.length ? pts.reduce((p, q) => (q.perc[py] > p.perc[py] ? q : p)) : null;
       const mr = most && tm.rows.find((r) => r.c.id === most.id);
       if (EN) card("Do we feel as unsafe as we really are?",
         `No: fear moves much more than crime does. Between ${ya} and ${yb} the share of households reporting crime or vandalism in their area fell from ${nf1.format(ITALY.silc[ya])}% to ${nf1.format(ITALY.silc[yb])}%, while reported crimes per resident ${moved(crime, "rose", "fell")}. ` +
-        (ylast > yb ? `In ${ylast} the share rose again to ${nf1.format(ITALY.silc[ylast])}%${Math.abs(after) < 0.05 ? ", with reports almost flat" : ""}. ` : "") +
-        (mr && mr.rank ? `${esc(most.name)} is the large city where the most households feel their area is at risk of crime (${nf1.format(most.perc["2024"])}%), but for reported crimes it ranks ${ordinal(mr.rank)} of ${tm.ranked.length}.` : ""),
+        (ylast > yb ? `In ${ylast} the share rose again to ${nf1.format(ITALY.silc[ylast])}%${after != null && Math.abs(after) < 0.05 ? ", with reports almost flat" : ""}. ` : "") +
+        (mr && mr.rank ? `${esc(most.name)} is the large city where the most households feel their area is at risk of crime (${nf1.format(most.perc[py])}%), but for reported crimes it ranks ${ordinal(mr.rank)} of ${tm.ranked.length}.` : ""),
         "approfondimenti/percezione.html", "Perception and reality, the deep dive");
       else card("Ci sentiamo in pericolo quanto lo siamo?",
         `No: la paura si muove molto più dei reati. Tra il ${ya} e il ${yb} le famiglie che segnalano criminalità o vandalismo nella propria zona sono scese dal ${nf1.format(ITALY.silc[ya])}% al ${nf1.format(ITALY.silc[yb])}%, mentre i delitti denunciati per abitante sono ${moved(crime, "cresciuti", "calati")}. ` +
-        (ylast > yb ? `Nel ${ylast} la quota è risalita al ${nf1.format(ITALY.silc[ylast])}%${Math.abs(after) < 0.05 ? ", con le denunce quasi ferme" : ""}. ` : "") +
-        (mr && mr.rank ? `${esc(most.name)} è la grande città dove più famiglie sentono a rischio la propria zona (${nf1.format(most.perc["2024"])}%), ma per denunce è ${vowelNum(mr.rank) ? "all’" : "al "}${mr.rank}° posto su ${tm.ranked.length}.` : ""),
+        (ylast > yb ? `Nel ${ylast} la quota è risalita al ${nf1.format(ITALY.silc[ylast])}%${after != null && Math.abs(after) < 0.05 ? ", con le denunce quasi ferme" : ""}. ` : "") +
+        (mr && mr.rank ? `${esc(most.name)} è la grande città dove più famiglie sentono a rischio la propria zona (${nf1.format(most.perc[py])}%), ma per denunce è ${vowelOrd(mr.rank) ? "all’" : "al "}${mr.rank}° posto su ${tm.ranked.length}.` : ""),
         "approfondimenti/percezione.html", "Percezione e realtà, l’approfondimento");
     }
 
@@ -684,12 +701,12 @@
       const nonDef = (p) => (p.AWFJ + p.APP + p.REC + p.MWOD) / Object.values(p).reduce((a, b) => a + b, 0);
       if (EN) card("Do foreign nationals commit more crimes than Italians?",
         `These figures are not enough to tell. At the end of ${last} foreign nationals made up ${nf1.format(share(L))}% of prisoners (${nf1.format(share(0))}% in ${Yc[0]})${res ? ` and ${nf1.format(res.quota)}% of residents` : ""}. ` +
-        "But the comparison is lopsided: prisoners also include people without a residence permit, who do not appear among residents; foreign nationals are younger on average, and young adults end up in prison more often in every country; " +
+        "But the comparison is lopsided: prisoners also include people without a residence permit, who do not appear among residents; foreign nationals are younger on average, and in most countries young adults end up in prison more often than older people; " +
         `and without a home or a steady job, people are more often kept in a cell awaiting trial: ${nf1.format(nonDef(C.posizione.str) * 100)}% of foreign prisoners have no final conviction, against ${nf1.format(nonDef(C.posizione.it) * 100)}% of Italians.`,
         "approfondimenti/carceri.html", "Foreign nationals in prison, the deep dive");
       else card("Gli stranieri commettono più reati degli italiani?",
         `Questi dati non bastano per dirlo. A fine ${last} gli stranieri erano il ${nf1.format(share(L))}% dei detenuti (nel ${Yc[0]} il ${nf1.format(share(0))}%)${res ? ` e il ${nf1.format(res.quota)}% dei residenti` : ""}. ` +
-        "Ma il confronto è sbilanciato: tra i detenuti ci sono anche persone senza permesso di soggiorno, che tra i residenti non compaiono; gli stranieri sono in media più giovani, e i giovani adulti finiscono in carcere più spesso in ogni paese; " +
+        "Ma il confronto è sbilanciato: tra i detenuti ci sono anche persone senza permesso di soggiorno, che tra i residenti non compaiono; gli stranieri sono in media più giovani, e in gran parte dei paesi i giovani adulti finiscono in carcere più spesso delle persone più anziane; " +
         `senza casa o lavoro stabile, poi, si resta più spesso in cella in attesa di giudizio: è senza condanna definitiva il ${nf1.format(nonDef(C.posizione.str) * 100)}% dei detenuti stranieri, contro il ${nf1.format(nonDef(C.posizione.it) * 100)}% degli italiani.`,
         "approfondimenti/carceri.html", "Gli stranieri in carcere, l’approfondimento");
     }
@@ -709,11 +726,11 @@
 
     // che cosa contano i numeri
     if (EN) card("Do these numbers count every crime?",
-      "No, only those reported to the police. Many crimes are never reported, and how often people report varies from crime to crime: a car theft almost always, for the insurance; violence in the family far less often. " +
+      "No, only those that reach the police and are passed on to the judicial authorities. Many crimes are never reported, and how often people report varies from crime to crime: a car theft almost always, for the insurance; violence in the family far less often. " +
       `To compare large and small cities, reports are counted per 100,000 residents: Italy’s ${nf0.format(tot[LAST])} in ${Y[LAST]} come to about ${nf0.format(Math.round(tot[LAST] / 1000))} for every 100 people in a year.`,
       "progetto/#metodo", "How to read these numbers");
     else card("Questi numeri contano tutti i reati?",
-      "No, solo quelli denunciati alle forze di polizia. Molti reati non vengono mai denunciati, e quanto si denuncia cambia da reato a reato: un furto d’auto quasi sempre, per l’assicurazione; una violenza in famiglia molto meno. " +
+      "No, solo quelli che arrivano alle forze di polizia e da lì all’autorità giudiziaria. Molti reati non vengono mai denunciati, e quanto si denuncia cambia da reato a reato: un furto d’auto quasi sempre, per l’assicurazione; una violenza in famiglia molto meno. " +
       `Per confrontare città grandi e piccole si contano le denunce ogni 100.000 abitanti: i ${nf0.format(tot[LAST])} dell’Italia nel ${Y[LAST]} sono circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno.`,
       "progetto/#metodo", "Come leggere questi numeri");
 
@@ -741,24 +758,25 @@
     if (RIMP) {
       const D = RIMP, L = D.meta.years.length - 1, R = D.totale.rimpatri[L], O = D.totale.ordini[L];
       fill("rimpatri", EN ? `${nf0.format(Math.round((100 * R) / O))} in 100` : `${nf0.format(Math.round((100 * R) / O))} su 100`, EN
-        ? `orders to leave Italy that became returns in ${D.meta.last}: ${nf0.format(R)} of ${nf0.format(O)}`
-        : `ordini di lasciare l’Italia diventati rimpatri nel ${D.meta.last}: ${nf0.format(R)} su ${nf0.format(O)}`);
+        ? `returns per 100 orders to leave Italy in ${D.meta.last}: ${nf0.format(R)} returns, ${nf0.format(O)} orders`
+        : `rimpatri ogni 100 ordini di lasciare l’Italia nel ${D.meta.last}: ${nf0.format(R)} rimpatri, ${nf0.format(O)} ordini`);
     }
     if (ITALY && ITALY.silc) {
-      const sy = Object.keys(ITALY.silc).map(Number).filter((y) => Y.includes(y)), sv = sy.map((y) => ITALY.silc[y]), tot = ITALY.rate.TOT;
-      const a = sy[d3.maxIndex(sv)], b = sy[d3.minIndex(sv)];
-      if (a < b) fill("percezione", fmtPct(ITALY.silc[b] / ITALY.silc[a] - 1), EN
+      // come il resto della home, dal 2019 (REF) all'ultimo anno che ha sia la percezione sia i delitti: non dal massimo al minimo
+      const sy = Object.keys(ITALY.silc).map(Number).filter((y) => Y.includes(y)), tot = ITALY.rate.TOT;
+      const a = REF, b = d3.max(sy);
+      if (sy.includes(a) && a < b) fill("percezione", fmtPct(ITALY.silc[b] / ITALY.silc[a] - 1), EN
         ? `households reporting crime in their area, from ${a} to ${b}; reported crimes per resident over the same period: ${fmtPct(tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1)}`
         : `famiglie che segnalano criminalità nella propria zona, dal ${a} al ${b}; i delitti denunciati per abitante, nello stesso periodo: ${fmtPct(tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1)}`);
     }
     if (AUTORI) {
-      const A = AUTORI, L = A.meta.years.length - 1, t = A.italia.TOT[L], f = A.italia.THEFT[L];
+      const A = AUTORI, L = A.meta.years.indexOf(A.meta.last), t = A.italia.TOT[L], f = A.italia.THEFT[L];
       fill("autori", EN ? `${nf0.format(Math.round(100 - t))} in 100` : `${nf0.format(Math.round(100 - t))} su 100`, EN
-        ? `crimes reported in ${A.meta.last} still without a known offender by the end of the year; among thefts, ${nf0.format(Math.round(100 - f))} in 100`
-        : `delitti denunciati nel ${A.meta.last} rimasti senza un autore noto entro l’anno; tra i furti, ${nf0.format(Math.round(100 - f))} su 100`);
+        ? `crimes committed and reported in ${A.meta.last} still without a known offender by the end of the year; among thefts, ${nf0.format(Math.round(100 - f))} in 100`
+        : `delitti commessi e denunciati nel ${A.meta.last} rimasti senza un autore noto entro l’anno; tra i furti, ${nf0.format(Math.round(100 - f))} su 100`);
     }
     if (MINORI) {
-      const M = MINORI, Ym = M.meta.years, L = Ym.length - 1, i0 = Ym.indexOf(M.meta.share_from);
+      const M = MINORI, Ym = M.meta.years, L = Ym.indexOf(M.meta.last), i0 = Ym.indexOf(M.meta.share_from);
       fill("minori", `${nf1.format(minShare("STREETROB", L))}%`, EN
         ? `of records of people reported or arrested for street robbery in ${M.meta.last} concern a minor; in ${M.meta.share_from}, ${nf1.format(minShare("STREETROB", i0))}%`
         : `delle segnalazioni per rapina in strada nel ${M.meta.last} riguarda un minorenne; nel ${M.meta.share_from}, ${pctA("il", minShare("STREETROB", i0))}`);
@@ -904,7 +922,7 @@
     if (!el) return;
     const iB = Y.indexOf(REF);
     const items = TYPES.filter((t) => t.id !== "TOT")
-      .map((t) => ({ t, lvl: ITALY.rate[t.id][LAST], ch: natCh(t.id, iB) }))
+      .map((t) => ({ t, lvl: ITALY.rate[t.id][LAST], ch: natCh(t.id, iB), s: natSig(t.id, iB) }))
       .filter((d) => isFinite(d.ch)).sort((a, b) => b.ch - a.ch);
     if (items.length < 2) return;
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
@@ -939,7 +957,7 @@
     rows.forEach((d, k) => {
       const cy = m.t + rowH * (k + 0.5), bh = Math.min(18, rowH * 0.62), up = d.ch >= 0;
       const x0 = Math.min(x(0), x(d.ch)), x1 = Math.max(x(0), x(d.ch));
-      const color = up ? "var(--rise)" : "var(--fall)";
+      const color = d.s === "flat" ? "var(--mid)" : up ? "var(--rise)" : "var(--fall)";
       const g = svg.append("g").style("--i", k);
       g.append("rect").attr("class", "rv-grow").attr("x", x0).attr("y", cy - bh / 2).attr("width", Math.max(1.5, x1 - x0)).attr("height", bh)
         .style("fill", color).style("transform-origin", up ? "0 50%" : "100% 50%").style("transform-box", "fill-box");
@@ -1020,13 +1038,13 @@
     const base = state.mixBase, iB = Y.indexOf(base);
     const items = TYPES.filter((t) => t.id !== "TOT").map((t) => {
       const it = ITALY.rate[t.id];
-      return { t, it, ch: natCh(t.id, iB) };
+      return { t, it, ch: natCh(t.id, iB), s: natSig(t.id, iB) };
     }).sort((a, b) => b.ch - a.ch);
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
-    const up = items.filter((d) => d.ch > 0.03).length, down = items.filter((d) => d.ch < -0.03).length;
+    const up = items.filter((d) => d.s === "up").length, down = items.filter((d) => d.s === "down").length, rest = items.length - up - down;
     $("#mix-dek").innerHTML = EN
-      ? `Between ${base} and ${Y[LAST]}, <strong>${up} of ${items.length} crimes</strong> rose in Italy and <strong>${down}</strong> fell; all crimes combined, ${fmtPct(totCh)}. Crimes do not move together: tap a crime to see it on the map of provincial capitals.`
-      : `Tra il ${base} e il ${Y[LAST]}, in Italia <strong>${up} reati su ${items.length}</strong> sono aumentati e <strong>${down}</strong> sono calati; tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
+      ? `Between ${base} and ${Y[LAST]}, <strong>${up} of ${items.length} crimes</strong> rose in Italy and <strong>${down}</strong> fell; for the other ${rest} the change is too small to say that anything moved. All crimes combined, ${fmtPct(totCh)}. Crimes do not move together: tap a crime to see it on the map of provincial capitals.`
+      : `Tra il ${base} e il ${Y[LAST]}, in Italia <strong>${up} reati su ${items.length}</strong> sono aumentati e <strong>${down}</strong> sono calati; per gli altri ${rest} la differenza è troppo piccola per dire che qualcosa sia cambiato. Tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
     // scala comune con tetto fisso: la barra si ferma, il numero dice il valore vero
     const cap = Math.min(1.5, Math.max(0.3, Math.ceil(d3.max(items, (d) => Math.abs(d.ch)) * 10) / 10));
     const pos = (v) => 50 + 50 * Math.max(-1, Math.min(1, v / cap));
@@ -1036,14 +1054,14 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "mrow" + (PARENT[d.t.id] ? " sub" : "");
-      const cls = d.ch > 0.03 ? "up" : d.ch < -0.03 ? "down" : "flat";
+      const cls = d.s === "nd" ? "flat" : d.s;
       const left = Math.min(50, pos(d.ch)), width = Math.abs(pos(d.ch) - 50);
       b.innerHTML = `<span class="ml">${esc(d.t.label)}</span>` +
         `<span class="mbar" aria-hidden="true"><i class="z"></i><i class="b ${cls} rv-grow" style="left:${left}%;width:${width}%"></i><i class="ref rv-fade" style="left:${pos(totCh)}%"></i></span>` +
         `<span class="mv ${cls}">${fmtPct(d.ch)}</span><svg aria-hidden="true"></svg>`;
       b.setAttribute("aria-label", EN
-        ? `${d.t.label}: ${fmtRate(d.it[LAST])} per 100,000 residents in ${Y[LAST]}, ${fmtPct(d.ch)} compared with ${base}. Show it on the map`
-        : `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${base}. Mostralo sulla mappa`);
+        ? `${d.t.label}: ${fmtRate(d.it[LAST])} per 100,000 residents in ${Y[LAST]}, ${fmtPct(d.ch)} compared with ${base}${cls === "flat" ? ", too small a change to say that anything moved" : ""}. Show it on the map`
+        : `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${base}${cls === "flat" ? ", una differenza troppo piccola per dire che sia cambiato qualcosa" : ""}. Mostralo sulla mappa`);
       b.addEventListener("click", () => showOnMap(d.t.id, base));
       grid.appendChild(b);
     });
@@ -1399,7 +1417,10 @@
     const silcVals = allYears.map((y) => ITALY.silc[y] ?? null);
     lineChart($("#perc-crime"), {
       years: allYears, values: crimeVals, xDomain: [x0, x1], xTicks, yMax: d3.max(tot) * 1.1, height: 170, mr: 20,
-      marks: [{ year: 2015, text: nf0.format(tot[Y.indexOf(2015)]) }, { year: 2023, text: nf0.format(tot[Y.indexOf(2023)]), dy: 18 }, { year: Y[LAST], text: nf0.format(tot[LAST]), strong: true, anchor: "end" }],
+      // i delitti segnati negli stessi anni del massimo e del minimo della percezione, qui sotto
+      marks: [silcY[d3.maxIndex(silcV)], silcY[d3.minIndex(silcV)]].filter((y) => Y.includes(y) && y !== Y[LAST])
+        .map((y, k) => ({ year: y, text: nf0.format(tot[Y.indexOf(y)]), dy: k ? 18 : undefined }))
+        .concat([{ year: Y[LAST], text: nf0.format(tot[LAST]), strong: true, anchor: "end" }]),
       hover: (i) => `<b>${allYears[i]}</b>: ${nf0.format(crimeVals[i])} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")}`,
     });
     const iMax = d3.maxIndex(silcV), iMin = d3.minIndex(silcV);
@@ -1413,13 +1434,17 @@
     const a = silcY[iMax], b = silcY[iMin];
     const crimeAB = tot[Y.indexOf(b)] / tot[Y.indexOf(a)] - 1;
     const percAB = silcV[iMin] / silcV[iMax] - 1;
-    const lastS = silcY[silcY.length - 1];
-    const percUp = silcV[silcV.length - 1] / silcV[iMin] - 1;
-    const crimeUp = tot[LAST] / tot[Y.indexOf(b)] - 1;
-    $("#perc-dek").innerHTML = EN ? `Between ${a} and ${b} the share of households reporting crime or vandalism in their area went from ${nf1.format(silcV[iMax])}% to ${nf1.format(silcV[iMin])}%: <strong>${fmtPct(percAB)}</strong>. Over the same period reported crimes per resident changed by ${fmtPct(crimeAB)}. From ${b} to ${lastS} the share rose again to ${nf1.format(silcV[silcV.length - 1])}%: <strong>${fmtPct(percUp)}</strong>, against ${fmtPct(crimeUp)} for reported crimes from ${b} to ${Y[LAST]}. Perception moves much more than crime does.` : `Tra il ${a} e il ${b} la quota di famiglie che segnalavano criminalità o vandalismo nella propria zona è passata dal ${nf1.format(silcV[iMax])}% al ${nf1.format(silcV[iMin])}%: <strong>${fmtPct(percAB)}</strong>. Nello stesso periodo i delitti denunciati per abitante sono cambiati di ${fmtPct(crimeAB)}. Dal ${b} al ${lastS} la quota è risalita al ${nf1.format(silcV[silcV.length - 1])}%: <strong>${fmtPct(percUp)}</strong>, contro ${fmtPct(crimeUp)} dei delitti denunciati dal ${b} al ${Y[LAST]}. La percezione si muove molto più dei reati.`;
+    // la risalita si confronta sugli stessi anni: fino all'ultimo anno che ha anche i delitti; l'anno dopo, se c'è, a parte
+    const lastS = silcY[silcY.length - 1], lastC = d3.max(silcY.filter((y) => Y.includes(y)));
+    const percUp = ITALY.silc[lastC] / silcV[iMin] - 1;
+    const crimeUp = tot[Y.indexOf(lastC)] / tot[Y.indexOf(b)] - 1;
+    const after = lastS > lastC ? EN ? ` In ${lastS} it reached ${nf1.format(ITALY.silc[lastS])}%; ISTAT has not yet published reported crimes for that year.` : ` Nel ${lastS} è arrivata al ${nf1.format(ITALY.silc[lastS])}%; i delitti denunciati di quell’anno l’ISTAT non li ha ancora pubblicati.` : "";
+    $("#perc-dek").innerHTML = EN ? `Between ${a} and ${b} the share of households reporting crime or vandalism in their area went from ${nf1.format(silcV[iMax])}% to ${nf1.format(silcV[iMin])}%: <strong>${fmtPct(percAB)}</strong>. Over the same period reported crimes per resident changed by ${fmtPct(crimeAB)}.${lastC > b ? ` From ${b} to ${lastC} the share rose again to ${nf1.format(ITALY.silc[lastC])}%: <strong>${fmtPct(percUp)}</strong>, against ${fmtPct(crimeUp)} for reported crimes over the same years.` : ""}${after} Perception moves much more than crime does.` : `Tra il ${a} e il ${b} la quota di famiglie che segnalavano criminalità o vandalismo nella propria zona è passata dal ${nf1.format(silcV[iMax])}% al ${nf1.format(silcV[iMin])}%: <strong>${fmtPct(percAB)}</strong>. Nello stesso periodo i delitti denunciati per abitante sono cambiati di ${fmtPct(crimeAB)}.${lastC > b ? ` Dal ${b} al ${lastC} la quota è risalita al ${nf1.format(ITALY.silc[lastC])}%: <strong>${fmtPct(percUp)}</strong>, contro ${fmtPct(crimeUp)} dei delitti denunciati negli stessi anni.` : ""}${after} La percezione si muove molto più dei reati.`;
 
-    // dispersione: grandi città
-    const pts = CITIES.filter((c) => c.perc && c.perc["2024"] != null).map((c) => ({ c, x: (c.n.TOT[LAST] / c.pop[LAST]) * 1e5, y: c.perc["2024"] }));
+    // dispersione: grandi città, delitti e percezione dello stesso anno (l'ultimo che ha tutti e due)
+    const py = percYear(), sy = String(py), iy = Y.indexOf(py);
+    if (has("perc-scatter-year")) $("#perc-scatter-year").textContent = sy;
+    const pts = CITIES.filter((c) => c.perc && c.perc[sy] != null).map((c) => ({ c, x: (c.n.TOT[iy] / c.pop[iy]) * 1e5, y: c.perc[sy] }));
     const el = $("#perc-scatter");
     const w = Math.max(280, el.clientWidth), h = Math.round(Math.min(480, w * 0.78));
     const mg = { t: 12, r: 16, b: 44, l: 44 };
@@ -1434,7 +1459,7 @@
     xa.select(".domain").remove();
     svg.selectAll(".axis .tick line").style("stroke", "var(--grid)");
     svg.append("text").attr("class", "lbl").attr("x", w - mg.r).attr("y", h - 6).attr("text-anchor", "end").text(L("delitti ogni 100.000 abitanti →", "crimes per 100,000 residents →"));
-    const itX = tot[LAST], itY = ITALY.perc["2024"];
+    const itX = tot[iy], itY = ITALY.perc[sy];
     svg.append("circle").attr("class", "rv-pop").style("--t0", "0.5s").attr("cx", x(itX)).attr("cy", y(itY)).attr("r", 6).style("fill", "none").style("stroke", "var(--ink)").style("stroke-width", 1.5);
     const labelled = new Set();
     pts.slice().sort((p, q) => q.x - p.x).slice(0, 3).forEach((d) => labelled.add(d.c.id));
@@ -1460,7 +1485,7 @@
     pts.forEach((d, k) => {
       svg.append("circle").attr("class", "rv-pop").style("--i", k).attr("cx", x(d.x)).attr("cy", y(d.y)).attr("r", 5).style("fill", "var(--ink-2)").style("stroke", "var(--surface)").style("stroke-width", 2)
         .style("cursor", "pointer")
-        .on("mousemove", (ev) => showTip(`<b>${esc(d.c.name)}</b><br>${nf0.format(d.x)} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")} (2024)<br>${nf1.format(d.y)}% ${L("famiglie che sentono a rischio la zona", "of households that feel their area is at risk")}`, ev))
+        .on("mousemove", (ev) => showTip(`<b>${esc(d.c.name)}</b><br>${nf0.format(d.x)} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")} (${sy})<br>${nf1.format(d.y)}% ${L("famiglie che sentono a rischio la zona", "of households that feel their area is at risk")}`, ev))
         .on("mouseleave", hideTip)
         .on("click", () => openCity(d.c));
     });
@@ -1498,7 +1523,7 @@
   // Le grandi città in due classifiche dello stesso anno: a sinistra per delitti denunciati ogni 100.000 abitanti, a destra
   // per famiglie che giudicano a rischio la propria zona. Le linee più inclinate sono le città dove paura e denunce non vanno insieme.
   function renderPercSlope() {
-    const py = CITIES.some((c) => c.perc && c.perc[String(Y[LAST])] != null) ? String(Y[LAST]) : "2024", iy = Y.indexOf(+py);
+    const py = String(percYear()), iy = Y.indexOf(+py);
     const pts = CITIES.filter((c) => c.perc && c.perc[py] != null).map((c) => ({ c, x: (c.n.TOT[iy] / c.pop[iy]) * 1e5, y: c.perc[py] }));
     const byX = pts.slice().sort((a, b) => b.x - a.x), byY = pts.slice().sort((a, b) => b.y - a.y);
     pts.forEach((d) => { d.rx = byX.indexOf(d) + 1; d.ry = byY.indexOf(d) + 1; });
@@ -1581,7 +1606,7 @@
     };
     pts.forEach((d, k) => {
       svg.append("circle").attr("class", "rv-pop").style("--i", k).attr("cx", x(d.x)).attr("cy", y(d.y)).attr("r", 4).style("fill", "var(--ink-2)").style("fill-opacity", 0.75).style("stroke", "var(--surface)").style("stroke-width", 1.5)
-        .on("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf0.format(d.x)} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")}<br>${nf1.format(d.y)}% ${L("famiglie che sentono a rischio la zona", "of households that feel their area is at risk")}<br><span class="small">${EN ? `${span} average` : `media ${span}`}</span>`, ev))
+        .on("mousemove", (ev) => showTip(`<b>${esc(d.p.name)}</b> · ${esc(d.p.region)}<br>${nf0.format(d.x)} ${L("delitti ogni 100.000 ab.", "crimes per 100,000 res.")}<br>${nf1.format(d.y)}% ${L("famiglie che sentono a rischio la zona", "of households that feel their area is at risk")}${d.p.perc_da && d.p.perc_da.length > 1 ? `<br><span class="small">${EN ? `perception: ${esc(andList(d.p.perc_da))} combined` : `percezione: ${esc(andList(d.p.perc_da))} insieme`}</span>` : ""}<br><span class="small">${EN ? `${span} average` : `media ${span}`}</span>`, ev))
         .on("mouseleave", hideTip);
     });
     if (itX != null && itY != null) {
@@ -1799,7 +1824,7 @@
       ? EN ? `In ${Y[LAST]}, ${fmtRate(o.lvl)} crimes per 100,000 residents were reported ${o.where}${pp ? `: ${pp} in a year` : ""}. ` : `Nel ${Y[LAST]} ${o.where} sono stati denunciati ${fmtRate(o.lvl)} delitti ogni 100.000 abitanti${pp ? `: in un anno, ${pp}` : ""}. `
       : EN ? `${esc(m.label)} ${o.where}, ${m.levelNote}: ${fmtRate(o.lvl)} reports per 100,000 residents${m.rare ? " a year" : ""}${pp ? `, ${pp}${m.rare ? "" : " in a year"}` : ""}. ` : `${esc(m.label)} ${o.where}, ${m.levelNote}: ${fmtRate(o.lvl)} denunce ogni 100.000 abitanti${m.rare ? " all’anno" : ""}${pp ? `, ${pp}${m.rare ? "" : " in un anno"}` : ""}. `;
     const of = EN ? `of the ${o.n} ${o.unit === "province" ? "provinces" : "provincial capitals"}` : (o.unit === "province" ? "delle " : "dei ") + o.n + " " + o.unit;
-    const pos = EN ? (!o.rank ? "" : o.rank === 1 ? `the highest ${of}` : o.rank === o.n ? `the lowest ${of}` : o.rank <= 10 ? `one of the ten highest ${of} (${ordinal(o.rank)})` : o.rank > o.n - 10 ? `one of the ten lowest ${of} (${ordinal(o.rank)})` : `${ordinal(o.rank)} out of ${o.n} ${o.unit === "province" ? "provinces" : "provincial capitals"}`) : !o.rank ? "" : o.rank === 1 ? `il valore più alto ${of}` : o.rank === o.n ? `il valore più basso ${of}` : o.rank <= 10 ? `uno dei dieci valori più alti ${of} (${o.rank}°)` : o.rank > o.n - 10 ? `uno dei dieci valori più bassi ${of} (${o.rank}°)` : `${vowelNum(o.rank) ? "all’" : "al "}${o.rank}° posto su ${o.n} ${o.unit}`;
+    const pos = EN ? (!o.rank ? "" : o.rank === 1 ? `the highest ${of}` : o.rank === o.n ? `the lowest ${of}` : o.rank <= 10 ? `one of the ten highest ${of} (${ordinal(o.rank)})` : o.rank > o.n - 10 ? `one of the ten lowest ${of} (${ordinal(o.rank)})` : `${ordinal(o.rank)} out of ${o.n} ${o.unit === "province" ? "provinces" : "provincial capitals"}`) : !o.rank ? "" : o.rank === 1 ? `il valore più alto ${of}` : o.rank === o.n ? `il valore più basso ${of}` : o.rank <= 10 ? `uno dei dieci valori più alti ${of} (${o.rank}°)` : o.rank > o.n - 10 ? `uno dei dieci valori più bassi ${of} (${o.rank}°)` : `${vowelOrd(o.rank) ? "all’" : "al "}${o.rank}° posto su ${o.n} ${o.unit}`;
     if (o.it) s += EN ? `That is ${timesItaly(o.lvl / o.it)} (${fmtRate(o.it)})${pos ? " and " + pos : ""}${o.tourist && o.lvl / o.it >= 1.15 ? ", partly because every day it draws commuters, students and tourists who are not counted as residents" : ""}. ` : `È ${timesItaly(o.lvl / o.it)} (${fmtRate(o.it)})${pos ? " e " + pos : ""}${o.tourist && o.lvl / o.it >= 1.15 ? ", anche perché ogni giorno arrivano pendolari, studenti e turisti che non sono contati tra i residenti" : ""}. `;
     const c = o.cmp;
     if (c && c.pct != null && isFinite(c.pct)) {
@@ -1815,10 +1840,17 @@
     return `<p class="verdict">${s}${gl}</p>`;
   }
 
+  // l'ultimo anno della percezione che ha anche i delitti denunciati (oggi il 2024)
+  function percYear() {
+    const ys = Object.keys(ITALY.perc).map(Number);
+    return d3.max(ys.filter((y) => Y.includes(y))) || d3.max(ys);
+  }
+
   function percFact(perc, where) {
-    if (!perc || perc["2024"] == null) return "";
-    const before = perc["2022"] != null ? EN ? `; ${nf1.format(perc["2022"])}% in 2022` : `; ${nf1.format(perc["2022"])}% nel 2022` : "";
-    return `<div class="fact"><div class="fv">${nf1.format(perc["2024"])}%</div><div class="fl">${EN ? `households ${where} that feel their area is very or quite at risk of crime (2024${before}; Italy ${nf1.format(ITALY.perc["2024"])}%)` : `famiglie ${where} che sentono molto o abbastanza a rischio criminalità la propria zona (2024${before}; Italia ${nf1.format(ITALY.perc["2024"])}%)`}</div></div>`;
+    const ys = Object.keys(ITALY.perc).map(Number).sort((a, b) => a - b), y1 = String(ys[ys.length - 1]), y0 = String(ys[0]);
+    if (!perc || perc[y1] == null) return "";
+    const before = y0 !== y1 && perc[y0] != null ? EN ? `; ${nf1.format(perc[y0])}% in ${y0}` : `; ${nf1.format(perc[y0])}% nel ${y0}` : "";
+    return `<div class="fact"><div class="fv">${nf1.format(perc[y1])}%</div><div class="fl">${EN ? `households ${where} that feel their area is very or fairly at risk of crime (${y1}${before}; Italy ${nf1.format(ITALY.perc[y1])}%)` : `famiglie ${where} che sentono molto o abbastanza a rischio criminalità la propria zona (${y1}${before}; Italia ${nf1.format(ITALY.perc[y1])}%)`}</div></div>`;
   }
 
   function renderCity() {
@@ -1840,10 +1872,13 @@
     const movers = moversHTML(rows, (t) => EN ? `${nf0.format(c.n[t.id][LAST] ?? 0)} cases in ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} in ${state.cardBase}` : `${nf0.format(c.n[t.id][LAST] ?? 0)} casi nel ${Y[LAST]}, ${nf0.format(c.n[t.id][iB] ?? 0)} nel ${state.cardBase}`, true);
     const q = QUART[c.id] || null; // quartieri, se la città li ha e sono arrivati
     const verdict = verdictHTML({ t: state.cardType, where: EN ? "in " + esc(c.name) : (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.cardType].group) && !TOURIST_NOT.includes(state.cardType) });
+    // le note di data/vc.json (meta.note): dati ISTAT che non tornano, confini cambiati
+    const cn = META.note && META.note[c.id], dropped = (yr) => !!(cn && cn.null && (cn.null[yr] || []).includes(state.cardType));
     $("#city-body").innerHTML = `
       <div class="card-head">
       <div class="card-main">
       ${verdict}
+      ${cn ? `<p class="note">${esc(EN ? cn.en : cn.it)}</p>` : ""}
       <div class="facts">
         <div class="fact"><div class="fv">${fmtRate(r.lvl)}</div><div class="fl">${esc(lower(m.label))} ${L("ogni 100.000 abitanti", "per 100,000 residents")} (${m.levelNote}) · ${r.rank ? (EN ? ordinal(r.rank) + " of " : r.rank + "° su ") + m.ranked.length : ""} · ${L("Italia", "Italy")} ${fmtRate(m.itLvl)}</div></div>
         <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))}: ${Y[LAST]} ${L("rispetto al", "compared with")} ${state.cardBase}${sigText ? " · " + sigText : ""}</div></div>
@@ -1865,7 +1900,7 @@
       <div class="tablewrap"><table><thead><tr><th>${L("Anno", "Year")}</th><th class="num">${L("Casi", "Cases")}</th><th class="num">${L("Ogni 100.000 ab.", "Per 100,000 res.")}</th>${P ? `<th class="num">${L("Provincia", "Province")}</th>` : ""}<th class="num">${L("Italia", "Italy")}</th><th>${L("Nota", "Note")}</th></tr></thead><tbody>
         ${Y.map((yr, i) => {
           const a = r.an[i];
-          const note = COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `${L("Impennata", "Spike")} (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `${L("Calo netto", "Sharp fall")} (${fmtPct(a.rr - 1)})` : "";
+          const note = dropped(yr) ? L("dato ISTAT escluso", "ISTAT figure left out") : COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `${L("Impennata", "Spike")} (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `${L("Calo netto", "Sharp fall")} (${fmtPct(a.rr - 1)})` : "";
           return `<tr><td>${yr}</td><td class="num">${c.n[state.cardType][i] == null ? "–" : nf0.format(c.n[state.cardType][i])}</td><td class="num">${fmtRate(r.s[i])}</td>${P ? `<td class="num">${fmtRate(pr.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
@@ -2216,7 +2251,9 @@
     const sigText = s === "flat" ? L(" · variazione non significativa", " · not a significant change") : s === "up" ? L(" · aumento significativo", " · significant rise") : s === "down" ? L(" · calo significativo", " · significant fall") : "";
     const capWord = caps.length > 1 ? EN ? `including the provincial capitals ${esc(andList(caps.map((c) => c.name)))}` : `compresi i capoluoghi ${esc(andList(caps.map((c) => c.name)))}` : EN ? `including the provincial capital, ${esc(cap.name)}` : `compreso il capoluogo, ${esc(cap.name)}`;
     const extra = [];
-    if (P.region === "Sardegna" && normQ(unit) !== normQ(P.name)) extra.push(EN ? `In Sardegna ISTAT counts crimes by the four historical provinces. According to the official list of municipalities, between 1995 and 2005 ${esc(e.name)} was in the province of ${esc(P.name)}: that is why this profile uses that province’s data.` : `In Sardegna l’ISTAT conta i reati secondo le quattro province storiche. Secondo l’elenco ufficiale dei comuni, tra il 1995 e il 2005 ${esc(e.name)} era in provincia di ${esc(P.name)}: per questo la scheda usa i dati di quella provincia.`);
+    // in Sardegna i reati seguono le province storiche, la percezione quelle di oggi (data/province.json, perc_sigla)
+    const ps = PERC_SIGLA[e.sigla];
+    if (P.region === "Sardegna" && normQ(unit) !== normQ(P.name)) extra.push(EN ? `In Sardegna ISTAT counts crimes by the four historical provinces. According to the official list of municipalities, between 1995 and 2005 ${esc(e.name)} was in the province of ${esc(P.name)}: that is why this profile uses that province’s data. Perceived risk, which ISTAT measures by today’s provinces, is that of the province of ${esc(unit)}.` : `In Sardegna l’ISTAT conta i reati secondo le quattro province storiche. Secondo l’elenco ufficiale dei comuni, tra il 1995 e il 2005 ${esc(e.name)} era in provincia di ${esc(P.name)}: per questo la scheda usa i dati di quella provincia. La percezione del rischio, che l’ISTAT misura sulle province di oggi, è invece quella della provincia ${/^Sud /.test(unit) ? "del" : "di"} ${esc(unit)}.`);
     if (first > Y[0]) extra.push(EN ? `The province of ${esc(P.name)} has data from ${first}: before then its municipalities were counted in the provinces they came from.` : `La provincia di ${esc(P.name)} ha dati dal ${first}: prima i suoi comuni erano contati nelle province da cui provengono.`);
     const rows = TYPES.map((tt) => ({ t: tt, row: provModel(tt.id).byId.get(e.prov) }));
     const iB = Y.indexOf(state.cardBase);
@@ -2238,7 +2275,7 @@
         <div class="fact"><div class="fv">${fmtPct(r.cmp && r.cmp.pct)}</div><div class="fl">${esc(lower(m.label))} ${L("in provincia", "in the province")}: ${r.cmp && r.cmp.win ? r.cmp.win + L(" (reato raro)", " (rare crime)") : !r.cmp && m.rare && !counts ? L("reato raro, troppo pochi anni per un confronto", "rare crime, too few years for a comparison") : `${Y[LAST]} ${L("rispetto al", "compared with")} ${state.cardBase}`}${sigText}</div></div>
         ${t !== "TOT" ? `<div class="fact"><div class="fv">${fmtRate(tr.lvl)}</div><div class="fl">${EN ? `all crimes per 100,000 residents in the province in ${Y[LAST]} · ${ordinal(tr.rank)} of ${tm.ranked.length}` : `tutti i delitti ogni 100.000 abitanti in provincia nel ${Y[LAST]} · ${tr.rank}° su ${tm.ranked.length}`}</div></div>` : ""}
         ${capRow ? `<div class="fact"><div class="fv">${fmtRate(capRow.lvl)}</div><div class="fl">${esc(lower(m.label))} ${EN ? `per 100,000 residents in the municipality of ${esc(cap.name)} alone, the provincial capital (${m.levelNote})` : `ogni 100.000 abitanti nel solo comune di ${esc(cap.name)}, il capoluogo (${m.levelNote})`}</div></div>` : ""}
-        ${percFact(P.perc, L("della provincia", "in the province"))}
+        ${ps ? percFact(ps.perc, EN ? `in the province of ${esc(ps.name)}` : `della provincia ${/^Sud /.test(ps.name) ? "del" : "di"} ${esc(ps.name)}`) : percFact(P.perc, L("della provincia", "in the province"))}
       </div>
       </div>
       ${locMap(e.lon, e.lat, e.name)}
@@ -2281,7 +2318,7 @@
     const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
     placesPromise = Promise.all([get(ROOT + "data/comuni.json"), get(ROOT + "data/province.json")]).then(([cm, pv]) => {
       if (pv.meta.years.join() !== Y.join()) throw new Error("anni diversi tra vc.json e province.json");
-      PROV = pv.prov; PROV_META = pv.meta; UNITS = cm.units;
+      PROV = pv.prov; PROV_META = pv.meta; PERC_SIGLA = pv.perc_sigla || {}; UNITS = cm.units;
       INDEX = cm.comuni.map(([name, alt, sigla, prov, city, x, y]) => {
         const c = city ? cityById(city) : null;
         if (c) CITY_PROV[c.id] = prov;
@@ -2320,6 +2357,11 @@
       const s = k === q ? 0 : k.startsWith(q) ? 1 : wordsMatch(k, qt) ? 2 : k.includes(q) ? 3 : 9;
       if (s < 9) best = Math.min(best, s + (i ? 0.5 : 0));
     });
+    // scritto senza apostrofi né spazi («laquila», «reggiocalabria»): si confrontano i nomi tutti attaccati
+    if (best === 9 && q.length >= 4) {
+      const qc = q.replace(/ /g, "");
+      e.keys.forEach((k) => { const kc = k.replace(/ /g, ""); if (kc === qc) best = Math.min(best, 1); else if (kc.startsWith(qc)) best = Math.min(best, 2.5); });
+    }
     return best;
   }
   function search(raw) {
@@ -2588,12 +2630,12 @@
       <div class="fact"><div class="fv">${nf1.format(quota)}%</div><div class="fl">of the ${nf0.format(tot)} prisoners held at the end of ${last} are foreign nationals: ${nf0.format(str)} people. In ${Yc[0]} the figure was ${nf1.format((100 * C.serie.str[0]) / C.serie.tot[0])}%.</div></div>
       ${res ? `<div class="fact"><div class="fv">${nf1.format(res.quota)}%</div><div class="fl">of Italy’s residents are foreign nationals: ${nf0.format(res.stranieri)} out of ${nf0.format(res.pop)} on 1 January ${resKey} (source: ${esc(R.fonte === "demo.istat.it" ? R.fonte_label || "ISTAT" : "ISTAT")})</div></div>`
             : `<div class="fact na"><div class="fv">share among residents: awaiting data</div><div class="fl">The ISTAT series on foreign residents could not be reached when this data was built. It will be added at the next update.</div></div>`}
-      <div class="fact"><div class="fv">${nf1.format(ndStr * 100)}%<small>vs ${nf1.format(ndIt * 100)}%</small></div><div class="fl">of foreign prisoners have no final conviction (they are awaiting trial, or have an appeal pending); among Italians the figure is ${nf1.format(ndIt * 100)}%</div></div>
+      <div class="fact"><div class="fv">${nf1.format(ndStr * 100)}%<small>vs ${nf1.format(ndIt * 100)}%</small></div><div class="fl">of foreign prisoners have no final conviction (they are awaiting trial, have an appeal pending, or are held on several cases none of them final); among Italians the figure is ${nf1.format(ndIt * 100)}%</div></div>
       <div class="fact"><div class="fv">${nf1.format(C.serie.affollamento[L])}</div><div class="fl">prisoners per 100 official places in ${last}. There were ${nf1.format(C.serie.affollamento[Yc.indexOf(2020)])} in 2020 and ${nf1.format(C.serie.affollamento[0])} in ${Yc[0]}.</div></div>` : `
       <div class="fact"><div class="fv">${nf1.format(quota)}%</div><div class="fl">dei ${nf0.format(tot)} detenuti presenti a fine ${last} è straniero: ${nf0.format(str)} persone. Nel ${Yc[0]} era il ${nf1.format((100 * C.serie.str[0]) / C.serie.tot[0])}%.</div></div>
       ${res ? `<div class="fact"><div class="fv">${nf1.format(res.quota)}%</div><div class="fl">degli abitanti dell'Italia è straniero: ${nf0.format(res.stranieri)} residenti su ${nf0.format(res.pop)} al 1° gennaio ${resKey} (fonte: ${esc(R.fonte_label || "ISTAT")})</div></div>`
             : `<div class="fact na"><div class="fv">quota tra i residenti: in attesa del dato</div><div class="fl">La serie ISTAT degli stranieri residenti non era raggiungibile quando questi dati sono stati costruiti. Verrà aggiunta al prossimo aggiornamento.</div></div>`}
-      <div class="fact"><div class="fv">${nf1.format(ndStr * 100)}%<small>vs ${nf1.format(ndIt * 100)}%</small></div><div class="fl">dei detenuti stranieri è senza una condanna definitiva (in attesa di giudizio, appellanti, ricorrenti); tra gli italiani è il ${nf1.format(ndIt * 100)}%</div></div>
+      <div class="fact"><div class="fv">${nf1.format(ndStr * 100)}%<small>vs ${nf1.format(ndIt * 100)}%</small></div><div class="fl">dei detenuti stranieri è senza una condanna definitiva (in attesa di giudizio, appellanti, ricorrenti, o con più procedimenti nessuno definitivo); tra gli italiani è il ${nf1.format(ndIt * 100)}%</div></div>
       <div class="fact"><div class="fv">${nf1.format(C.serie.affollamento[L])}</div><div class="fl">detenuti ogni 100 posti regolamentari nel ${last}. Erano ${nf1.format(C.serie.affollamento[Yc.indexOf(2020)])} nel 2020 e ${nf1.format(C.serie.affollamento[0])} nel ${Yc[0]}.</div></div>`;
 
     renderTreemap();
@@ -2640,20 +2682,20 @@
 
     // regioni
     const regs = C.regioni;
-    $("#carceri-reg-sub").textContent = EN ? `Share of foreign nationals among prisoners in ${last}; the line is Italy (${nf1.format(quota)}%).` : `Quota di stranieri tra i detenuti nel ${last}; la linea è l'Italia (${nf1.format(quota)}%).`;
+    $("#carceri-reg-sub").textContent = EN ? `Share of foreign nationals among prisoners in ${last}, by region of the prison (not of residence or of the offence); the line is Italy (${nf1.format(quota)}%). An asterisk marks regions with fewer than 500 people in prison, where a few cases move the share a lot.` : `Quota di stranieri tra i detenuti nel ${last}, per regione del carcere (non di residenza né del reato); la linea è l'Italia (${nf1.format(quota)}%). L’asterisco indica le regioni con meno di 500 persone detenute, dove pochi casi spostano molto la quota.`;
     const maxQ = d3.max(regs, (r) => r.quota);
-    $("#carceri-regions").innerHTML = regs.map((r) => `<li><span class="name" title="${esc(r.name)}">${esc(r.name)}</span><span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * r.quota) / maxQ}%"></i><b class="rv-fade" style="left:${(100 * quota) / maxQ}%"></b></span><span class="val">${nf1.format(r.quota)}%</span></li>`).join("");
+    $("#carceri-regions").innerHTML = regs.map((r) => `<li><span class="name" title="${esc(r.name)}">${esc(r.name)}</span><span class="bar" aria-hidden="true"><i class="rv-grow" style="width:${(100 * r.quota) / maxQ}%"></i><b class="rv-fade" style="left:${(100 * quota) / maxQ}%"></b></span><span class="val">${nf1.format(r.quota)}%${r.tot < 500 ? "*" : ""}</span></li>`).join("");
     reveal($("#carceri-regions"), $("#carceri-regions").querySelectorAll("li"));
 
     renderOffences();
     renderAge();
     const lab = C.posizione.labels;
     $("#carceri-legal").innerHTML = EN
-      ? `Legal status in ${last}: among foreign nationals, ${nf1.format((100 * pStr.AWFJ) / totStr)}% are awaiting their first trial (Italians ${nf1.format((100 * pIt.AWFJ) / totIt)}%) and ${nf1.format((100 * pStr.CONVFJ) / totStr)}% have a final conviction (Italians ${nf1.format((100 * pIt.CONVFJ) / totIt)}%).`
-      : `Posizione giuridica nel ${last}: tra gli stranieri il ${nf1.format((100 * pStr.AWFJ) / totStr)}% è in attesa del primo giudizio (italiani ${nf1.format((100 * pIt.AWFJ) / totIt)}%) e il ${nf1.format((100 * pStr.CONVFJ) / totStr)}% ha una condanna definitiva (italiani ${nf1.format((100 * pIt.CONVFJ) / totIt)}%).`;
+      ? `Legal status in ${last}: among foreign nationals, ${nf1.format((100 * pStr.AWFJ) / totStr)}% are awaiting their first trial (Italians ${nf1.format((100 * pIt.AWFJ) / totIt)}%) and ${nf1.format((100 * (pStr.CONVFJ + pStr.MWD)) / totStr)}% have a final conviction (Italians ${nf1.format((100 * (pIt.CONVFJ + pIt.MWD)) / totIt)}%).`
+      : `Posizione giuridica nel ${last}: tra gli stranieri il ${nf1.format((100 * pStr.AWFJ) / totStr)}% è in attesa del primo giudizio (italiani ${nf1.format((100 * pIt.AWFJ) / totIt)}%) e il ${nf1.format((100 * (pStr.CONVFJ + pStr.MWD)) / totStr)}% ha una condanna definitiva (italiani ${nf1.format((100 * (pIt.CONVFJ + pIt.MWD)) / totIt)}%).`;
     $("#carceri-note-1").textContent = EN
-      ? `Foreign prisoners include people without a residence permit, who do not appear among residents: so the comparison between the two shares is lopsided from the start. Foreign nationals in Italy are also younger on average, and people aged between 25 and 40 are the ones who end up in prison most often in every country. And without a home or a stable job it is harder to obtain alternatives to custody, and more likely to stay in a cell awaiting trial: in ${last}, ${nf1.format(ndStr * 100)}% of foreign nationals had no final conviction, against ${nf1.format(ndIt * 100)}% of Italians.`
-      : `Tra i detenuti stranieri ci sono anche persone senza permesso di soggiorno, che non compaiono tra i residenti: il confronto tra le due quote è quindi sbilanciato in partenza. Gli stranieri in Italia sono inoltre mediamente più giovani, e la fascia tra i 25 e i 40 anni è quella che in ogni paese finisce più spesso in carcere. E senza una casa o un lavoro stabile è più difficile ottenere misure alternative alla detenzione e più probabile restare in cella in attesa di giudizio: nel ${last} è senza condanna definitiva il ${nf1.format(ndStr * 100)}% degli stranieri contro il ${nf1.format(ndIt * 100)}% degli italiani.`;
+      ? `Foreign prisoners include people without a residence permit, who do not appear among residents: so the comparison between the two shares is lopsided from the start. Foreign nationals in Italy are also younger on average, and in most countries young adults end up in prison more often than older people. And without a home or a stable job it is harder to obtain alternatives to custody, and more likely to stay in a cell awaiting trial: in ${last}, ${nf1.format(ndStr * 100)}% of foreign nationals had no final conviction, against ${nf1.format(ndIt * 100)}% of Italians.`
+      : `Tra i detenuti stranieri ci sono anche persone senza permesso di soggiorno, che non compaiono tra i residenti: il confronto tra le due quote è quindi sbilanciato in partenza. Gli stranieri in Italia sono inoltre mediamente più giovani, e in gran parte dei paesi i giovani adulti finiscono in carcere più spesso delle persone più anziane. E senza una casa o un lavoro stabile è più difficile ottenere misure alternative alla detenzione e più probabile restare in cella in attesa di giudizio: nel ${last} è senza condanna definitiva il ${nf1.format(ndStr * 100)}% degli stranieri contro il ${nf1.format(ndIt * 100)}% degli italiani.`;
   }
 
   function renderTreemap() {
@@ -2830,11 +2872,11 @@
     $("#rimpatri-facts").innerHTML = EN ? `
       <div class="fact"><div class="fv">${nf0.format(R[L])}</div><div class="fl">people returned in ${last} after an order to leave Italy. The highest figure in the series was in ${Yr[iMax]}: ${nf0.format(R[iMax])}.</div></div>
       <div class="fact"><div class="fv">${per100(R[L], O[L])}<small>in 100</small></div><div class="fl">returns per 100 orders in ${last}, out of ${nf0.format(O[L])} orders. In ${Yr[0]} there were ${per100(R[0], O[0])}, but there were ${nf0.format(O[0])} orders.</div></div>
-      <div class="fact"><div class="fv">${nf0.format(R[iMin])}</div><div class="fl">returns in ${Yr[iMin]}, the lowest in the series${COVID.has(Yr[iMin]) ? ", when the pandemic closed borders and all but grounded flights" : ""}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(R[iMin])}</div><div class="fl">returns in ${Yr[iMin]}, the lowest in the series${COVID.has(Yr[iMin]) ? ", in the pandemic years" : ""}${O[iMin] < 0.6 * d3.median(O) ? `; orders recorded that year are also far fewer than usual (${nf0.format(O[iMin])})` : ""}.</div></div>
       <div class="fact"><div class="fv">${nf0.format((100 * d3.sum(top, (p) => p.r[L])) / R[L])}%</div><div class="fl">of returns in ${last} involved citizens of ${andList(names)}.</div></div>` : `
       <div class="fact"><div class="fv">${nf0.format(R[L])}</div><div class="fl">persone rimpatriate nel ${last} dopo un ordine di lasciare l'Italia. Il massimo della serie è del ${Yr[iMax]}: ${nf0.format(R[iMax])}.</div></div>
       <div class="fact"><div class="fv">${per100(R[L], O[L])}<small>su 100</small></div><div class="fl">rimpatri ogni 100 ordini nel ${last}, su ${nf0.format(O[L])} ordini. Nel ${Yr[0]} erano ${per100(R[0], O[0])}, ma gli ordini erano ${nf0.format(O[0])}.</div></div>
-      <div class="fact"><div class="fv">${nf0.format(R[iMin])}</div><div class="fl">rimpatri nel ${Yr[iMin]}, il minimo della serie${COVID.has(Yr[iMin]) ? ", quando la pandemia ha chiuso le frontiere e quasi azzerato i voli" : ""}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(R[iMin])}</div><div class="fl">rimpatri nel ${Yr[iMin]}, il minimo della serie${COVID.has(Yr[iMin]) ? ", negli anni della pandemia" : ""}${O[iMin] < 0.6 * d3.median(O) ? `; anche gli ordini registrati quell’anno sono molti meno del solito (${nf0.format(O[iMin])})` : ""}.</div></div>
       <div class="fact"><div class="fv">${nf0.format((100 * d3.sum(top, (p) => p.r[L])) / R[L])}%</div><div class="fl">dei rimpatri del ${last} riguarda cittadini di ${names.slice(0, -1).join(", ")} ${/^e/i.test(names[names.length - 1]) ? "ed" : "e"} ${names[names.length - 1]}.</div></div>`;
     renderRimpTrend();
     if (has("rimp-countries")) renderRimpCountries();
@@ -2862,7 +2904,7 @@
     const ticks = [Yr[0], 2012, 2016, 2020, Yr[L]].filter((t, i, a) => i === 0 || i === a.length - 1 || (t > Yr[0] + 1 && t < Yr[L] - 1));
     const xa = svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`).call(d3.axisBottom(x).tickValues(ticks).tickFormat(d3.format("d")).tickSize(4));
     xa.select(".domain").style("stroke", "var(--rule)");
-    // lo spazio tra le due linee: ordini che non sono diventati rimpatri
+    // lo spazio tra le due linee: la distanza tra ordini e rimpatri dello stesso anno
     svg.append("path").attr("class", "area rv-fade").attr("d", d3.area().x((_, i) => x(Yr[i])).y0((_, i) => y(R[i])).y1((v) => y(v))(O)).style("fill", "var(--muted)").style("fill-opacity", 0.1);
     const line = d3.line().x((_, i) => x(Yr[i])).y((v) => y(v));
     svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).attr("d", line(O)).style("fill", "none").style("stroke", "var(--ink-2)").style("stroke-width", 2).style("stroke-linejoin", "round");
@@ -2906,14 +2948,19 @@
     const sum = (a) => d3.sum(a.slice(from), (v) => v || 0);
     const gli = (n) => `${vowelNum(n) ? "gli" : "i"} ${nf0.format(n)}`, degli = (n) => `${vowelNum(n) ? "degli" : "dei"} ${nf0.format(n)}`;
     const span = EN ? (RC.n === 1 ? `in ${Yr[L]}` : `from ${Yr[from]} to ${Yr[L]}`) : RC.n === 1 ? `nel ${Yr[L]}` : `dal ${Yr[from]} al ${Yr[L]}`, spanT = RC.n === 1 ? `${Yr[L]}` : `${Yr[from]}–${Yr[L]}`;
-    let rows = D.paesi.map((p) => ({ p, r: sum(p.r), o: sum(p.o) })).filter((d) => d.o > 0 || d.r > 0).map((d) => ({ ...d, k: d.o ? (100 * d.r) / d.o : null }));
+    // il rapporto solo sugli anni che hanno sia gli ordini sia i rimpatri: un anno senza dato non vale zero
+    const both = (p) => d3.range(from, L + 1).filter((i) => p.r[i] != null && p.o[i] != null);
+    let rows = D.paesi.map((p) => {
+      const yb = both(p), ko = d3.sum(yb, (i) => p.o[i]), kr = d3.sum(yb, (i) => p.r[i]);
+      return { p, r: sum(p.r), o: sum(p.o), ko, k: ko ? (100 * kr) / ko : null, gap: yb.length < L - from + 1 };
+    }).filter((d) => d.o > 0 || d.r > 0);
     const R = sum(D.totale.rimpatri), O = sum(D.totale.ordini);
-    const ok = rows.filter((d) => d.o >= MIN);
+    const ok = rows.filter((d) => d.ko >= MIN);
     if (RC.sort === "k") rows = ok.slice().sort((a, b) => b.k - a.k);
     else rows.sort((a, b) => b[RC.sort] - a[RC.sort] || b.o - a.o);
     const shown = RC.sort === "k" || RC.all ? rows : rows.slice(0, RC.top);
     const max = d3.max(shown, (d) => Math.max(d.o, d.r)) || 1, pct = (v) => `${((100 * v) / max).toFixed(2)}%`;
-    const kTxt = (d) => (d.k == null ? "–" : d.o < MIN ? `<span class="few" title="${EN ? `Fewer than ${nf0.format(MIN)} orders in the period: the ratio is unstable` : `Meno di ${nf0.format(MIN)} ordini nel periodo: il rapporto è instabile`}">${nf0.format(d.k)}</span>` : nf0.format(d.k));
+    const kTxt = (d) => (d.k == null ? "–" : d.ko < MIN ? `<span class="few" title="${EN ? `Fewer than ${nf0.format(MIN)} orders in the period: the ratio is unstable` : `Meno di ${nf0.format(MIN)} ordini nel periodo: il rapporto è instabile`}">${nf0.format(d.k)}</span>` : nf0.format(d.k));
     const ol = $("#rimp-countries");
     ol.innerHTML = (EN
       ? `<li class="rc-head" aria-hidden="true"><span>Nationality</span><span>Orders and returns, ${spanT}</span><span class="num">Returns out of orders</span><span class="num">Per 100</span></li>`
@@ -2927,8 +2974,8 @@
     items.forEach((li, i) => {
       const d = shown[i];
       li.addEventListener("mousemove", (ev) => showTip(EN
-        ? `<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} orders to leave Italy<br>${nf0.format(d.r)} returns${d.k == null ? "" : `, ${nf0.format(d.k)} per 100 orders`}`
-        : `<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} ordini di lasciare l’Italia<br>${nf0.format(d.r)} rimpatri${d.k == null ? "" : `, ${nf0.format(d.k)} ogni 100 ordini`}`, ev));
+        ? `<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} orders to leave Italy<br>${nf0.format(d.r)} returns${d.k == null ? "" : `, ${nf0.format(d.k)} per 100 orders`}${d.gap ? "<br>the ratio leaves out years with no figure" : ""}`
+        : `<b>${esc(d.p.name)}</b> · ${spanT}<br>${nf0.format(d.o)} ordini di lasciare l’Italia<br>${nf0.format(d.r)} rimpatri${d.k == null ? "" : `, ${nf0.format(d.k)} ogni 100 ordini`}${d.gap ? "<br>il rapporto lascia fuori gli anni senza dato" : ""}`, ev));
       li.addEventListener("mouseleave", hideTip);
     });
     $("#rc-sub").textContent = EN
@@ -3187,7 +3234,7 @@
   const pctA = (prep, v) => { const s = nf1.format(v); if (EN) return s + "%"; return (ELIDE.test(s) ? { il: "l’", nel: "nell’", al: "all’", del: "dell’", dal: "dall’" }[prep] : prep + " ") + s + "%"; };
 
   function renderAutori() {
-    const A = AUTORI, Ya = A.meta.years, L = Ya.length - 1, last = A.meta.last, it = A.italia;
+    const A = AUTORI, Ya = A.meta.years, last = A.meta.last, L = Ya.indexOf(last), it = A.italia;
     const v = (t, i = L) => (it[t] ? it[t][i] : null);
     const tot = v("TOT"), un = fracWords(1 - tot / 100);
     const lead = EN
@@ -3286,14 +3333,14 @@
     const withF = prov.filter((d) => d.f != null), r = pearson(withF.map((d) => d.f), withF.map((d) => d.v));
     const big = ["Milano", "Roma", "Napoli", "Torino"].map((nm) => prov.find((d) => d.p.name === nm)).filter(Boolean);
     $("#autori-prov-note").textContent = EN
-      ? `The line in the bars is Italy (${nf1.format(itK)}%). The provinces of the big cities have the lowest shares: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
-        `The main reason is theft: where thefts make up more of all crimes, the offender is known less often (correlation ${nf2.format(r).replace("-", "−")} across the ${withF.length} provinces). In Sardegna the colours follow the four historical provinces for which ISTAT publishes data; the borders drawn are today’s.`
-      : `La linea nelle barre è l’Italia (${nf1.format(itK)}%). Le province delle grandi città hanno le quote più basse: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
-      `Il motivo principale sono i furti: dove pesano di più sul totale dei delitti, l’autore si conosce meno spesso (correlazione ${nf2.format(r).replace("-", "−")} tra le ${withF.length} province). In Sardegna i colori seguono le quattro province storiche su cui l’ISTAT pubblica i dati; i confini disegnati sono quelli di oggi.`;
+      ? `The line in the bars is Italy (${nf1.format(itK)}%). The provinces of Milano, Roma, Napoli and Torino are among those with the lowest shares: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
+        `Part of the explanation is theft: where thefts make up more of all crimes, the offender is known less often (correlation ${nf2.format(r).replace("-", "−")} across the ${withF.length} provinces). In Sardegna the colours follow the four historical provinces for which ISTAT publishes data; the borders drawn are today’s.`
+      : `La linea nelle barre è l’Italia (${nf1.format(itK)}%). Le province di Milano, Roma, Napoli e Torino sono tra quelle con le quote più basse: ${big.map((d) => `${d.p.name} ${nf1.format(d.v)}%`).join(", ")}. ` +
+      `In parte si spiega con i furti: dove pesano di più sul totale dei delitti, l’autore si conosce meno spesso (correlazione ${nf2.format(r).replace("-", "−")} tra le ${withF.length} province). In Sardegna i colori seguono le quattro province storiche su cui l’ISTAT pubblica i dati; i confini disegnati sono quelli di oggi.`;
   }
 
   function renderAutoriCities() {
-    const A = AUTORI, Ya = A.meta.years, L = Ya.length - 1, last = A.meta.last, t = state.autoriType;
+    const A = AUTORI, Ya = A.meta.years, last = A.meta.last, L = Ya.indexOf(last), t = state.autoriType;
     if (!has("autori-cities") || !A.types.includes(t)) return;
     const K = d3.range(Math.max(0, L - 2), L + 1), span = `${Ya[K[0]]}–${last}`;
     const rows = A.citta.map((c) => {
@@ -3330,7 +3377,7 @@
     }
   }
 
-  // minorenni ogni 100 persone segnalate, per il tipo t nell'anno di indice i (null prima del 2014, quando manca il totale)
+  // minorenni ogni 100 segnalazioni, per il tipo t nell'anno di indice i (null prima del 2014, quando manca il totale)
   const minShare = (t, i) => { const m = MINORI.italia.min[t][i], n = MINORI.italia.tot[t][i]; return m != null && n ? (100 * m) / n : null; };
   // i delitti con abbastanza segnalazioni di minorenni perché la quota regga: almeno 20 nel 2014 o nell'ultimo anno
   function minoriTypes() {
@@ -3344,7 +3391,7 @@
   }
 
   function renderMinori() {
-    const M = MINORI, Ym = M.meta.years, L = Ym.length - 1, last = M.meta.last, y0 = M.meta.share_from, i0 = Ym.indexOf(y0);
+    const M = MINORI, Ym = M.meta.years, last = M.meta.last, L = Ym.indexOf(last), y0 = M.meta.share_from, i0 = Ym.indexOf(y0);
     const mn = M.italia.min, sh = minShare;
 
     // apertura: le rapine in strada, il delitto dove la quota è cresciuta di più
@@ -3388,8 +3435,8 @@
       ? `Italy, ${y0} and ${last}, from the highest share to the lowest; at the bottom, all crimes together. Crimes with fewer than 20 records of minors in both years are left out.`
       : `Italia, ${y0} e ${last}, dalla quota più alta alla più bassa; in fondo tutti i delitti insieme. Mancano i delitti con meno di 20 segnalazioni di minorenni in entrambi gli anni.`;
     dumbbell($("#minori-types"), rows, EN
-      ? { label: `Minors per 100 people recorded, by type of crime, ${y0} and ${last}`, unit: "per 100 records", keys: [String(y0), String(last)] }
-      : { label: `Minorenni ogni 100 persone segnalate, per tipo di delitto, ${y0} e ${last}`, unit: "ogni 100 segnalazioni", keys: [String(y0), String(last)] });
+      ? { label: `Minors per 100 records, by type of crime, ${y0} and ${last}`, unit: "per 100 records", keys: [String(y0), String(last)] }
+      : { label: `Minorenni ogni 100 segnalazioni, per tipo di delitto, ${y0} e ${last}`, unit: "ogni 100 segnalazioni", keys: [String(y0), String(last)] });
     const moves = rows.filter((r) => r.t !== "TOT").map((r) => ({ ...r, d: r.b - r.a }));
     const up = moves.slice().sort((p, q) => q.d - p.d).slice(0, 3), down = moves.filter((r) => r.d < 0).sort((p, q) => p.d - q.d).slice(0, 3);
     const say = (r) => (EN ? `${lower(tShort(r.t))} (from ${nf1.format(r.a)} to ${nf1.format(r.b)})` : `${lower(tShort(r.t))} (da ${nf1.format(r.a)} a ${nf1.format(r.b)})`);
@@ -3401,7 +3448,7 @@
     const ys = Ym.slice(i0), shs = (t) => ys.map((_, k) => sh(t, i0 + k));
     $("#minori-trend-sub").textContent = EN ? `Records of minors per 100 records of all people, ${y0}–${last}` : `Segnalazioni di minorenni ogni 100 segnalazioni di tutte le persone, ${y0}–${last}`;
     seriesChart($("#minori-trend"), {
-      years: ys, label: EN ? `Minors per 100 people recorded, ${y0}–${last}` : `Minorenni ogni 100 persone segnalate, ${y0}–${last}`, height: 250, covid: true, yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
+      years: ys, label: EN ? `Minors per 100 records, ${y0}–${last}` : `Minorenni ogni 100 segnalazioni, ${y0}–${last}`, height: 250, covid: true, yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
       series: [
         { name: EN ? "robberies" : "rapine", values: shs("ROBBER"), color: "var(--fall)", width: 2.5, at: 2017, dy: -10 },
         { name: EN ? "assaults causing injury" : "lesioni dolose", values: shs("CULPINJU"), color: "var(--ink)", at: 2016, dy: -10 },
@@ -3436,7 +3483,7 @@
   }
 
   function renderMinoriRegions() {
-    const M = MINORI, ry = M.meta.region_years, Lr = ry.length - 1, last = M.meta.last, t = state.minoriType;
+    const M = MINORI, ry = M.meta.region_years, last = M.meta.last, Lr = ry.includes(last) ? ry.indexOf(last) : ry.length - 1, t = state.minoriType;
     if (!has("minori-regions") || !M.types.includes(t)) return;
     const K = d3.range(Math.max(0, Lr - 2), Lr + 1);
     const pool = (o) => { const m = d3.sum(K, (i) => o.min[t][i] || 0), n = d3.sum(K, (i) => o.tot[t][i] || 0); return { m, n, v: n ? (100 * m) / n : null }; };
@@ -3444,17 +3491,17 @@
     const itm = d3.sum(K, (i) => M.italia.min[t][off + i] || 0), itn = d3.sum(K, (i) => M.italia.tot[t][off + i] || 0), itv = itn ? (100 * itm) / itn : null;
     const rows = M.regioni.map((r) => ({ r, ...pool(r) })).filter((d) => d.v != null).sort((p, q) => q.v - p.v);
     const span = EN ? `between ${ry[K[0]]} and ${last}` : `tra il ${ry[K[0]]} e il ${last}`;
-    $("#minori-reg-title").textContent = EN ? `${tLabel(t)}: minors per 100 people recorded` : `${tLabel(t)}: minorenni ogni 100 persone segnalate`;
+    $("#minori-reg-title").textContent = EN ? `${tLabel(t)}: minors per 100 records` : `${tLabel(t)}: minorenni ogni 100 segnalazioni`;
     $("#minori-reg-sub").textContent = EN
       ? `Records ${span}, added together. The line is Italy (${nf1.format(itv)}%).` + (rows.some((d) => d.m < 20) ? " An asterisk marks fewer than 20 records of minors over the three years." : "")
       : `Segnalazioni ${span}, sommate. La linea è l’Italia (${nf1.format(itv)}%).` + (rows.some((d) => d.m < 20) ? " L’asterisco indica meno di 20 segnalazioni di minorenni nei tre anni." : "");
     barList($("#minori-regions"), rows.map((d) => ({ name: d.r.name, v: d.v, few: d.m < 20, title: EN ? `${d.r.name}: ${nf0.format(d.m)} minors out of ${nf0.format(d.n)} records, ${ry[K[0]]}–${last}` : `${d.r.name}: ${nf0.format(d.m)} minorenni su ${nf0.format(d.n)} segnalazioni, ${ry[K[0]]}–${last}` })), { max: Math.max(rows[0].v, itv) * 1.02, ref: itv });
     if (has("minori-map")) {
       provMap($("#minori-map"), $("#minori-legend"), new Map(rows.map((d) => [d.r.istat, { v: d.v, tip: EN
-        ? `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minors per 100 people recorded<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} of ${nf0.format(d.n)}</span>`
-        : `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minorenni ogni 100 persone segnalate<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} su ${nf0.format(d.n)}</span>` }])),
-        EN ? { by: "reg", label: `Map of regions: minors per 100 people recorded, ${tLabel(t)}`, legend: `Minors per 100 people recorded, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" }
-          : { by: "reg", label: `Carta delle regioni: minorenni ogni 100 persone segnalate, ${tLabel(t)}`, legend: `Minorenni ogni 100 segnalati, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" });
+        ? `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minors per 100 records<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} of ${nf0.format(d.n)}</span>`
+        : `<b>${esc(d.r.name)}</b><br>${nf1.format(d.v)} minorenni ogni 100 segnalazioni<br><span class="small">${esc(tLabel(t))}, ${ry[K[0]]}–${last}: ${nf0.format(d.m)} su ${nf0.format(d.n)}</span>` }])),
+        EN ? { by: "reg", label: `Map of regions: minors per 100 records, ${tLabel(t)}`, legend: `Minors per 100 records, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" }
+          : { by: "reg", label: `Carta delle regioni: minorenni ogni 100 segnalazioni, ${tLabel(t)}`, legend: `Minorenni ogni 100 segnalazioni, ${ry[K[0]]}–${last}`, fmt: (v) => nf0.format(v) + "%" });
     }
     // nella nota solo le regioni con almeno 20 segnalazioni di minorenni: con meno casi la quota è poco solida
     const solid = rows.filter((d) => d.m >= 20), hi = solid.slice(0, 2), lo = solid.slice(-2).reverse(), nm = (d) => `${d.r.name} (${nf1.format(d.v)}%)`;
@@ -3594,9 +3641,10 @@
       ],
     });
     const awStr = (100 * D.cit.str.AWFJ[L]) / D.cit.str.ALL[L], awIt = (100 * D.cit.it.AWFJ[L]) / D.cit.it.ALL[L];
+    const ndW = (100 * D.sex.donne.DISPAUTH[L]) / D.sex.donne.ALL[L], ndM = (100 * D.sex.uomini.DISPAUTH[L]) / D.sex.uomini.ALL[L];
     $("#caut-who-note").textContent = EN
-      ? `The gap between foreign nationals and Italians has been there in every year since ${y0}: at the end of ${last}, ${nf1.format(awStr)}% of foreign nationals in prison were awaiting their first trial, against ${nf1.format(awIt)}% of Italians. People without a home or a stable job in Italy find it harder to obtain house arrest or other alternatives to prison while they wait. Women are ${nf1.format((100 * D.sex.donne.ALL[L]) / I.ALL[L])}% of everyone in prison, and among them the share without a final conviction is close to the men’s.`
-      : `Lo scarto tra persone straniere e italiane c’è in ogni anno dal ${y0}: a fine ${last} era in attesa del primo giudizio ${pctA("il", awStr)} delle persone straniere detenute, contro ${pctA("il", awIt)} delle italiane. Chi in Italia non ha una casa o un lavoro stabile ottiene più difficilmente gli arresti domiciliari o altre misure al posto del carcere, mentre aspetta. Le donne sono ${pctA("il", (100 * D.sex.donne.ALL[L]) / I.ALL[L])} delle persone detenute, e tra loro la quota senza condanna definitiva è vicina a quella degli uomini.`;
+      ? `The gap between foreign nationals and Italians has been there in every year since ${y0}: at the end of ${last}, ${nf1.format(awStr)}% of foreign nationals in prison were awaiting their first trial, against ${nf1.format(awIt)}% of Italians. One possible explanation, which these figures cannot test: house arrest requires a home, so people without a home or a stable job in Italy obtain it less easily while they wait. Women are ${nf1.format((100 * D.sex.donne.ALL[L]) / I.ALL[L])}% of everyone in prison, and among them the share without a final conviction is ${ndW < ndM ? "a little lower than" : "a little higher than"} the men’s (${nf1.format(ndW)}% against ${nf1.format(ndM)}%).`
+      : `Lo scarto tra persone straniere e italiane c’è in ogni anno dal ${y0}: a fine ${last} era in attesa del primo giudizio ${pctA("il", awStr)} delle persone straniere detenute, contro ${pctA("il", awIt)} delle italiane. Una spiegazione possibile, che questi dati non permettono di verificare: per gli arresti domiciliari serve una casa, e chi in Italia non ha una casa o un lavoro stabile li ottiene più difficilmente, mentre aspetta. Le donne sono ${pctA("il", (100 * D.sex.donne.ALL[L]) / I.ALL[L])} delle persone detenute, e tra loro la quota senza condanna definitiva è ${ndW < ndM ? "un po’ più bassa" : "un po’ più alta"} di quella degli uomini (${nf1.format(ndW)}% contro ${nf1.format(ndM)}%).`;
 
     renderCautRegions();
     renderCautMeasures();
@@ -3663,14 +3711,15 @@
       { name: EN ? "All measures" : "Tutte le misure", parts: parts(X.totale), strong: true },
     ], cats);
     const free = (r) => r[4] + r[5], cust = ["carcere", "domiciliari", "braccialetto", "cura"];
-    const susp = d3.sum(cust, (k) => X[k][1] + X[k][3]);
+    // sospensione condizionale dopo carcere o domiciliari (con o senza braccialetto): sulle misure di questo tipo e su tutte
+    const cd = ["carcere", "domiciliari", "braccialetto"], susp = d3.sum(cd, (k) => X[k][1] + X[k][3]), custDef = d3.sum(cd, (k) => d3.sum(X[k]));
     const shareDef = (100 * def) / C.misure.totale[Lr];
     $("#caut-out-sub").textContent = EN
       ? `How the ${nf0.format(def)} measures ordered in ${lastR} in proceedings that also ended in ${lastR} turned out, by type of measure. The number on the right is how many measures; judgments may still be appealed.`
       : `Come sono finite le ${nf0.format(def)} misure disposte nel ${lastR} in procedimenti chiusi nello stesso anno, per tipo di misura. A destra quante sono; le sentenze possono non essere definitive.`;
     $("#caut-out-note").textContent = EN
-      ? `Read with care: this covers only ${nf1.format(shareDef)}% of the measures ordered in ${lastR}, those in proceedings that ended within the same year. These are short proceedings; for the longer ones the outcome is not yet known, and the report does not follow them into later years. Within that limit, ${nf1.format((100 * free(X.carcere)) / d3.sum(X.carcere))}% of the orders for custody in prison ended in an acquittal or with the case dropped. And ${nf0.format(susp)} orders for prison or house arrest were followed by a suspended sentence, although the law (art. 275(2-bis) of the Code of Criminal Procedure) rules out both measures when the judge expects the sentence to be suspended. The Ministry considers it a marginal figure: ${nf1.format((100 * susp) / def)}% of the measures. The report counts measures, not people: one person can receive more than one.`
-      : `Da leggere con cautela: qui c’è solo ${pctA("il", shareDef)} delle misure disposte nel ${lastR}, quelle dei procedimenti chiusi entro lo stesso anno. Sono procedimenti brevi; per quelli più lunghi l’esito non è ancora noto, e la relazione non li segue negli anni successivi. Con questo limite, ${pctA("il", (100 * free(X.carcere)) / d3.sum(X.carcere))} delle custodie cautelari in carcere si è chiuso con un’assoluzione o un proscioglimento. E ${nf0.format(susp)} misure di carcere o di domiciliari sono state seguite da una condanna con la sospensione condizionale della pena, anche se la legge (art. 275, comma 2 bis c.p.p.) esclude le due misure quando il giudice prevede che la pena sarà sospesa. Il Ministero lo considera un dato marginale: ${pctA("il", (100 * susp) / def)} delle misure. La relazione conta misure, non persone: una persona può riceverne più d’una.`;
+      ? `Read with care: this covers only ${nf1.format(shareDef)}% of the measures ordered in ${lastR}, those in proceedings that ended within the same year. These are short proceedings; for the longer ones the outcome is not yet known, and the report does not follow them into later years. Within that limit, ${nf1.format((100 * free(X.carcere)) / d3.sum(X.carcere))}% of the orders for custody in prison ended in an acquittal or with the case dropped. And ${nf0.format(susp)} orders for prison or house arrest were followed by a suspended sentence, although the law (art. 275(2-bis) of the Code of Criminal Procedure) rules out both measures when the judge expects the sentence to be suspended. The Ministry considers it a marginal figure: ${nf1.format((100 * susp) / custDef)}% of the orders for prison or house arrest in these proceedings, ${nf1.format((100 * susp) / def)}% of all measures. The report counts measures, not people: one person can receive more than one.`
+      : `Da leggere con cautela: qui c’è solo ${pctA("il", shareDef)} delle misure disposte nel ${lastR}, quelle dei procedimenti chiusi entro lo stesso anno. Sono procedimenti brevi; per quelli più lunghi l’esito non è ancora noto, e la relazione non li segue negli anni successivi. Con questo limite, ${pctA("il", (100 * free(X.carcere)) / d3.sum(X.carcere))} delle custodie cautelari in carcere si è chiuso con un’assoluzione o un proscioglimento. E ${nf0.format(susp)} misure di carcere o di domiciliari sono state seguite da una condanna con la sospensione condizionale della pena, anche se la legge (art. 275, comma 2 bis c.p.p.) esclude le due misure quando il giudice prevede che la pena sarà sospesa. Il Ministero lo considera un dato marginale: è ${pctA("il", (100 * susp) / custDef)} delle misure di carcere e domiciliari di questi procedimenti, ${pctA("il", (100 * susp) / def)} di tutte le misure. La relazione conta misure, non persone: una persona può riceverne più d’una.`;
   }
 
   function renderCautRepair() {
@@ -3740,10 +3789,13 @@
         { by: "dist", sqrt: true, label: EN ? `Map of court districts: ${T[mode][1]}` : `Carta dei distretti di Corte d’appello: ${T[mode][1]}`, legend: T[mode][1], fmt: (v) => nf0.format(v) });
     }
     const top = rows[0], second = rows[1];
-    const xIt = (r) => ((1e5 * r.o) / r.d.pop) / ((1e5 * ordIt) / popIt);
+    // il rapporto con l'Italia segue la misura scelta: euro per abitante con «euro», ordinanze per abitante altrimenti
+    const eur = mode === "eur", xIt = (r) => (eur ? (r.e / r.d.pop) / (payIt / popIt) : ((1e5 * r.o) / r.d.pop) / ((1e5 * ordIt) / popIt));
+    const first = (f) => R.distretti.reduce((p, q) => (f(q) > f(p) ? q : p));
+    const every = first((d) => d3.sum(d.ordinanze) / d.pop) === top.d && first((d) => d3.sum(d.importi) / d.pop) === top.d;
     $("#caut-dist-note").textContent = EN
-      ? `${top.d.name} stands out in every measure: ${nf0.format(top.o)} orders and €${nf1.format(top.e / 1e6)} million over seven years, for a district of ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} residents, ${nf0.format(xIt(top))} times the national rate. ${second.d.name} follows. The report does not say which proceedings the orders come from or when the custody began: a single large trial ending in many acquittals can fill several years of payments.`
-      : `${top.d.name} spicca in ogni misura: ${nf0.format(top.o)} ordinanze e ${nf1.format(top.e / 1e6)} milioni di euro in sette anni, per un distretto di ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} abitanti, ${nf0.format(xIt(top))} volte la media italiana. Segue ${second.d.name}. La relazione non dice da quali procedimenti vengano le ordinanze né quando sia cominciata la custodia: un solo grande processo che finisce con molte assoluzioni può riempire più anni di pagamenti.`;
+      ? `${top.d.name} stands out${every ? " in every measure" : ""}: ${nf0.format(top.o)} orders and €${nf1.format(top.e / 1e6)} million over ${Yr.length} years, for a district of ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} residents, ${nf0.format(xIt(top))} times the national ${eur ? "payments per resident" : "rate of orders per resident"}. ${second.d.name} follows. The report does not say which proceedings the orders come from or when the custody began: a single large trial ending in many acquittals can fill several years of payments.`
+      : `${top.d.name} spicca${every ? " in ogni misura" : ""}: ${nf0.format(top.o)} ordinanze e ${nf1.format(top.e / 1e6)} milioni di euro in ${Yr.length} anni, per un distretto di ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} abitanti, ${nf0.format(xIt(top))} volte la media italiana ${eur ? "dei pagamenti per abitante" : "delle ordinanze per abitante"}. Segue ${second.d.name}. La relazione non dice da quali procedimenti vengano le ordinanze né quando sia cominciata la custodia: un solo grande processo che finisce con molte assoluzioni può riempire più anni di pagamenti.`;
   }
 
   // ------------------------------------------------------------------ carcere per carcere (affollamento e morti negli istituti)
@@ -3907,16 +3959,18 @@
     const [s25, a25, n25, x25, t25] = D.morti_totale_testo, Gs = D.garante, yG = Gs.anni[Gs.anni.length - 1];
     const record = Gs.totale.slice(0, -1).every((v) => v < t25);
     const E = D.eventi, iE = E.anni.indexOf(yG), Ri = D.ristretti.anni.indexOf(yG), Ai = D.antigone.anni.indexOf(yG);
-    const counts = [E.suicidi[iE], Gs.suicidi[Gs.anni.length - 1], D.ristretti.suicidi[Ri], Ai >= 0 ? D.antigone.suicidi[Ai] : null].filter((v) => v != null);
+    // tre conteggi sulle carceri per adulti; Antigone conta anche REMS e istituti per minorenni, quindi a parte
+    const counts = [E.suicidi[iE], Gs.suicidi[Gs.anni.length - 1], D.ristretti.suicidi[Ri]].filter((v) => v != null), ant = Ai >= 0 ? D.antigone.suicidi[Ai] : null;
+    const lg = Gs.anni.length - 1, ext = ((Gs.esterno_suicidi || [])[lg] || 0) + ((Gs.esterno_naturali || [])[lg] || 0);
     $("#ist-facts").innerHTML = EN ? `
       <div class="fact"><div class="fv">${over.length}<small>of ${live.length}</small></div><div class="fl">prisons held more people than official places at the end of ${monthLong(last)}; in ${over150.length}, at least one and a half times as many.</div></div>
       <div class="fact"><div class="fv">+${nf0.format(pres - I.pres[iMin])}</div><div class="fl">people in prison compared with ${monthLong(M[iMin])}, the lowest point since ${M[0].slice(0, 4)}. Official places changed by ${dCap >= 0 ? "+" : "−"}${nf0.format(Math.abs(dCap))}.</div></div>
-      <div class="fact"><div class="fv">${nf0.format(t25)}</div><div class="fl">deaths in prison recorded by the prison administration in ${yG}${record ? `, the highest since the series began in ${Gs.anni[0]}` : ""}: ${s25} suicides, ${n25} from natural causes, ${a25} with the cause still to be established.</div></div>
-      <div class="fact"><div class="fv">${d3.min(counts)}–${d3.max(counts)}</div><div class="fl">suicides in prison in ${yG}, depending on who counts them: the Ministry, the National Guarantor, Ristretti Orizzonti or Antigone.</div></div>` : `
+      <div class="fact"><div class="fv">${nf0.format(t25)}</div><div class="fl">deaths in prison recorded by the prison administration in ${yG}${record ? `, the highest since the series began in ${Gs.anni[0]}` : ""}: ${s25} suicides, ${n25} from natural causes, ${a25} with the cause still to be established, ${x25} accidental${ext ? `; ${ext} of them recorded outside the institution (in hospital, during a transfer or on leave)` : ""}.</div></div>
+      <div class="fact"><div class="fv">${d3.min(counts)}–${d3.max(counts)}</div><div class="fl">suicides in adult prisons in ${yG}, depending on who counts them: the Ministry, the National Guarantor or Ristretti Orizzonti${ant != null ? `. Antigone, which also counts REMS and juvenile institutions, counts ${ant}` : ""}.</div></div>` : `
       <div class="fact"><div class="fv">${over.length}<small>su ${live.length}</small></div><div class="fl">carceri avevano più persone che posti regolamentari a fine ${monthLong(last)}; in ${over150.length} le persone erano almeno una volta e mezzo i posti.</div></div>
       <div class="fact"><div class="fv">+${nf0.format(pres - I.pres[iMin])}</div><div class="fl">persone detenute rispetto a ${monthLong(M[iMin])}, il punto più basso dal ${M[0].slice(0, 4)}. I posti regolamentari sono cambiati di ${dCap >= 0 ? "+" : "−"}${nf0.format(Math.abs(dCap))}.</div></div>
-      <div class="fact"><div class="fv">${nf0.format(t25)}</div><div class="fl">morti in carcere registrate dall’amministrazione penitenziaria nel ${yG}${record ? `, il numero più alto dall’inizio della serie, nel ${Gs.anni[0]}` : ""}: ${s25} suicidi, ${n25} per cause naturali, ${a25} con la causa ancora da accertare.</div></div>
-      <div class="fact"><div class="fv">${d3.min(counts)}–${d3.max(counts)}</div><div class="fl">suicidi in carcere nel ${yG}, a seconda di chi li conta: il Ministero, il Garante nazionale, Ristretti Orizzonti o Antigone.</div></div>`;
+      <div class="fact"><div class="fv">${nf0.format(t25)}</div><div class="fl">morti in carcere registrate dall’amministrazione penitenziaria nel ${yG}${record ? `, il numero più alto dall’inizio della serie, nel ${Gs.anni[0]}` : ""}: ${s25} suicidi, ${n25} per cause naturali, ${a25} con la causa ancora da accertare, ${x25} per incidente${ext ? `; ${ext} registrate fuori dall’istituto (in ospedale, durante un trasferimento o un permesso)` : ""}.</div></div>
+      <div class="fact"><div class="fv">${d3.min(counts)}–${d3.max(counts)}</div><div class="fl">suicidi nelle carceri per adulti nel ${yG}, a seconda di chi li conta: il Ministero, il Garante nazionale o Ristretti Orizzonti${ant != null ? `. Antigone, che conta anche le REMS e gli istituti per minorenni, ne conta ${ant}` : ""}.</div></div>`;
 
     renderIstTime();
     renderIstMap();
@@ -3951,10 +4005,10 @@
           : `<b>${monthLong(M[i])}</b><br>${nf0.format(I.pres[i])} persone<br>${nf0.format(I.cap[i])} posti regolamentari (${nf0.format(Math.round(r(i)))} persone ogni 100)${p ? `<br>${nf0.format(p[2])} posti disponibili al ${dayLong(isoDate(p[0]))}` : ""}`;
       },
     });
-    const iFeb = M.indexOf("2020-02"), iMin = d3.minIndex(I.pres), i20 = d3.minIndex(I.pres, (v, i) => (M[i] >= "2020-03" && M[i] <= "2020-06" ? v : Infinity)), pMax = d3.maxIndex(pts, (p) => p[2]), pL = pts[pts.length - 1];
+    const iFeb = M.indexOf("2020-02"), iMin = d3.minIndex(I.pres), i20 = d3.minIndex(I.pres, (v, i) => (M[i] >= "2020-03" && M[i] <= "2020-06" ? v : Infinity)), p0 = pts[0], pL = pts[pts.length - 1];
     $("#ist-time-note").textContent = EN
-      ? `In spring 2020, during the epidemic, the number of people in prison fell from ${nf0.format(I.pres[iFeb])} at the end of February to ${nf0.format(I.pres[i20])} at the end of ${monthLong(M[i20]).replace(/ \d{4}$/, "")}, and stayed around that level until ${monthLong(M[iMin])} (${nf0.format(I.pres[iMin])}). Since then it has grown again: ${nf0.format(I.pres[iL])} at the end of ${monthLong(M[iL])}. Official places have stayed between ${nf0.format(d3.min(I.cap))} and ${nf0.format(d3.max(I.cap))}. The places that can actually be used are fewer and, according to the Guarantor, have fallen from ${nf0.format(pts[pMax][2])} in ${monthLong(pts[pMax][0].slice(0, 7))} to ${nf0.format(pL[2])} in ${monthLong(pL[0].slice(0, 7))}: cells and wings closed for works or because they cannot be used.`
-      : `Nella primavera del 2020, con l’epidemia, le persone detenute scesero da ${nf0.format(I.pres[iFeb])} a fine febbraio a ${nf0.format(I.pres[i20])} a fine ${monthLong(M[i20]).replace(/ \d{4}$/, "")}, e restarono intorno a quel livello fino a ${monthLong(M[iMin])} (${nf0.format(I.pres[iMin])}). Da allora sono tornate a crescere: ${nf0.format(I.pres[iL])} a fine ${monthLong(M[iL])}. I posti regolamentari sono rimasti tra ${nf0.format(d3.min(I.cap))} e ${nf0.format(d3.max(I.cap))}. Quelli che si possono davvero usare sono meno e, secondo il Garante, sono scesi dai ${nf0.format(pts[pMax][2])} di ${monthLong(pts[pMax][0].slice(0, 7))} ai ${nf0.format(pL[2])} di ${monthLong(pL[0].slice(0, 7))}: celle e sezioni chiuse per lavori o perché inagibili.`;
+      ? `In spring 2020, during the epidemic, the number of people in prison fell from ${nf0.format(I.pres[iFeb])} at the end of February to ${nf0.format(I.pres[i20])} at the end of ${monthLong(M[i20]).replace(/ \d{4}$/, "")}, and stayed around that level until ${monthLong(M[iMin])} (${nf0.format(I.pres[iMin])}). Since then it has grown again: ${nf0.format(I.pres[iL])} at the end of ${monthLong(M[iL])}. Official places have stayed between ${nf0.format(d3.min(I.cap))} and ${nf0.format(d3.max(I.cap))}. The places that can actually be used are fewer: according to the Guarantor there were ${nf0.format(p0[2])} in ${monthLong(p0[0].slice(0, 7))} and ${nf0.format(pL[2])} in ${monthLong(pL[0].slice(0, 7))}, while the people present on the same dates went from ${nf0.format(p0[1])} to ${nf0.format(pL[1])}. The gap is made of cells and wings closed for works or because they cannot be used.`
+      : `Nella primavera del 2020, con l’epidemia, le persone detenute scesero da ${nf0.format(I.pres[iFeb])} a fine febbraio a ${nf0.format(I.pres[i20])} a fine ${monthLong(M[i20]).replace(/ \d{4}$/, "")}, e restarono intorno a quel livello fino a ${monthLong(M[iMin])} (${nf0.format(I.pres[iMin])}). Da allora sono tornate a crescere: ${nf0.format(I.pres[iL])} a fine ${monthLong(M[iL])}. I posti regolamentari sono rimasti tra ${nf0.format(d3.min(I.cap))} e ${nf0.format(d3.max(I.cap))}. Quelli che si possono davvero usare sono meno: secondo il Garante erano ${nf0.format(p0[2])} a ${monthLong(p0[0].slice(0, 7))} e sono ${nf0.format(pL[2])} a ${monthLong(pL[0].slice(0, 7))}, mentre le persone presenti, negli stessi giorni, sono passate da ${nf0.format(p0[1])} a ${nf0.format(pL[1])}. La differenza sono celle e sezioni chiuse per lavori o perché inagibili.`;
   }
 
   function istTipText(x) {
@@ -4010,16 +4064,19 @@
 
     // i più affollati, con un asterisco quelli piccoli
     const top = rows.filter((d) => d.v != null).sort((a, b) => b.v - a.v).slice(0, 12);
-    barList($("#ist-rank"), top.map((d) => ({ name: d.x.nome, v: d.v, few: d.n < 100, title: istTipText(d.x).replace(/<br>/g, " · ").replace(/<[^>]+>/g, "") })), { max: top[0].v * 1.02, ref: itv, fmt: (v) => nf0.format(v) });
+    // con i posti del Garante, † sulle carceri i cui posti sono ricavati dal tasso (nel report la colonna ripete le persone)
+    const rebuilt = (x) => mode === "disp" && x.posti_dal_tasso;
+    barList($("#ist-rank"), top.map((d) => ({ name: d.x.nome + (rebuilt(d.x) ? " †" : ""), v: d.v, few: d.n < 100, title: istTipText(d.x).replace(/<br>/g, " · ").replace(/<[^>]+>/g, "") })), { max: top[0].v * 1.02, ref: itv, fmt: (v) => nf0.format(v) });
     $("#ist-rank").querySelectorAll("li").forEach((li, j) => { li.dataset.id = top[j].x.id; });
     const empty = D.istituti.filter((x) => x.pres[iL] != null && !istAlive(x, iL)), abroad = D.istituti.filter((x) => istAlive(x, iL) && !x.pt);
     const noG = rows.filter((d) => d.v == null).map((d) => d.x.nome);
+    const daggerNote = top.some((d) => rebuilt(d.x)) ? L(" † Posti ricavati dal tasso di sovraffollamento del Garante: nel suo report, per queste carceri, la colonna dei posti ripete il numero delle persone.", " † Places derived from the Guarantor’s crowding rate: in its report, for these prisons, the places column repeats the number of people.") : "";
     $("#ist-map-note").textContent = (EN
       ? `The bars are the ${top.length} most crowded prisons; the line is Italy. An asterisk marks prisons with fewer than 100 people, where a few arrivals change the figure a lot. The figure is for the whole institution: within the same prison some wings can be far more crowded than others.`
       : `Le barre sono le ${top.length} carceri più affollate, la linea è l’Italia. L’asterisco indica le carceri con meno di 100 persone, dove pochi ingressi cambiano molto il dato. Il dato è dell’istituto intero: nello stesso carcere alcune sezioni possono essere molto più piene di altre.`)
       + (empty.length ? (EN ? ` Not shown: ${empty.map((x) => x.nome).join(" and ")}, with nobody held at the end of ${monthLong(last)}.` : ` Mancano ${empty.map((x) => x.nome).join(" e ")}, dove a fine ${monthLong(last)} non c’era nessuno.`) : "")
       + (abroad.length ? L(` ${abroad.map((x) => x.nome).join(", ")} non è sulla carta.`, ` ${abroad.map((x) => x.nome).join(", ")} is not on the map.`) : "")
-      + (mode === "disp" && noG.length ? L(` Senza i posti del Garante: ${noG.join(", ")}.`, ` No Guarantor figures for: ${noG.join(", ")}.`) : "");
+      + (mode === "disp" && noG.length ? L(` Senza i posti del Garante: ${noG.join(", ")}.`, ` No Guarantor figures for: ${noG.join(", ")}.`) : "") + daggerNote;
 
     // l'elenco per scegliere un carcere, per regione
     const pick = $("#ist-pick");
@@ -4162,15 +4219,15 @@
     const alike = rows.filter((d) => !fvg(d) && d.s >= F.s - 1 && d.y < 25).sort((a, b) => b.d.all - a.d.all).slice(0, 3);
     const names = (xs) => xs.map((d) => d.d.name).join(EN ? ", " : ", ").replace(/, ([^,]*)$/, EN ? " and $1" : " e $1");
     $("#ist-reg-note").innerHTML = EN
-      ? `The page on <a href="custodia-cautelare.html#regioni">pre-trial detention</a> left a question open: why ${nf1.format(F.y)}% of the people held in Friuli-Venezia Giulia have no final conviction, the highest share in Italy. One possible explanation is the type of prison: people awaiting trial are held in remand prisons, and Friuli-Venezia Giulia has only those, five of them. The data support this only in part. Across regions, the more weight remand prisons have, the higher the share without a final conviction tends to be (correlation ${nf2.format(R.r)}). But ${names(same)} also have only remand prisons, and there the share ranges from ${nf1.format(lowOthers[0])}% to ${nf1.format(lowOthers[1])}%. Foreign nationals, who are more often awaiting trial, do not explain it either: they are ${nf1.format(F.s)}% of the people held in Friuli-Venezia Giulia, about as many as in ${names(alike)}, where the share without a final conviction is below 25%.${k < ser.length - 3 ? ` Nor is it a one-year blip: the share has been above 40% every year since ${yrs[k]}.` : ""} The type of prison explains part of the differences between regions, not the one in Friuli-Venezia Giulia. To understand it, one would need the legal status of people prison by prison, which the Ministry does not publish.`
-      : `Nell’approfondimento sulla <a href="custodia-cautelare.html#regioni">custodia cautelare</a> restava una domanda: perché in Friuli-Venezia Giulia ${pctA("il", F.y)} delle persone detenute non ha una condanna definitiva, la quota più alta d’Italia. Una spiegazione possibile è il tipo di carcere: chi aspetta il processo sta nelle case circondariali, e in Friuli-Venezia Giulia ci sono solo quelle, cinque. I dati la sostengono solo in parte. Tra le regioni, dove pesano di più le case circondariali la quota senza condanna definitiva tende a essere più alta (correlazione ${nf2.format(R.r)}). Ma anche ${names(same)} hanno solo case circondariali, e lì la quota va ${pctA("dal", lowOthers[0])} ${pctA("al", lowOthers[1])}. Non bastano a spiegarla nemmeno le persone straniere, più spesso in attesa di giudizio: in Friuli-Venezia Giulia sono ${pctA("il", F.s)} delle persone detenute, più o meno quante in ${names(alike)}, dove la quota senza condanna definitiva è sotto il 25%.${k < ser.length - 3 ? ` E non è il dato di un anno: la quota è sopra il 40% in ogni anno dal ${yrs[k]}.` : ""} Il tipo di carcere spiega una parte delle differenze tra le regioni, non quella del Friuli-Venezia Giulia. Per capirla servirebbe la posizione giuridica delle persone carcere per carcere, che il Ministero non pubblica.`;
+      ? `The page on <a href="custodia-cautelare.html#regioni">pre-trial detention</a> left a question open: why ${nf1.format(F.y)}% of the people held in Friuli-Venezia Giulia have no final conviction, the highest share in Italy. One possible explanation is the type of prison: people awaiting trial are held in remand prisons, and Friuli-Venezia Giulia has only those, five of them. The data support this only in part. Across regions, the more weight remand prisons have, the higher the share without a final conviction tends to be (correlation ${nf2.format(R.r)}). But ${names(same)} also have only remand prisons, and there the share ranges from ${nf1.format(lowOthers[0])}% to ${nf1.format(lowOthers[1])}%. Foreign nationals, who are more often awaiting trial, do not explain it either: they are ${nf1.format(F.s)}% of the people held in Friuli-Venezia Giulia, at least as many as in ${names(alike)}, where the share without a final conviction is below 25%.${k < ser.length - 3 ? ` Nor is it a one-year blip: the share has been above 40% every year since ${yrs[k]}.` : ""} The type of prison goes together with part of the differences between regions, not with the one in Friuli-Venezia Giulia. To understand it, one would need the legal status of people prison by prison, which the Ministry does not publish.`
+      : `Nell’approfondimento sulla <a href="custodia-cautelare.html#regioni">custodia cautelare</a> restava una domanda: perché in Friuli-Venezia Giulia ${pctA("il", F.y)} delle persone detenute non ha una condanna definitiva, la quota più alta d’Italia. Una spiegazione possibile è il tipo di carcere: chi aspetta il processo sta nelle case circondariali, e in Friuli-Venezia Giulia ci sono solo quelle, cinque. I dati la sostengono solo in parte. Tra le regioni, dove pesano di più le case circondariali la quota senza condanna definitiva tende a essere più alta (correlazione ${nf2.format(R.r)}). Ma anche ${names(same)} hanno solo case circondariali, e lì la quota va ${pctA("dal", lowOthers[0])} ${pctA("al", lowOthers[1])}. Non bastano a spiegarla nemmeno le persone straniere, più spesso in attesa di giudizio: in Friuli-Venezia Giulia sono ${pctA("il", F.s)} delle persone detenute, almeno quante in ${names(alike)}, dove la quota senza condanna definitiva è sotto il 25%.${k < ser.length - 3 ? ` E non è il dato di un anno: la quota è sopra il 40% in ogni anno dal ${yrs[k]}.` : ""} Il tipo di carcere va di pari passo con una parte delle differenze tra le regioni, non con quella del Friuli-Venezia Giulia. Per capirla servirebbe la posizione giuridica delle persone carcere per carcere, che il Ministero non pubblica.`;
   }
 
   function renderIstDeaths() {
     const D = IST, E = D.eventi, G = D.garante, R = D.ristretti, A = D.antigone, M = D.meta.months;
     const yG = G.anni[G.anni.length - 1], [s25, a25, n25, x25, t25] = D.morti_totale_testo, g26 = G.anno_2026;
     const record = G.totale.slice(0, -1).every((v) => v < t25);
-    $("#ist-death-title").textContent = EN ? `${nf0.format(t25)} people died in prison in ${yG}` : `Nel ${yG} sono morte in carcere ${nf0.format(t25)} persone`;
+    $("#ist-death-title").textContent = EN ? `${nf0.format(t25)} people in prison died in ${yG}` : `Nel ${yG} sono morte ${nf0.format(t25)} persone detenute`;
     $("#ist-death-sub").textContent = EN
       ? `So says the National Guarantor, from prison administration records: ${s25} suicides, ${n25} deaths from natural causes, ${a25} with the cause still to be established, ${x25} accidental.${record ? ` It is the highest number in its series, which starts in ${G.anni[0]}.` : ""}${g26 ? ` From 1 January to ${dayLong(isoDate(g26.fino_al))} the deaths recorded were ${g26.totale}, of which ${g26.suicidi} suicides.` : ""}`
       : `Lo dice il Garante nazionale, sui dati dell’amministrazione penitenziaria: ${s25} suicidi, ${n25} morti per cause naturali, ${a25} con la causa ancora da accertare, ${x25} per incidente.${record ? ` È il numero più alto della sua serie, che comincia nel ${G.anni[0]}.` : ""}${g26 ? ` Dal 1° gennaio ${dayArt(isoDate(g26.fino_al)).replace(/^il /, "al ").replace(/^l’/, "all’")} le morti registrate sono ${g26.totale}, i suicidi ${g26.suicidi}.` : ""}`;
@@ -4209,18 +4266,18 @@
     $("#ist-counters").insertAdjacentHTML("beforeend", `<ul class="ist-key">${[["var(--rise)", "Ristretti Orizzonti"], ["var(--fall)", L("Garante nazionale", "National Guarantor")], ["var(--ink)", L("Ministero della Giustizia", "Ministry of Justice")], ["var(--gold)", L("Antigone (almeno)", "Antigone (at least)")]].map(([c, n]) => `<li><i style="background:${c}"></i>${n}</li>`).join("")}</ul>`);
     const iMax = d3.maxIndex(rs);
     $("#ist-rates-note").textContent = EN
-      ? `In ${yE[iE]} the Ministry counted ${nf1.format(rs[iE])} suicides per 10,000 people held; the highest rate in the series was in ${yE[iMax]} (${nf1.format(rs[iMax])}). Deaths from natural causes were ${nf1.format(rn[iE])} per 10,000. People in prison are almost all adult men, so these rates cannot be compared directly with those of the general population. On the right, the four counts of suicides: until ${yC[cR.findIndex((v, i) => v !== cG[i]) - 1]} Ristretti Orizzonti and the Guarantor give the same numbers, then they part ways.`
-      : `Nel ${yE[iE]} il Ministero ha contato ${nf1.format(rs[iE])} suicidi ogni 10.000 persone detenute; il tasso più alto della serie è del ${yE[iMax]} (${nf1.format(rs[iMax])}). Le morti per cause naturali sono state ${nf1.format(rn[iE])} ogni 10.000. Le persone detenute sono quasi tutte uomini adulti: questi tassi non si confrontano direttamente con quelli della popolazione. A destra i quattro conteggi dei suicidi: fino al ${yC[cR.findIndex((v, i) => v !== cG[i]) - 1]} Ristretti Orizzonti e il Garante danno gli stessi numeri, poi si separano.`;
+      ? `In ${yE[iE]} the Ministry counted ${nf1.format(rs[iE])} suicides per 10,000 people held; the highest rate in the series was in ${yE[iMax]} (${nf1.format(rs[iMax])}). Deaths from natural causes were ${nf1.format(rn[iE])} per 10,000. People in prison are almost all adult men, so these rates cannot be compared directly with those of the general population. On the right, the four counts of suicides: until ${yC[cR.findIndex((v, i) => v !== cG[i]) - 1]} Ristretti Orizzonti and the Guarantor give exactly the same numbers, year by year: more likely the same list of cases than two independent counts that agree (Ristretti’s dossier links to the Guarantor’s reports and does not say where its figures since 2015 come from). Then they part ways.`
+      : `Nel ${yE[iE]} il Ministero ha contato ${nf1.format(rs[iE])} suicidi ogni 10.000 persone detenute; il tasso più alto della serie è del ${yE[iMax]} (${nf1.format(rs[iMax])}). Le morti per cause naturali sono state ${nf1.format(rn[iE])} ogni 10.000. Le persone detenute sono quasi tutte uomini adulti: questi tassi non si confrontano direttamente con quelli della popolazione. A destra i quattro conteggi dei suicidi: fino al ${yC[cR.findIndex((v, i) => v !== cG[i]) - 1]} Ristretti Orizzonti e il Garante danno esattamente gli stessi numeri, anno per anno: più probabilmente lo stesso elenco di casi che due conteggi indipendenti che si confermano (il dossier di Ristretti rimanda ai report del Garante e non dice da dove vengano i suoi numeri dal 2015). Poi si separano.`;
 
     // chi conta che cosa, negli ultimi tre anni
     const ys = yC.slice(-3), col = (vs) => ys.map((y) => { const v = vs[yC.indexOf(y)]; return `<td class="num">${v == null ? "–" : v}</td>`; }).join("");
     const rowsT = EN ? [
-      ["Ministry of Justice", "Suicides inside the institution, in its series on critical events", cM],
+      ["Ministry of Justice", "Suicides in its series on critical events", cM],
       ["National Guarantor", "The same prison administration records, including people in custody who died outside the institution: in hospital, during a transfer or on leave", cG],
       ["Ristretti Orizzonti", "A dossier kept since 1992 from news reports, alerts and official data; it also counts cases the administration classifies otherwise", cR],
       ["Antigone", "Cross-checks Ristretti and the Guarantor; it also counts suicides in REMS and in juvenile institutions (“at least”)", cA],
     ] : [
-      ["Ministero della Giustizia", "Suicidi dentro l’istituto, nella serie degli eventi critici", cM],
+      ["Ministero della Giustizia", "Suicidi nella serie degli eventi critici", cM],
       ["Garante nazionale", "Gli stessi archivi dell’amministrazione penitenziaria, con le persone detenute morte fuori dall’istituto: in ospedale, durante un trasferimento o un permesso", cG],
       ["Ristretti Orizzonti", "Un dossier tenuto dal 1992 su notizie, segnalazioni e dati ufficiali; conta anche casi che l’amministrazione classifica in altro modo", cR],
       ["Antigone", "Incrocia Ristretti e Garante; conta anche i suicidi nelle REMS e negli istituti per minorenni («almeno»)", cA],
@@ -4236,14 +4293,14 @@
     const list = (xs) => xs.join(", ").replace(/, ([^,]*)$/, EN ? " and $1" : " e $1");
     const why = EN ? [
       `<b>Inside or outside the institution.</b> The Ministry and the Guarantor read the same prison administration records. The comparison suggests that the Ministry counts only those who die inside the institution: in ${list(same)} the gap is exactly the number of suicides the Guarantor records as happening outside the institution; in ${list(notSame)} it comes close but does not add up.`,
-      `<b>Uncertain cases.</b> Ristretti Orizzonti also counts deaths the administration has not classified as suicide, when the intention is hard to establish, and people who died in hospital shortly afterwards. In ${yC[iY]} it counts ${cR[iY] - cG[iY]} more cases than the Guarantor, in ${yC[iY1]} ${cR[iY1] - cG[iY1]} more. One of the ${yC[iY]} cases was in a juvenile institution, outside the adult prison statistics.`,
-      `<b>Other places of detention.</b> Antigone starts from Ristretti and the Guarantor and adds suicides in REMS, the health facilities for people found not criminally responsible, which come under the Ministry of Health. That is why it writes “at least”.`,
+      `<b>Uncertain cases.</b> Ristretti Orizzonti also counts deaths the administration has not classified as suicide, when the intention is hard to establish, and people who died in hospital shortly afterwards. In ${yC[iY]} it counts ${cR[iY] - cG[iY]} more cases than the Guarantor, in ${yC[iY1]} ${cR[iY1] - cG[iY1]} more.`,
+      `<b>Other places of detention.</b> Antigone starts from Ristretti and the Guarantor and adds suicides in REMS, the health facilities for people found not criminally responsible, run by the regional health services. That is why it writes “at least”.`,
       `<b>Causes still to be established.</b> For the Guarantor, ${G.accertare[iY1]} deaths in ${yC[iY1]} and ${G.accertare[iY]} in ${yC[iY]} had no established cause yet. Some may turn out to be suicides once investigations are closed: the administration updates its figures years later.`,
       `<b>Natural causes too.</b> In ${yG} the Ministry counts ${nE} deaths from natural causes, the Guarantor ${nG}, of which ${nX} outside the institution.`,
     ] : [
       `<b>Dentro o fuori dall’istituto.</b> Ministero e Garante leggono gli stessi archivi dell’amministrazione penitenziaria. Il confronto suggerisce che il Ministero conti solo chi muore dentro l’istituto: nel ${list(same)} la differenza è esattamente il numero di suicidi che il Garante segna come avvenuti fuori dall’istituto; nel ${list(notSame)} ci va vicino ma non torna.`,
-      `<b>I casi incerti.</b> Ristretti Orizzonti conta anche morti che l’amministrazione non ha classificato come suicidi, quando l’intenzione è difficile da stabilire, e le persone morte in ospedale poco dopo. Nel ${yC[iY]} conta ${cR[iY] - cG[iY]} casi più del Garante, nel ${yC[iY1]} ${cR[iY1] - cG[iY1]}. Uno dei casi del ${yC[iY]} è in un istituto per minorenni, fuori dalle statistiche delle carceri per adulti.`,
-      `<b>Gli altri luoghi di detenzione.</b> Antigone parte da Ristretti e dal Garante e aggiunge i suicidi nelle REMS, le strutture sanitarie per chi ha commesso un reato ed è stato giudicato non imputabile, che dipendono dal Ministero della Salute. Per questo scrive «almeno».`,
+      `<b>I casi incerti.</b> Ristretti Orizzonti conta anche morti che l’amministrazione non ha classificato come suicidi, quando l’intenzione è difficile da stabilire, e le persone morte in ospedale poco dopo. Nel ${yC[iY]} conta ${cR[iY] - cG[iY]} casi più del Garante, nel ${yC[iY1]} ${cR[iY1] - cG[iY1]}.`,
+      `<b>Gli altri luoghi di detenzione.</b> Antigone parte da Ristretti e dal Garante e aggiunge i suicidi nelle REMS, le strutture sanitarie per chi ha commesso un reato ed è stato giudicato non imputabile, gestite dai servizi sanitari regionali. Per questo scrive «almeno».`,
       `<b>Le cause da accertare.</b> Per il Garante, nel ${yC[iY1]} le morti con la causa ancora da accertare erano ${G.accertare[iY1]}, nel ${yC[iY]} ${G.accertare[iY]}. Alcune potrebbero rivelarsi suicidi a indagini chiuse: l’amministrazione aggiorna i numeri anche anni dopo.`,
       `<b>Anche le morti per malattia.</b> Nel ${yG} il Ministero conta ${nE} morti per cause naturali, il Garante ${nG}, di cui ${nX} fuori dall’istituto.`,
     ];
@@ -4274,22 +4331,22 @@
     const sizeRank = D.istituti.filter((x) => istAlive(x, iL)).sort((a, b) => b.pres[iL] - a.pres[iL]).indexOf(top) + 1;
     $("#ist-where-facts").innerHTML = EN ? `
       <div class="fact"><div class="fv">${withDeath.length}<small>of ${inYear.length}</small></div><div class="fl">prisons with people held in ${yG} where the administration recorded at least one death.</div></div>
-      <div class="fact"><div class="fv">${nf1.format(rate(byT.cc))}<small>vs ${nf1.format(rate(byT.cr))}</small></div><div class="fl">suicides per 10,000 people in ${yG} in remand prisons and in prisons for sentenced people.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(rate(byT.cc))}<small>vs ${nf1.format(rate(byT.cr))}</small></div><div class="fl">suicides per 10,000 people in ${yG} in remand prisons and in prisons for sentenced people (${byT.cc.s} and ${byT.cr.s} suicides counted by the Guarantor).</div></div>
       <div class="fact"><div class="fv">${d3.sum(top.m25)}</div><div class="fl">deaths recorded in ${esc(top.nome)} in ${yG}, ${top.m25[2]} of them from natural causes${sizeRank === 1 ? ". It is the largest prison in Italy" : ""}.</div></div>` : `
       <div class="fact"><div class="fv">${withDeath.length}<small>su ${inYear.length}</small></div><div class="fl">carceri con persone detenute nel ${yG} in cui l’amministrazione ha registrato almeno una morte.</div></div>
-      <div class="fact"><div class="fv">${nf1.format(rate(byT.cc))}<small>vs ${nf1.format(rate(byT.cr))}</small></div><div class="fl">suicidi ogni 10.000 persone nel ${yG} nelle case circondariali e nelle case di reclusione.</div></div>
+      <div class="fact"><div class="fv">${nf1.format(rate(byT.cc))}<small>vs ${nf1.format(rate(byT.cr))}</small></div><div class="fl">suicidi ogni 10.000 persone nel ${yG} nelle case circondariali e nelle case di reclusione (${byT.cc.s} e ${byT.cr.s} suicidi, contati dal Garante).</div></div>
       <div class="fact"><div class="fv">${d3.sum(top.m25)}</div><div class="fl">morti registrate a ${esc(top.nome)} nel ${yG}, ${top.m25[2]} per cause naturali${sizeRank === 1 ? ". È il carcere più grande d’Italia" : ""}.</div></div>`;
     const bandTxt = BANDS.map((b, j) => byB[j] && `${j === 0 ? L("fino a 100", "up to 100") : b[1] === Infinity ? L(`oltre ${b[0]}`, `over ${b[0]}`) : `${b[0]}–${b[1]}`}: ${nf1.format(rate(byB[j]))}`).filter(Boolean).join("; ");
     $("#ist-where-note").textContent = EN
-      ? `Deaths per prison are in the prison profile and in the table above, as counts only. With numbers this small one or two cases change everything, so no rates are calculated prison by prison. Deaths from illness are concentrated in the largest prisons and, probably, in those with a health unit, which also take in sick people from other prisons. In remand prisons, where people arrive straight after arrest and turnover is high, suicides in ${yG} were about twice as frequent as in prisons for sentenced people. Between more and less crowded prisons ${rising ? "suicides rise with crowding" : "there is no steady difference"}: grouping prisons by people per 100 official places in ${yG}, suicides per 10,000 people were ${bandTxt}. These numbers do not say whether overcrowding increases suicides: that would require knowing in which wing and in what conditions each person lived.`
-      : `Le morti carcere per carcere sono nella scheda di ogni istituto e nella tabella più sopra, solo come conteggi: con numeri così piccoli uno o due casi cambiano tutto, e qui non si calcolano tassi carcere per carcere. Le morti per malattia si concentrano nelle carceri più grandi e, probabilmente, in quelle con un reparto sanitario, che ricoverano persone malate anche da altre carceri. Nelle case circondariali, dove si entra subito dopo l’arresto e le persone cambiano di continuo, nel ${yG} i suicidi sono stati circa il doppio che nelle case di reclusione. Tra carceri più e meno affollate ${rising ? "i suicidi crescono con l’affollamento" : "non c’è una differenza regolare"}: raggruppando le carceri per persone ogni 100 posti regolamentari nel ${yG}, i suicidi ogni 10.000 persone sono stati ${bandTxt}. Questi numeri non dicono se il sovraffollamento faccia aumentare i suicidi: servirebbe sapere in che sezione e in che condizioni viveva ogni persona.`;
+      ? `Deaths per prison are in the prison profile and in the table above, as counts only. With numbers this small one or two cases change everything, so no rates are calculated prison by prison. Deaths from illness are concentrated in the largest prisons and, probably, in those with a health unit, which also take in sick people from other prisons. In remand prisons, where people arrive straight after arrest, suicides in ${yG} were ${nf1.format(rate(byT.cc) / rate(byT.cr))} times as frequent as in prisons for sentenced people: ${byT.cc.s} cases against ${byT.cr.s}, too few for a single year to rule out chance on its own. Between more and less crowded prisons ${rising ? "suicides rise with crowding" : "there is no steady difference"}: grouping prisons by people per 100 official places in ${yG}, suicides per 10,000 people were ${bandTxt}. These numbers do not say whether overcrowding increases suicides: that would require knowing in which wing and in what conditions each person lived.`
+      : `Le morti carcere per carcere sono nella scheda di ogni istituto e nella tabella più sopra, solo come conteggi: con numeri così piccoli uno o due casi cambiano tutto, e qui non si calcolano tassi carcere per carcere. Le morti per malattia si concentrano nelle carceri più grandi e, probabilmente, in quelle con un reparto sanitario, che ricoverano persone malate anche da altre carceri. Nelle case circondariali, dove si entra subito dopo l’arresto, nel ${yG} i suicidi sono stati ${nf1.format(rate(byT.cc) / rate(byT.cr))} volte quelli delle case di reclusione: ${byT.cc.s} casi contro ${byT.cr.s}, troppo pochi perché un anno solo escluda il caso. Tra carceri più e meno affollate ${rising ? "i suicidi crescono con l’affollamento" : "non c’è una differenza regolare"}: raggruppando le carceri per persone ogni 100 posti regolamentari nel ${yG}, i suicidi ogni 10.000 persone sono stati ${bandTxt}. Questi numeri non dicono se il sovraffollamento faccia aumentare i suicidi: servirebbe sapere in che sezione e in che condizioni viveva ogni persona.`;
 
     // metodo: posti e morti, con i numeri dei file
     const P = D.posti, p0 = P[0], ir = D.interrogazione, fixed = D.istituti.filter((x) => x.posti_dal_tasso), fixedReg = [...new Set(fixed.map((x) => x.reg))];
     const fixedWhere = EN ? `${fixed.length} prisons${fixedReg.length === 1 ? ` in ${fixedReg[0]}` : ""}` : `${fixed.length} carceri${fixedReg.length === 1 ? ` (${fixedReg[0]})` : ""}`;
     if (has("ist-method-posti")) $("#ist-method-posti").textContent = EN
-      ? `The Guarantor publishes the places that can actually be used, prison by prison, only in some of its reports; the most recent, used here, is from ${dayLong(isoDate(D.meta.garante))}. In that table, for ${fixedWhere}, the places column repeats the number of people, while the crowding rate is calculated on the real places: the places were recovered from the rate (${fixed.map((x) => x.nome).join(", ")}), and their total matches the published national figure (${nf0.format(P[P.length - 1][2])}). The national series, from ${dayLong(isoDate(p0[0]))}, comes from the same reports. The people counted by the Guarantor differ from the Ministry’s by a few units per prison, because they are extracted on a different day; the capacity is the same, prison by prison. A parliamentary question of 7 October 2025 (4/06085) put the effective places at about ${nf0.format(ir.posti)}, for more than ${nf0.format(ir.persone)} people, at ${dayLong(isoDate(ir.data))}.`
-      : `Il Garante pubblica i posti che si possono davvero usare, carcere per carcere, solo in alcuni report; il più recente, usato qui, è ${dayArt(isoDate(D.meta.garante)).replace(/^il /, "del ").replace(/^l’/, "dell’")}. In quella tabella, per ${fixedWhere}, la colonna dei posti ripete le persone, mentre il tasso di affollamento è calcolato sui posti veri: i posti sono stati ricavati dal tasso (${fixed.map((x) => x.nome).join(", ")}), e il loro totale torna con il dato nazionale pubblicato (${nf0.format(P[P.length - 1][2])}). La serie nazionale, dal ${dayLong(isoDate(p0[0]))}, viene dagli stessi report. Le persone contate dal Garante differiscono da quelle del Ministero di poche unità per carcere, perché estratte in un altro giorno; la capienza è la stessa, carcere per carcere. Un’interrogazione parlamentare del 7 ottobre 2025 (4/06085) parlava di circa ${nf0.format(ir.posti)} posti effettivi per oltre ${nf0.format(ir.persone)} persone al ${dayLong(isoDate(ir.data))}.`;
+      ? `The Guarantor publishes the places that can actually be used, prison by prison, only in some of its reports; the most recent, used here, is from ${dayLong(isoDate(D.meta.garante))}. In that table, for ${fixedWhere}, the places column repeats the number of people, while the crowding rate is calculated on the real places: the places were recovered from the rate (${fixed.map((x) => x.nome).join(", ")}), and their total matches the published national figure (${nf0.format(P[P.length - 1][2])}). The national series, from ${dayLong(isoDate(p0[0]))}, comes from the same reports. The people counted by the Guarantor differ from the Ministry’s by a few units per prison, even though both refer to the same day, and the reports do not say why; the capacity is the same, prison by prison. A parliamentary question of 7 October 2025 (4/06085) put the effective places at about ${nf0.format(ir.posti)}, for more than ${nf0.format(ir.persone)} people, at ${dayLong(isoDate(ir.data))}.`
+      : `Il Garante pubblica i posti che si possono davvero usare, carcere per carcere, solo in alcuni report; il più recente, usato qui, è ${dayArt(isoDate(D.meta.garante)).replace(/^il /, "del ").replace(/^l’/, "dell’")}. In quella tabella, per ${fixedWhere}, la colonna dei posti ripete le persone, mentre il tasso di affollamento è calcolato sui posti veri: i posti sono stati ricavati dal tasso (${fixed.map((x) => x.nome).join(", ")}), e il loro totale torna con il dato nazionale pubblicato (${nf0.format(P[P.length - 1][2])}). La serie nazionale, dal ${dayLong(isoDate(p0[0]))}, viene dagli stessi report. Le persone contate dal Garante differiscono da quelle del Ministero di poche unità per carcere, anche se riferite allo stesso giorno, e i report non dicono perché; la capienza è la stessa, carcere per carcere. Un’interrogazione parlamentare del 7 ottobre 2025 (4/06085) parlava di circa ${nf0.format(ir.posti)} posti effettivi per oltre ${nf0.format(ir.persone)} persone al ${dayLong(isoDate(ir.data))}.`;
     if (has("ist-method-morti")) $("#ist-method-morti").textContent = EN
       ? `The Ministry series (critical events, ${yE[0]}–${yE[iE]}) gives suicides and deaths from natural causes, with rates on the average number of people present (the mean of the end-of-month counts) and on all those held during the year. The Guarantor publishes deaths by cause and by prison, read from the prison administration’s systems: for ${yG}, the table by prison adds up to ${a25} deaths with the cause still to be established and ${n25} natural ones, as in the text of the report, while its total row prints ${a25 + 1} and ${n25 - 1}; for 2024 the causes in its summary table add up to 243 against a printed total of 246. Suicides by prison in 2024 come from the Guarantor’s focus updated to 20 December 2024. Ristretti Orizzonti’s dossier is updated to ${dayLong(isoDate(R.aggiornamento))}; its ${R.anni[R.anni.length - 1]} is partial.`
       : `La serie del Ministero (eventi critici, ${yE[0]}–${yE[iE]}) dà suicidi e morti per cause naturali, con i tassi sulle persone presenti in media (la media dei conteggi di fine mese) e su tutte quelle passate dal carcere nell’anno. Il Garante pubblica le morti per causa e per istituto, lette negli applicativi dell’amministrazione penitenziaria: per il ${yG} la tabella per istituto somma ${a25} morti con la causa da accertare e ${n25} naturali, come il testo del report, mentre la sua riga del totale stampa ${a25 + 1} e ${n25 - 1}; per il 2024 le cause della tabella riassuntiva sommano 243, il totale stampato è 246. I suicidi per istituto del 2024 vengono dal focus del Garante aggiornato al 20 dicembre 2024. Il dossier di Ristretti Orizzonti è aggiornato ${dayArt(isoDate(R.aggiornamento)).replace(/^il /, "al ").replace(/^l’/, "all’")}; il suo ${R.anni[R.anni.length - 1]} è parziale.`;

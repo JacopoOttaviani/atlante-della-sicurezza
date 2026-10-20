@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=56">
+<link rel="stylesheet" href="../vc.css?v=57">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -162,6 +162,7 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#app">Vai al contenuto</a>
 <header class="masthead">
   <div class="wrap">
     <p class="wordmark"><a href="../" aria-label="Atlante della Sicurezza: torna alla pagina principale"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span></a></p>
@@ -326,7 +327,7 @@
       <aside class="dd-callout ist-help" aria-labelledby="help-title">
         <h3 id="help-title">Se hai bisogno di parlarne</h3>
         <p>Se stai pensando al suicidio, o sei in pensiero per qualcuno, puoi chiamare Telefono Amico Italia allo <a href="tel:+390223272327">02 2327 2327</a>, tutti i giorni. In caso di pericolo immediato chiama il <a href="tel:112">112</a>.</p>
-        <p>Questa pagina conta le morti e dice dove sono avvenute, non come: lo raccomandano le linee guida dell’Organizzazione mondiale della sanità per chi scrive di suicidio.</p>
+        <p>Questa pagina conta le morti e dice in quale carcere sono registrate, non come: lo raccomandano le linee guida dell’Organizzazione mondiale della sanità per chi scrive di suicidio.</p>
       </aside>
       <div class="carceri-grid two-even">
         <div>
@@ -363,7 +364,7 @@
         <h3>Le tabelle del Ministero</h3>
         <p>Ogni mese il Ministero della Giustizia pubblica, su dati del Dipartimento dell’amministrazione penitenziaria (DAP), una tabella con tutte le carceri per adulti: regione, tipo, capienza regolamentare, persone presenti l’ultimo giorno del mese, donne e persone straniere. Qui ci sono tutte quelle uscite da gennaio 2019, una per mese; dicembre 2021 è stato pubblicato due volte, uguale. Lo script che costruisce i dati controlla che in ogni mese le righe degli istituti tornino con la riga del totale. A fine 2025 le persone presenti regione per regione sono le stesse che l’ISTAT pubblica sulla stessa fonte, e che usa l’approfondimento sulla <a href="custodia-cautelare.html">custodia cautelare</a>.</p>
         <h3>Gli istituti nel tempo e sulla carta</h3>
-        <p>I nomi degli istituti cambiano da una tabella all’altra: fino ad agosto 2019 le intitolazioni hanno il nome per esteso, poi l’iniziale; alcune carceri ricevono un’intitolazione nuova; Sanremo è passata da casa di reclusione a casa circondariale nel 2022. Lo script li riconosce per regione e nome, con un piccolo elenco di nomi vecchi e nuovi. Camerino ha chiuso nel 2019; Pozzuoli, femminile, è vuota; dal 2025 tra gli istituti di Roma c’è il centro di Gjadër, in Albania, che non è sulla carta. Ogni carcere è nel punto centrale del suo comune: non è l’indirizzo esatto, e più carceri dello stesso comune sono disegnate una accanto all’altra.</p>
+        <p>I nomi degli istituti cambiano da una tabella all’altra: fino ad agosto 2019 le intitolazioni hanno il nome per esteso, poi l’iniziale; alcune carceri ricevono un’intitolazione nuova; Sanremo è passata da casa di reclusione a casa circondariale nel 2022. Lo script li riconosce per regione e nome, con un piccolo elenco di nomi vecchi e nuovi. Camerino, vuota, esce dalle tabelle a luglio 2019; Pozzuoli, femminile, è vuota; il centro di Gjadër, in Albania, compare tra gli istituti di Roma da aprile a settembre 2025 e di nuovo da settembre 2026, sempre senza persone detenute, e non è sulla carta (i suoi posti però contano nella capienza nazionale). Ogni carcere è nel punto centrale del suo comune: non è l’indirizzo esatto, e più carceri dello stesso comune sono disegnate una accanto all’altra.</p>
         <h3>I posti disponibili</h3>
         <p id="ist-method-posti"></p>
         <h3>Le morti</h3>
@@ -472,6 +473,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=56"></script>
+<script src="../vc.js?v=57"></script>
 </body>
 </html>

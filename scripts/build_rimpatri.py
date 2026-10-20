@@ -93,7 +93,7 @@ def build():
             continue  # aggregati, apolidi, sconosciuti
         r = [R.get((c, y)) for y in years]
         o = [O.get((c, y)) for y in years]
-        if not any(r):
+        if not any(r) and not any(o):  # anche i paesi con ordini e nessun rimpatrio
             continue
         name = NAMES.get(c) or it_names.get(c)
         if not name:

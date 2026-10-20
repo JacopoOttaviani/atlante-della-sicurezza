@@ -27,7 +27,7 @@ import urllib.request
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_data import CACHE, OUT, TYPE_IDS, YEARS, RENAME, MACRO, GEO, fetch, log, sdmx, load_perception, topo_features, centroid  # noqa: E402
+from build_data import CACHE, OUT, TYPE_IDS, YEARS, RENAME, MACRO, GEO, fetch, log, sdmx, load_perception, perception_households, topo_features, centroid  # noqa: E402
 
 ELENCO = "https://www.istat.it/storage/codici-unita-amministrative/Elenco-comuni-italiani.csv"
 
@@ -36,6 +36,11 @@ ELENCO = "https://www.istat.it/storage/codici-unita-amministrative/Elenco-comuni
 # codice comunale 1995-2005 (colonna 18 dell'elenco ISTAT), cioè quella in cui si trovava
 # quando le province erano quattro: la corrispondenza viene dal codelist CL_ITTER107.
 SARDINIA = "Sardegna"
+# La percezione del rischio (DF_DCSS_BEST_PPC_1_GC) segue invece le province di oggi: per ogni sigla, il codice
+# dell'area nel dataflow. Nella scheda di un comune sardo la percezione è quella della sua provincia di oggi;
+# per la provincia storica (il grafico della percezione) si sommano le famiglie delle province di oggi i cui
+# comuni stanno per lo più in quella storica: Cagliari storica = Cagliari più Sud Sardegna.
+SARD_PERC = {"SS": "ITG25", "NU": "ITG26", "CA": "ITG27", "OR": "ITG28", "SU": "IT111"}
 
 PROV_RENAME = {"Bolzano / Bozen": "Bolzano", "Valle d'Aosta / Vallée d'Aoste": "Aosta", "Reggio nell'Emilia": "Reggio Emilia", "Reggio di Calabria": "Reggio Calabria"}
 
@@ -164,6 +169,36 @@ def load_points():
     return by_code, by_name
 
 
+def sardinia_perception(sard):
+    """Percezione del rischio in Sardegna: per provincia di oggi (le schede) e per provincia storica (il grafico).
+
+    Ogni provincia di oggi va nella provincia storica che contiene la maggior parte dei suoi comuni; la quota
+    della provincia storica si ricalcola sommando le famiglie, non facendo la media delle quote."""
+    hh = perception_households()
+    unknown = sorted({c["sigla"] for c in sard} - set(SARD_PERC))
+    if unknown or any(a not in hh for a in SARD_PERC.values()):
+        raise SystemExit(f"percezione sarda: sigle senza area {unknown}, aree mancanti "
+                         f"{[a for a in SARD_PERC.values() if a not in hh]}: aggiornare SARD_PERC")
+    by_sigla = defaultdict(Counter)
+    unit = {}
+    for c in sard:
+        by_sigla[c["sigla"]][c["prov"]] += 1
+        unit[c["sigla"]] = c["unit"]
+    perc_sigla, groups = {}, defaultdict(list)
+    for s, area in SARD_PERC.items():
+        perc_sigla[s] = {"name": unit[s], "perc": {str(y): round(100 * r / t, 1) for y, (r, t) in sorted(hh[area].items())}}
+        groups[by_sigla[s].most_common(1)[0][0]].append(s)
+    perc_hist = {}
+    for p, sigle in groups.items():
+        years = sorted(set.intersection(*(set(hh[SARD_PERC[s]]) for s in sigle)))
+        perc_hist[p] = {
+            "perc": {y: round(100 * sum(hh[SARD_PERC[s]][y][0] for s in sigle) / sum(hh[SARD_PERC[s]][y][1] for s in sigle), 1) for y in years},
+            "da": sorted(unit[s] for s in sigle),
+        }
+    log("percezione sarda per provincia storica: " + "; ".join(f"{p} = {' + '.join(v['da'])}" for p, v in sorted(perc_hist.items())))
+    return perc_sigla, perc_hist
+
+
 def build():
     head, rows = load_elenco()
     names, parent = load_codelist()
@@ -240,6 +275,7 @@ def build():
 
     counts = load_counts(prov_codes)
     share, _ = load_perception()
+    perc_sigla, perc_hist = sardinia_perception([c for c in comuni if c["region"] == SARDINIA])
     region_by_prov = {}
     for c in comuni:
         region_by_prov.setdefault(c["prov"], Counter())[c["region"]] += 1
@@ -261,9 +297,11 @@ def build():
             rec["n"] = {t: [counts[p][t].get(y) for y in YEARS] for t in TYPE_IDS}
             # popolazione media implicita nel tasso ufficiale: serve ai test sulle variazioni
             rec["pop"] = [round(n / rt * 1e5) if n and rt else None for n, rt in zip(rec["n"]["TOT"], rec["rate"]["TOT"])]
-        perc = share.get(p)
+        perc = perc_hist[p]["perc"] if p in perc_hist else share.get(p)
         if perc:
             rec["perc"] = {str(y): v for y, v in sorted(perc.items())}
+        if p in perc_hist:
+            rec["perc_da"] = perc_hist[p]["da"]
         prov_out[p] = rec
 
     out_prov = {
@@ -276,6 +314,7 @@ def build():
             ] + ([{"id": "73_67_DF_DCCV_DELITTIPS_1", "label": "ISTAT, Delitti denunciati — conteggi per provincia"}] if counts else []),
         },
         "prov": prov_out,
+        "perc_sigla": perc_sigla,
     }
 
     # comuni.json: righe compatte [nome, nome in altra lingua, sigla, provincia ISTAT, id capoluogo, lon×100, lat×100]

@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=56">
+<link rel="stylesheet" href="../../vc.css?v=57">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -105,6 +105,7 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#app">Skip to content</a>
 <header class="masthead">
   <div class="wrap">
     <p class="wordmark"><a href="../" aria-label="Atlante della Sicurezza: back to the home page"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span></a></p>
@@ -151,7 +152,7 @@
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Deep dives</a> · Perception and reality</p>
       <h1 id="dd-title">How unsafe we feel, and how unsafe we are</h1>
-      <p class="dek">Over time, fear of crime moves much more than reported crime. From place to place the two agree more closely, but with striking exceptions. Two official surveys of perception set alongside the crimes reported to the police: in Italy as a whole, in the big cities and province by province.</p>
+      <p class="dek">Over time, fear of crime moves much more than reported crime. From place to place the two agree more closely, but with striking exceptions. Two official surveys of perception set alongside the crimes reported by the police to the judicial authorities: in Italy as a whole, in the big cities and province by province.</p>
       <nav class="dd-nav" aria-label="The deep dives"><a href="carceri.html">Prisons</a><a href="rimpatri.html">Returns</a><a href="percezione.html" aria-current="page">Perception and reality</a><a href="autori-ignoti.html">Unknown offenders</a><a href="minori.html">Minors</a><a href="custodia-cautelare.html">Pre-trial detention</a><a href="carcere-per-carcere.html">Prison by prison</a></nav>
     </div>
   </section>
@@ -190,7 +191,7 @@
       </header>
       <div class="perc-grid">
         <div>
-          <p class="chart-title">Reported crimes and perceived risk, 2024</p>
+          <p class="chart-title">Reported crimes and perceived risk, <span id="perc-scatter-year">2024</span></p>
           <p class="chart-sub">Horizontal axis: crimes per 100,000 residents. Vertical axis: households that consider their area very or fairly at risk. The hollow circle is Italy.</p>
           <div class="chart" id="perc-scatter"></div>
           <p class="note" id="perc-note"></p>
@@ -232,7 +233,7 @@
         <h3>The rate is calculated on residents</h3>
         <p>In cities that take in commuters, students and tourists every day, crimes also affect people who do not live there, so the rate per resident comes out higher than the real likelihood of being a victim for those who do. Fear, on the other hand, is reported by residents.</p>
         <h3>The provincial estimates</h3>
-        <p>Perception by province comes from a sample survey: in small provinces few households are interviewed and the estimate swings from one year to the next. This is why the chart uses the average of the available years, for perception and for reported crimes alike. In Sardegna, crimes follow the four historical provinces, as in the rest of the atlas.</p>
+        <p>Perception by province comes from a sample survey: in small provinces few households are interviewed and the estimate swings from one year to the next. This is why the chart uses the average of the available years, for perception and for reported crimes alike. In Sardegna, crimes follow the four historical provinces, as in the rest of the atlas, while ISTAT measures perception by today’s provinces: to compare them, each of today’s provinces goes into the historical province that holds most of its municipalities, adding up the households. The Cagliari point combines Cagliari and Sud Sardegna; Nuoro, Oristano and Sassari differ from the historical ones by a few municipalities.</p>
         <h3>Sources</h3>
         <ul class="sources" id="sources" data-only="percezione"></ul>
         <p>For the method behind the whole atlas: <a href="../progetto/#metodo">Methodology and sources</a>.</p>
@@ -333,6 +334,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=56"></script>
+<script src="../../vc.js?v=57"></script>
 </body>
 </html>

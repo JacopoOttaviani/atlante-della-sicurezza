@@ -24,6 +24,7 @@ import unicodedata
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
+from urllib.parse import urljoin
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://atlantedellasicurezza.it/"
@@ -89,7 +90,8 @@ def moved(p, up, down, same):
 
 
 def al_posto(rank):
-    return ("all’" if vowel_num(rank) else "al ") + f"{rank}°"
+    # 1° si legge «primo»: «al 1° posto»; 8° e 11° invece «all’8°», «all’11°»
+    return ("all’" if rank == 11 or str(rank).startswith("8") else "al ") + f"{rank}°"
 
 
 def a_city(name):
@@ -132,6 +134,27 @@ def rate(c, t, i):
 def change(c, t, i0, i1=L):
     a, b = rate(c, t, i0), rate(c, t, i1)
     return None if a is None or b is None or a == 0 else b / a - 1
+
+
+def rr_test(n1, p1, n0, p0):
+    """Come rrTest in vc.js: rapporto tra due tassi di Poisson e z sul logaritmo, con lo stesso pavimento a 0,5."""
+    if n1 is None or n0 is None or not p1 or not p0:
+        return None
+    a, b = max(n1, 0.5), max(n0, 0.5)
+    rr = (a / p1) / (b / p0)
+    return {"rr": rr, "z": math.log(rr) / math.sqrt(1 / a + 1 / b), "pct": (n1 / p1) / (n0 / p0) - 1 if n0 > 0 else None}
+
+
+def city_sig(c, t, i0, i1=L):
+    """Come sig in vc.js: "up" o "down", oppure "flat" quando il caso da solo può spiegare la differenza (|z| < 2).
+    La scheda interattiva colora di grigio le stesse variazioni: pagina statica e scheda dicono la stessa cosa."""
+    r = rr_test(c["n"][t][i1], c["pop"][i1], c["n"][t][i0], c["pop"][i0])
+    if not r or r["pct"] is None:
+        return None
+    return "flat" if abs(r["z"]) < 2 else "up" if r["pct"] > 0 else "down"
+
+
+FLAT = "una differenza troppo piccola per dire che sia cambiato qualcosa"
 
 
 def first_year(c):
@@ -234,6 +257,7 @@ def head(title, description, url, ld):
 </script>
 </head>
 <body>
+<a class="skip" href="#app">Vai al contenuto</a>
 {MASTHEAD}
 """
 
@@ -282,7 +306,7 @@ def city_page(c):
             continue
         a, b = c["n"][t["id"]][IB], c["n"][t["id"]][L]
         p = change(c, t["id"], IB)
-        if p is not None and a is not None and b is not None and min(a, b) >= MIN_N:
+        if p is not None and a is not None and b is not None and min(a, b) >= MIN_N and city_sig(c, t["id"], IB) in ("up", "down"):
             moves.append((t, p))
     ups = sorted((m for m in moves if m[1] > 0.03), key=lambda m: -m[1])[:3]
     downs = sorted((m for m in moves if m[1] < -0.03), key=lambda m: m[1])[:3]
@@ -300,6 +324,7 @@ def city_page(c):
         f"Rispetto al {REF}, l’ultimo anno prima del Covid, il tasso è {moved(ch_ref, 'salito', 'sceso', 'rimasto uguale')} "
         f"(in Italia {fmt_pct(it_ref)}); rispetto al {Y[i0]} è {moved(ch_first, 'salito', 'sceso', 'rimasto uguale')} "
         f"(in Italia {fmt_pct(it_first)})."
+        + (f" Quella dal {REF} è {FLAT}." if city_sig(c, "TOT", IB) == "flat" else "")
     ]
     if ups or downs:
         s = f"Dal {REF} al {LAST} "
@@ -326,7 +351,9 @@ def city_page(c):
     facts = [
         (nf0(r_last), f"delitti denunciati ogni 100.000 abitanti nel {LAST} · Italia {nf0(IT_TOT[L])}"),
         (f"{rank}° su {N_CITIES}", f"tra i comuni capoluogo, per delitti denunciati in rapporto agli abitanti nel {LAST}"),
-        (fmt_pct(ch_ref), f"variazione del tasso dal {REF} al {LAST} · Italia {fmt_pct(it_ref)}"),
+        (fmt_pct(ch_ref), f"variazione del tasso dal {REF} al {LAST}"
+         + (" · troppo piccola per dire che sia cambiato qualcosa" if city_sig(c, "TOT", IB) == "flat" else "")
+         + f" · Italia {fmt_pct(it_ref)}"),
     ]
     if perc is not None:
         facts.append((f"{nf1(perc)}%", f"famiglie che sentono a rischio di criminalità la propria zona nel {LAST}"))
@@ -338,11 +365,13 @@ def city_page(c):
         n, r = c["n"][tid][L], rate(c, tid, L)
         a = c["n"][tid][IB]
         p = change(c, tid, IB) if a is not None and n is not None and min(a, n) >= MIN_N else None
+        ns = p is not None and city_sig(c, tid, IB) == "flat"
         label = f"<strong>{esc(t['label'])}</strong>" if tid == "TOT" else esc(t["label"])
         rows.append(
             f"<tr><td>{label}</td><td class=\"num\">{nf0(n) if n is not None else 'n.d.'}</td>"
             f"<td class=\"num\">{fmt_rate(r)}</td>"
-            f"<td class=\"num\">{fmt_rate(ITALY['rate'][tid][L])}</td><td class=\"num\">{fmt_pct(p)}</td></tr>"
+            f"<td class=\"num\">{fmt_rate(ITALY['rate'][tid][L])}</td>"
+            + (f"<td class=\"num ns\" title=\"{FLAT}\">{fmt_pct(p)}</td></tr>" if ns else f"<td class=\"num\">{fmt_pct(p)}</td></tr>")
         )
     # anno per anno
     years = []
@@ -439,7 +468,7 @@ def city_page(c):
       </header>
       <div class="tablewrap">
         <table>
-          <caption>Tassi ogni 100.000 abitanti. La variazione è quella del tasso dal {REF} al {LAST}, indicata solo con almeno {MIN_N} denunce in entrambi gli anni. n.d.: dato non disponibile. {SOURCES}</caption>
+          <caption>Tassi ogni 100.000 abitanti. La variazione è quella del tasso dal {REF} al {LAST}, indicata solo con almeno {MIN_N} denunce in entrambi gli anni; in grigio quando è troppo piccola per dire che sia cambiato qualcosa (il caso da solo può spiegarla). n.d.: dato non disponibile. {SOURCES}</caption>
           <thead><tr><th scope="col">Reato</th><th scope="col" class="num">Denunce {LAST}</th><th scope="col" class="num">Ogni 100.000 ab.</th><th scope="col" class="num">Italia</th><th scope="col" class="num">Dal {REF}</th></tr></thead>
           <tbody>
             {''.join(rows)}
@@ -487,7 +516,8 @@ def hub_page():
     rows = "".join(
         f"<tr><td class=\"num\">{RANK[c['id']]}</td><td><a href=\"{page_name(c)}\">{esc(c['name'])}</a></td><td>{esc(c['region'])}</td>"
         f"<td class=\"num\">{nf0(c['n']['TOT'][L])}</td><td class=\"num\">{nf0(rate(c, 'TOT', L))}</td>"
-        f"<td class=\"num\">{fmt_pct(change(c, 'TOT', IB))}</td></tr>"
+        + (f"<td class=\"num ns\" title=\"{FLAT}\">" if city_sig(c, "TOT", IB) == "flat" else "<td class=\"num\">")
+        + f"{fmt_pct(change(c, 'TOT', IB))}</td></tr>"
         for c in RANKED
     )
     ld = [
@@ -533,7 +563,7 @@ def hub_page():
       </header>
       <div class="tablewrap">
         <table>
-          <caption>Delitti denunciati nel {LAST} e tasso ogni 100.000 abitanti; la variazione è quella del tasso dal {REF}. {SOURCES}</caption>
+          <caption>Delitti denunciati nel {LAST} e tasso ogni 100.000 abitanti; la variazione è quella del tasso dal {REF}, in grigio quando è troppo piccola per dire che sia cambiato qualcosa. {SOURCES}</caption>
           <thead><tr><th scope="col" class="num">Pos.</th><th scope="col">Città</th><th scope="col">Regione</th><th scope="col" class="num">Denunce {LAST}</th><th scope="col" class="num">Ogni 100.000 ab.</th><th scope="col" class="num">Dal {REF}</th></tr></thead>
           <tbody>
             {rows}
@@ -568,13 +598,21 @@ def deep_pages():
 # ------------------------------------------------------------------ sitemap.xml
 
 def lastmod(rel):
-    """Data dell'ultimo commit del file; oggi se il file è nuovo o modificato e non ancora salvato."""
+    """Data dell'ultimo commit che ha cambiato il contenuto del file; oggi se il file è nuovo o modificato e non ancora
+    salvato. I commit che toccano solo i ?v= di vc.css e vc.js (cambiano tutte le pagine insieme) non contano."""
+    git = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout  # noqa: E731
     try:
-        dirty = subprocess.run(["git", "status", "--porcelain", "--", rel], cwd=ROOT, capture_output=True, text=True).stdout.strip()
-        last = subprocess.run(["git", "log", "-1", "--format=%cs", "--", rel], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        if git("status", "--porcelain", "--", rel).strip():
+            return date.today().isoformat()
+        log = [ln.split() for ln in git("log", "-20", "--format=%H %cs", "--", rel).splitlines() if ln.strip()]
     except OSError:
         return date.today().isoformat()
-    return date.today().isoformat() if dirty or not last else last
+    for h, day in log:
+        diff = [ln for ln in git("show", "-U0", "--format=", h, "--", rel).splitlines()
+                if ln[:1] in "+-" and not ln.startswith(("+++", "---"))]
+        if any(re.sub(r"\?v=\d+", "", ln[1:]) not in {re.sub(r"\?v=\d+", "", o[1:]) for o in diff if o[0] != ln[0]} for ln in diff):
+            return day
+    return log[-1][1] if log else date.today().isoformat()
 
 
 def en_pages():
@@ -631,6 +669,22 @@ def nat_change(tid, i0, i1=L):
     return b / a - 1 if a else None
 
 
+def it_pop(i):
+    n, rt = ITALY["n"]["TOT"][i], ITALY["rate"]["TOT"][i]
+    return n / rt * 1e5 if n and rt else None
+
+
+def nat_sig(tid, i0, i1=L):
+    """Come natSig in vc.js: aumento o calo solo oltre il 3% e con |z| ≥ 2 sui conteggi nazionali."""
+    ch, n = nat_change(tid, i0, i1), ITALY["n"].get(tid)
+    r = rr_test(n[i1], it_pop(i1), n[i0], it_pop(i0)) if n else None
+    if ch is None:
+        return None
+    if abs(ch) <= 0.03 or (r and abs(r["z"]) < 2):
+        return "flat"
+    return "up" if ch > 0 else "down"
+
+
 def llms():
     ups_downs = []
     for t in TYPES:
@@ -638,9 +692,9 @@ def llms():
             continue
         ch = nat_change(t["id"], IB)
         if ch is not None:
-            ups_downs.append((t, ch))
-    ups = sorted((d for d in ups_downs if d[1] > 0.03), key=lambda d: -d[1])[:3]
-    downs = sorted((d for d in ups_downs if d[1] < -0.03), key=lambda d: d[1])[:3]
+            ups_downs.append((t, ch, nat_sig(t["id"], IB)))
+    ups = [(t, p) for t, p, s in sorted((d for d in ups_downs if d[2] == "up"), key=lambda d: -d[1])[:3]]
+    downs = [(t, p) for t, p, s in sorted((d for d in ups_downs if d[2] == "down"), key=lambda d: d[1])[:3]]
     lst = lambda ms: and_list([f"{short_label(t)} ({fmt_pct(p)})" for t, p in ms])
     top, bottom = RANKED[:3], RANKED[-3:][::-1]
     perc = ITALY.get("perc", {})
@@ -695,7 +749,7 @@ def llms():
 
     return f"""# Atlante della Sicurezza
 
-> Strumento civico gratuito sui reati denunciati in Italia, con soli dati ufficiali: ISTAT {Y[0]}–{LAST} per i {N_CITIES} comuni capoluogo e la scheda di ogni comune italiano (per i non capoluoghi, i dati della provincia), più Eurostat per i rimpatri. Mostra dove si denuncia di più e di meno, quali reati salgono e quali scendono, le impennate improvvise e quanto le persone si sentono a rischio. Di Jacopo Ottaviani, data journalist.
+> Strumento civico gratuito sui reati denunciati in Italia, con dati pubblici: ISTAT {Y[0]}–{LAST} per i {N_CITIES} comuni capoluogo e la scheda di ogni comune italiano (per i non capoluoghi, i dati della provincia), Eurostat per i rimpatri, Ministero della Giustizia e Garante nazionale per la custodia cautelare e le carceri istituto per istituto. Mostra dove si denuncia di più e di meno, quali reati salgono e quali scendono, le impennate improvvise e quanto le persone si sentono a rischio. Di Jacopo Ottaviani, data journalist.
 
 Numeri principali (calcolati dai dati del sito, aggiornati al {BUILT}):
 
@@ -753,6 +807,138 @@ Come leggere questi numeri: sono delitti denunciati dalle forze di polizia all�
 
 # ------------------------------------------------------------------ scrittura
 
+# ------------------------------------------------------------------ 404.html
+
+def absolute(fragment, base):
+    """GitHub Pages serve 404.html a qualsiasi profondità: ogni href e src relativo diventa assoluto dalla radice."""
+    def fix(m):
+        u = m.group(2)
+        if re.match(r"(?:[a-z]+:|/|#)", u):
+            return m.group(0)
+        return f'{m.group(1)}="{urljoin(base, u)}"'
+    return re.sub(r'\b(href|src)="([^"]*)"', fix, fragment).replace(' aria-current="page"', "")
+
+
+def not_found_page():
+    """La pagina per gli indirizzi che non esistono, in italiano e, sotto /en/, in inglese.
+
+    Testata, ricerca, scheda e piè di pagina vengono dagli indici degli approfondimenti nelle due lingue, con i link
+    resi assoluti; uno script in testa mette lang="en" prima di vc.js, un altro scambia i blocchi italiani con
+    quelli inglesi. Per un indirizzo /citta/… sbagliato propone la città col nome più vicino."""
+    src_en = (ROOT / "en/approfondimenti/index.html").read_text(encoding="utf-8")
+    home_it = (ROOT / "index.html").read_text(encoding="utf-8")
+    home_en = (ROOT / "en/index.html").read_text(encoding="utf-8")
+
+    def pick(pat, s, name):
+        m = re.search(pat, s, re.S)
+        if not m:
+            raise SystemExit(f"404.html: non trovo {name}")
+        return m.group(0)
+
+    it_base, en_base = "/approfondimenti/index.html", "/en/approfondimenti/index.html"
+    mast_it = absolute(pick(r'<header class="masthead">.*?</header>', SRC, "la testata"), it_base)
+    mast_en = absolute(pick(r'<header class="masthead">.*?</header>', src_en, "la testata inglese"), en_base)
+    mast_it = re.sub(r'(<a class="bar-lang" href=")[^"]*(")', r"\1/en/\2", mast_it)
+    mast_en = re.sub(r'(<a class="bar-lang" href=")[^"]*(")', r"\1/\2", mast_en)
+    finder_it = absolute(pick(r'<section class="finder".*?</section>', home_it, "la ricerca"), "/index.html")
+    finder_en = absolute(pick(r'<section class="finder".*?</section>', home_en, "la ricerca inglese"), "/en/index.html")
+    foot_it = absolute(FOOTER, it_base)
+    foot_en = absolute(pick(r'<footer class="colophon">.*?</footer>', src_en, "il piè di pagina inglese"), en_base)
+    dialog_en = pick(r'<dialog class="cityd".*?</dialog>', src_en, "la scheda inglese")
+    links = absolute(HEAD_LINKS, it_base)
+    scripts = absolute(SCRIPTS, it_base)
+    slugs = json.dumps([[page_name(c)[:-5], c["name"]] for c in sorted(CITIES, key=lambda c: c["name"])], ensure_ascii=False, separators=(",", ":"))
+    return f"""<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pagina non trovata · Atlante della Sicurezza</title>
+<meta name="robots" content="noindex">
+<!-- Pagina generata da scripts/build_seo.py: modificare lo script, non questo file. GitHub Pages la mostra per ogni
+     indirizzo che non esiste, a qualsiasi profondità: per questo tutti i link partono dalla radice. -->
+<script>if (location.pathname.indexOf("/en/") === 0) {{ document.documentElement.lang = "en"; document.title = "Page not found · Atlante della Sicurezza"; }}</script>
+{links}
+<style>
+  html[lang="en"] .nf-it, html:not([lang="en"]) .nf-en {{ display: none; }}
+  .nf-links {{ display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 0; margin: 18px 0 0; list-style: none; font-weight: 600; }}
+  .nf-guess {{ margin-top: 16px; font-size: var(--step-1); }}
+</style>
+</head>
+<body>
+<a class="skip" href="#app"><span class="nf-it">Vai al contenuto</span><span class="nf-en">Skip to content</span></a>
+{mast_it}
+<template id="nf-mast-en">{mast_en}</template>
+
+<main id="app">
+  <section class="dd-head" aria-labelledby="nf-title">
+    <div class="wrap">
+      <div class="kicker"><span class="nf-it">Errore 404</span><span class="nf-en">Error 404</span></div>
+      <h1 id="nf-title"><span class="nf-it">Questa pagina non c’è</span><span class="nf-en">This page does not exist</span></h1>
+      <p class="dek"><span class="nf-it">L’indirizzo è sbagliato, o la pagina è stata spostata. Cerca il tuo comune qui sotto, oppure riparti da una di queste pagine.</span><span class="nf-en">The address is wrong, or the page has moved. Look up your town below, or start again from one of these pages.</span></p>
+      <p class="nf-guess" id="nf-guess" hidden></p>
+      <ul class="nf-links nf-it">
+        <li><a href="/">La pagina principale</a></li>
+        <li><a href="/citta/">I 108 capoluoghi</a></li>
+        <li><a href="/approfondimenti/">Gli approfondimenti</a></li>
+        <li><a href="/progetto/">Il progetto e il metodo</a></li>
+      </ul>
+      <ul class="nf-links nf-en">
+        <li><a href="/en/">The home page</a></li>
+        <li><a href="/citta/">The 108 provincial capitals (in Italian)</a></li>
+        <li><a href="/en/approfondimenti/">The deep dives</a></li>
+        <li><a href="/en/progetto/">About and method</a></li>
+      </ul>
+    </div>
+  </section>
+{finder_it}
+  <template id="nf-finder-en">{finder_en}</template>
+</main>
+
+{foot_it}
+<template id="nf-foot-en">{foot_en}</template>
+
+{DIALOG}
+<template id="nf-dialog-en">{dialog_en}</template>
+
+{TIP}
+<script>
+  // in inglese: testata, ricerca, piè di pagina e scheda dalla pagina inglese, prima che vc.js li legga
+  if (document.documentElement.lang === "en") {{
+    [["header.masthead", "nf-mast-en"], ["section.finder", "nf-finder-en"], ["footer.colophon", "nf-foot-en"], ["dialog.cityd", "nf-dialog-en"]].forEach(([sel, id]) => {{
+      const el = document.querySelector(sel), t = document.getElementById(id);
+      if (el && t) el.replaceWith(t.content.cloneNode(true));
+    }});
+  }}
+  document.querySelectorAll("template").forEach((t) => t.remove());
+  // un indirizzo /citta/… sbagliato: la città col nome più vicino
+  (function () {{
+    const m = location.pathname.match(/^\\/(?:en\\/)?citta\\/([^\\/]+?)(?:\\.html)?\\/?$/);
+    if (!m) return;
+    const q = decodeURIComponent(m[1]).normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const cities = {slugs};
+    const dist = (a, b) => {{
+      const d = Array.from({{ length: b.length + 1 }}, (_, j) => j);
+      for (let i = 1; i <= a.length; i++) {{
+        let prev = d[0]; d[0] = i;
+        for (let j = 1; j <= b.length; j++) {{ const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; }}
+      }}
+      return d[b.length];
+    }};
+    let best = null;
+    cities.forEach(([s, name]) => {{ const k = s.startsWith(q) || q.startsWith(s) ? 0.5 : dist(q, s); if (!best || k < best.k) best = {{ s, name, k }}; }});
+    if (!best || best.k > Math.max(2, q.length / 3)) return;
+    const en = document.documentElement.lang === "en", p = document.getElementById("nf-guess");
+    p.innerHTML = (en ? "Were you looking for " : "Forse cercavi ") + `<a href="/citta/${{best.s}}.html">${{best.name}}</a>?`;
+    p.hidden = false;
+  }})();
+</script>
+{scripts}
+</body>
+</html>
+"""
+
+
 def main():
     out = ROOT / "citta"
     out.mkdir(exist_ok=True)
@@ -775,7 +961,12 @@ def main():
         n_en += 1
     (ROOT / "sitemap.xml").write_text(sitemap(), encoding="utf-8")
     (ROOT / "llms.txt").write_text(llms(), encoding="utf-8")
-    print(f"citta/: {len(CITIES)} pagine e la classifica; en/: ?v= su {n_en} pagine; sitemap.xml; llms.txt")
+    nf = not_found_page()
+    rel = re.findall(r'\b(?:href|src)="(?![a-z]+:|/|#)[^"]*"', nf)
+    if rel:
+        raise SystemExit(f"404.html: link relativi rimasti {rel[:5]}")
+    (ROOT / "404.html").write_text(nf, encoding="utf-8")
+    print(f"citta/: {len(CITIES)} pagine e la classifica; en/: ?v= su {n_en} pagine; sitemap.xml; llms.txt; 404.html")
 
 
 if __name__ == "__main__":
