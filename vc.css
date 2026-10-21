@@ -1126,6 +1126,17 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
 .dd-nav a { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); font-size: var(--step--1); font-weight: 600; color: var(--ink-2); text-decoration: none; }
 .dd-nav a:hover { color: var(--ink); border-color: var(--ink-2); }
 .dd-nav a[aria-current] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+/* la firma sotto il sommario; la data è il dateModified della pagina, e la riscrive build_seo.py */
+.dd-byline { margin: 14px 0 0; font-size: var(--step--1); color: var(--muted); }
+.dd-byline a { color: var(--ink-2); font-weight: 600; text-decoration-color: var(--rule); }
+/* in fondo a ogni approfondimento «che cosa non sappiamo» resta in vista; il metodo per esteso e le fonti si aprono a richiesta */
+details.dd-method { margin-top: 24px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+details.dd-method > summary { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 14px 2px; cursor: pointer; list-style: none; font-weight: 700; }
+details.dd-method > summary::-webkit-details-marker { display: none; }
+details.dd-method > summary::after { content: "+"; flex: none; font-size: 1.5rem; font-weight: 400; line-height: 1; color: var(--gold-ink); }
+details.dd-method[open] > summary::after { content: "−"; }
+details.dd-method > summary:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+details.dd-method .method { padding: 8px 0 6px; }
 
 .dd-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .dd-cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }

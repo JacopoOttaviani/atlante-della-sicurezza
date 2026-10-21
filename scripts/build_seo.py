@@ -913,6 +913,17 @@ def home_facts():
 
 
 SINTESI = re.compile(r'<noscript class="sintesi">.*?</noscript>\n?', re.S)
+MESI = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"]
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def byline_date(d, en):
+    """«Aggiornato il 21 ottobre 2026» («l’8», «l’11», «il 1°») o «Updated 21 October 2026», con <time datetime>."""
+    y, m, g = (int(x) for x in d.split("-"))
+    if en:
+        return f'Updated <time class="dd-date" datetime="{d}">{g} {MONTHS[m - 1]} {y}</time>'
+    art = "l’" if g in (8, 11) else "il "
+    return f'Aggiornato {art}<time class="dd-date" datetime="{d}">{"1°" if g == 1 else g} {MESI[m - 1]} {y}</time>'
 
 
 def put_summary(rel, paragraphs, en):
@@ -930,10 +941,12 @@ def put_summary(rel, paragraphs, en):
     t = t.replace('<main id="app">\n', '<main id="app">\n' + block, 1)
     if t != s:
         f.write_text(t, encoding="utf-8")
-    # dateModified dei dati strutturati: la data dell'ultimo cambio vero della pagina, come lastmod nella sitemap
+    # dateModified dei dati strutturati: la data dell'ultimo cambio vero della pagina, come lastmod nella sitemap;
+    # la stessa data va nella firma degli approfondimenti («Aggiornato il …»)
     d = lastmod(rel)
     u = f.read_text(encoding="utf-8")
     v = re.sub(r'("dateModified": ")\d{4}-\d{2}-\d{2}(")', rf"\g<1>{d}\g<2>", u)
+    v = re.sub(r'(?:Aggiornato (?:il |l’)|Updated )<time class="dd-date" datetime="[^"]*">[^<]*</time>', byline_date(d, en), v)
     if v != u:
         f.write_text(v, encoding="utf-8")
 

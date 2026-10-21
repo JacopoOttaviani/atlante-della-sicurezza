@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=58">
+<link rel="stylesheet" href="../../vc.css?v=59">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -52,7 +52,7 @@
       "image": "https://atlantedellasicurezza.it/img/og-image-en.jpg",
       "inLanguage": "en",
       "datePublished": "2026-10-18",
-      "dateModified": "2026-10-20",
+      "dateModified": "2026-10-21",
       "author": {
         "@type": "Person",
         "@id": "https://atlantedellasicurezza.it/progetto/#autore",
@@ -201,7 +201,8 @@
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Deep dives</a> · Prisons</p>
       <h1 id="dd-title">Foreign nationals in Italian prisons</h1>
-      <p class="dek">Who is in prison in Italy, which countries they come from, for which crimes and with what legal status. Not reported crimes but the people held in penal institutions at the end of each year, counted by the Ministry of Justice and published by ISTAT.</p>
+      <p class="dek">The share of foreign nationals is far higher in prison than among people living in Italy. Where they come from, what they are held for, and why the comparison with residents needs care.</p>
+      <p class="dd-byline">By <a href="../progetto/#autore">Jacopo Ottaviani</a> · Updated <time class="dd-date" datetime="2026-10-21">21 October 2026</time></p>
       <nav class="dd-nav" aria-label="The deep dives"><a href="carceri.html" aria-current="page">Prisons</a><a href="rimpatri.html">Returns</a><a href="percezione.html">Perception and reality</a><a href="autori-ignoti.html">Unknown offenders</a><a href="minori.html">Minors</a><a href="custodia-cautelare.html">Pre-trial detention</a><a href="carcere-per-carcere.html">Prison by prison</a></nav>
     </div>
   </section>
@@ -294,7 +295,7 @@
         <div>
           <p class="chart-title">Legal status</p>
           <p class="note" id="carceri-legal"></p>
-          <p class="note">People awaiting trial, or appealing to the appeal court or the Court of Cassation, do not have a final conviction: in law they are innocent until the final judgment.</p>
+          <p class="note">People awaiting trial, or appealing to the appeal court or the Court of Cassation, do not have a final conviction, and under the Constitution are not considered guilty.</p>
         </div>
       </div>
     </div>
@@ -306,17 +307,23 @@
         <div class="kicker">Method and sources</div>
         <h2 id="notes-title">How to read these numbers</h2>
       </header>
-      <div class="method">
-        <h3>What these numbers count</h3>
-        <p>These are the people in prison at the end of the year (a stock), not the year’s admissions or convictions. People serving long sentences weigh more. The offences are those charged, including for people awaiting trial: one person can have more than one. Minors are excluded: they are held in juvenile penal institutions.</p>
-        <h3>Prisoners and residents are not the same population</h3>
-        <p>Foreign residents are those on the population register on 1 January. Prisoners also include people without a residence permit or passing through Italy, who do not appear among residents: this is why the share among prisoners and the share among residents cannot be compared like for like.</p>
-        <h3>Citizenships and groups</h3>
-        <p>ISTAT lists individually only the countries with the most prisoners; the others are grouped by continent or area. The groups follow the source’s classification.</p>
-        <h3>Sources</h3>
-        <ul class="sources" id="sources" data-only="carceri"></ul>
-        <p>For the method behind the whole atlas: <a href="../progetto/#metodo">Methodology and sources</a>.</p>
-      </div>
+      <p class="note">These are the people in prison at the end of the year, not admissions or convictions: people serving long sentences weigh more. And prisoners include people who do not live in Italy, so the foreign share in prison and the share among residents cannot be compared like for like.</p>
+      <details class="dd-method">
+        <summary>How the numbers were built, and sources</summary>
+        <div class="method">
+          <h3>Offences, and who is left out</h3>
+          <p>The offences are those charged, including for people awaiting trial, and one person can have more than one. Minors are excluded: they are held in juvenile penal institutions.</p>
+          <h3>Without a final conviction</h3>
+          <p>People awaiting first trial, appealing, awaiting the Court of Cassation, or with several proceedings none of them final, as on the page on <a href="custodia-cautelare.html">pre-trial detention</a>.</p>
+          <h3>Residents</h3>
+          <p>Foreign residents are those on the population register on 1 January: they do not include people without a residence permit or passing through Italy.</p>
+          <h3>Citizenships and groups</h3>
+          <p>ISTAT lists individually only the countries with the most prisoners; the others are grouped by continent or area, following the source’s classification.</p>
+          <h3>Sources</h3>
+          <ul class="sources" id="sources" data-only="carceri"></ul>
+          <p>For the method behind the whole atlas: <a href="../progetto/#metodo">Methodology and sources</a>.</p>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -413,6 +420,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=58"></script>
+<script src="../../vc.js?v=59"></script>
 </body>
 </html>

@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=58">
+<link rel="stylesheet" href="../vc.css?v=59">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -52,7 +52,7 @@
       "image": "https://atlantedellasicurezza.it/img/og-image.jpg",
       "inLanguage": "it",
       "datePublished": "2026-10-18",
-      "dateModified": "2026-10-20",
+      "dateModified": "2026-10-21",
       "author": {
         "@type": "Person",
         "@id": "https://atlantedellasicurezza.it/progetto/#autore",
@@ -198,7 +198,8 @@
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Approfondimenti</a> · Rimpatri</p>
       <h1 id="dd-title">Rimpatri: quanti vengono ordinati, quanti eseguiti</h1>
-      <p class="dek">Ogni anno l’Italia ordina a decine di migliaia di cittadini di paesi fuori dall’Unione europea di lasciare il territorio. Solo una parte viene davvero rimpatriata, e quanta dipende molto dal paese di cittadinanza. Dati Eurostat, su fonte del Ministero dell’Interno.</p>
+      <p class="dek">Ogni anno l’Italia ordina a decine di migliaia di cittadini di paesi fuori dall’Unione europea di lasciare il territorio. Ne viene rimpatriata solo una parte, e quanta dipende soprattutto dal paese di cittadinanza.</p>
+      <p class="dd-byline">Di <a href="../progetto/#autore">Jacopo Ottaviani</a> · Aggiornato il <time class="dd-date" datetime="2026-10-21">21 ottobre 2026</time></p>
       <nav class="dd-nav" aria-label="Gli approfondimenti"><a href="carceri.html">Carceri</a><a href="rimpatri.html" aria-current="page">Rimpatri</a><a href="percezione.html">Percezione e realtà</a><a href="autori-ignoti.html">Autori ignoti</a><a href="minori.html">Minori</a><a href="custodia-cautelare.html">Custodia cautelare</a><a href="carcere-per-carcere.html">Carcere per carcere</a></nav>
     </div>
   </section>
@@ -221,7 +222,7 @@
       <header>
         <div class="kicker">Paese per paese</div>
         <h2 id="rc-title">Ordini e rimpatri, per cittadinanza</h2>
-        <p class="dek">Per ogni paese la barra chiara sono gli ordini di lasciare l’Italia, quella piena i rimpatri eseguiti, sulla stessa scala. Periodo e ordine valgono solo per questo grafico.</p>
+        <p class="dek">La barra chiara sono gli ordini di lasciare l’Italia, quella piena i rimpatri eseguiti, sulla stessa scala. Periodo e ordine valgono solo per questo grafico.</p>
       </header>
       <div class="chips" role="group" aria-label="Periodo e ordine del grafico">
         <span class="small">Periodo</span>
@@ -279,19 +280,23 @@
         <div class="kicker">Metodo e fonti</div>
         <h2 id="notes-title">Come leggere questi numeri</h2>
       </header>
-      <div class="method">
-        <h3>Cosa contano questi numeri</h3>
-        <p>Sono cittadini di paesi non UE a cui l’Italia ha ordinato di lasciare il territorio (gli ordini) e quelli che lo hanno lasciato dopo un ordine, con un rimpatrio forzato o volontario (i rimpatri), contati da Eurostat su dati del Ministero dell’Interno. Non comprendono i respingimenti alla frontiera né chi lascia l’Italia senza che nessuno lo registri. Possono non coincidere con le cifre sui rimpatri diffuse dal Viminale, che usa conteggi propri. Eurostat arrotonda ogni valore a 5, e nei totali ci sono anche gli apolidi e le persone di cittadinanza sconosciuta, che nell’elenco dei paesi non compaiono: per questo la somma dei paesi può differire dal totale (nel 2008 di 1.140 ordini, quasi tutti di cittadinanza sconosciuta).</p>
-        <h3>Ordini e rimpatri non sono le stesse persone</h3>
-        <p>Il rapporto tra rimpatri e ordini dello stesso periodo è un’approssimazione: chi viene rimpatriato in un anno può aver ricevuto l’ordine in un anno precedente, e la stessa persona può ricevere più ordini. Per questo un paese può avere, in un anno, più rimpatri che ordini. Sul rapporto pesano, tra l’altro, gli accordi di riammissione con i singoli paesi e la disponibilità di voli e di posti nei centri di trattenimento.</p>
-        <h3>Perché il rapporto solo con abbastanza ordini</h3>
-        <p>Quando gli ordini sono pochi, bastano poche persone per spostare il rapporto di molti punti. La classifica per rimpatri ogni 100 ordini considera quindi solo i paesi con almeno 250 ordini l’anno in media nel periodo scelto (1.000 nei quattro anni); negli altri ordinamenti il rapporto dei paesi sotto la soglia è in grigio.</p>
-        <h3>Da dove, verso dove</h3>
-        <p>Eurostat registra la cittadinanza delle persone rimpatriate, non il paese in cui atterrano. Quasi sempre coincidono, ma per l’Italia il dettaglio sulla destinazione effettiva non è pubblicato. Sulla carta ogni linea parte dall’Italia nel suo insieme: i dati non dicono da quale città, aeroporto o centro di permanenza per il rimpatrio sia partita ciascuna persona.</p>
-        <h3>Fonti</h3>
-        <ul class="sources" id="sources" data-only="rimpatri"></ul>
-        <p>I dati si ricostruiscono con <code>python3 scripts/build_rimpatri.py</code>. Per il metodo di tutto l’atlante: <a href="../progetto/#metodo">Metodologia e fonti</a>.</p>
-      </div>
+      <p class="note">Il rapporto tra rimpatri e ordini è un’approssimazione: chi viene rimpatriato in un anno può aver ricevuto l’ordine prima, e la stessa persona può riceverne più d’uno. I numeri, di Eurostat su dati del Ministero dell’Interno, non comprendono i respingimenti alla frontiera e possono non coincidere con quelli diffusi dal Viminale.</p>
+      <details class="dd-method">
+        <summary>Come sono costruiti i numeri, e le fonti</summary>
+        <div class="method">
+          <h3>Cosa contano questi numeri</h3>
+          <p>Gli ordini sono i cittadini di paesi non UE a cui l’Italia ha ordinato di lasciare il territorio; i rimpatri, quelli che lo hanno lasciato dopo un ordine, con un rimpatrio forzato o volontario. Non comprendono chi lascia l’Italia senza che nessuno lo registri. Eurostat arrotonda ogni valore a 5, e nei totali ci sono anche gli apolidi e le persone di cittadinanza sconosciuta, che nell’elenco dei paesi non compaiono: per questo la somma dei paesi può differire dal totale (nel 2008 di 1.140 ordini, quasi tutti di cittadinanza sconosciuta).</p>
+          <h3>Ordini e rimpatri non sono le stesse persone</h3>
+          <p>Per questo un paese può avere, in un anno, più rimpatri che ordini. Sul rapporto pesano, tra l’altro, gli accordi di riammissione con i singoli paesi e la disponibilità di voli e di posti nei centri di trattenimento.</p>
+          <h3>Perché il rapporto solo con abbastanza ordini</h3>
+          <p>Con pochi ordini bastano poche persone per spostare il rapporto di molti punti. La classifica per rimpatri ogni 100 ordini considera quindi solo i paesi con almeno 250 ordini l’anno in media nel periodo scelto (1.000 nei quattro anni); negli altri ordinamenti il rapporto dei paesi sotto la soglia è in grigio.</p>
+          <h3>Da dove, verso dove</h3>
+          <p>Eurostat registra la cittadinanza delle persone rimpatriate, non il paese in cui atterrano; quasi sempre coincidono, ma per l’Italia la destinazione effettiva non è pubblicata. Sulla carta ogni linea parte dall’Italia nel suo insieme: i dati non dicono da quale città, aeroporto o centro di permanenza per il rimpatrio sia partita ciascuna persona.</p>
+          <h3>Fonti</h3>
+          <ul class="sources" id="sources" data-only="rimpatri"></ul>
+          <p>I dati si ricostruiscono con <code>python3 scripts/build_rimpatri.py</code>. Per il metodo di tutto l’atlante: <a href="../progetto/#metodo">Metodologia e fonti</a>.</p>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -388,6 +393,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=58"></script>
+<script src="../vc.js?v=59"></script>
 </body>
 </html>

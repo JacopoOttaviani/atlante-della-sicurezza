@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=58">
+<link rel="stylesheet" href="../../vc.css?v=59">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -52,7 +52,7 @@
       "image": "https://atlantedellasicurezza.it/img/og-image-en.jpg",
       "inLanguage": "en",
       "datePublished": "2026-10-18",
-      "dateModified": "2026-10-20",
+      "dateModified": "2026-10-21",
       "author": {
         "@type": "Person",
         "@id": "https://atlantedellasicurezza.it/progetto/#autore",
@@ -198,7 +198,8 @@
     <div class="wrap">
       <p class="dd-crumb"><a href="./">Deep dives</a> · Returns</p>
       <h1 id="dd-title">Returns: how many are ordered, how many carried out</h1>
-      <p class="dek">Every year Italy orders tens of thousands of citizens of countries outside the European Union to leave its territory. Only some of them are actually returned, and how many depends heavily on their country of citizenship. Eurostat data, sourced from the Ministry of the Interior.</p>
+      <p class="dek">Every year Italy orders tens of thousands of citizens of countries outside the European Union to leave its territory. Only some of them are actually returned, and how many depends above all on their country of citizenship.</p>
+      <p class="dd-byline">By <a href="../progetto/#autore">Jacopo Ottaviani</a> · Updated <time class="dd-date" datetime="2026-10-21">21 October 2026</time></p>
       <nav class="dd-nav" aria-label="The deep dives"><a href="carceri.html">Prisons</a><a href="rimpatri.html" aria-current="page">Returns</a><a href="percezione.html">Perception and reality</a><a href="autori-ignoti.html">Unknown offenders</a><a href="minori.html">Minors</a><a href="custodia-cautelare.html">Pre-trial detention</a><a href="carcere-per-carcere.html">Prison by prison</a></nav>
     </div>
   </section>
@@ -221,7 +222,7 @@
       <header>
         <div class="kicker">Country by country</div>
         <h2 id="rc-title">Orders and returns, by citizenship</h2>
-        <p class="dek">For each country the light bar shows the orders to leave Italy and the solid bar the returns carried out, on the same scale. The period and sort order apply to this chart only.</p>
+        <p class="dek">The light bar shows orders to leave Italy, the solid bar the returns carried out, on the same scale. The period and sort order apply to this chart only.</p>
       </header>
       <div class="chips" role="group" aria-label="Period and sort order of the chart">
         <span class="small">Period</span>
@@ -279,19 +280,23 @@
         <div class="kicker">Method and sources</div>
         <h2 id="notes-title">How to read these numbers</h2>
       </header>
-      <div class="method">
-        <h3>What these numbers count</h3>
-        <p>They are citizens of non-EU countries whom Italy has ordered to leave its territory (the orders) and those who left after an order, through a forced or voluntary return (the returns), counted by Eurostat from Ministry of the Interior data. They do not include people turned back at the border, or people who leave Italy without anyone recording it. They may not match the figures on returns published by the Viminale, the Interior Ministry, which uses its own counts. Eurostat rounds every value to 5, and the totals also include stateless people and people of unknown citizenship, who do not appear in the list of countries: this is why the sum of the countries can differ from the total (by 1,140 orders in 2008, almost all of unknown citizenship).</p>
-        <h3>Orders and returns are not the same people</h3>
-        <p>The ratio of returns to orders in the same period is an approximation: someone returned in one year may have received the order in an earlier year, and the same person can receive more than one order. This is why a country can have more returns than orders in a given year. The ratio is affected by, among other things, readmission agreements with individual countries and the availability of flights and of places in detention centres.</p>
-        <h3>Why the ratio is shown only where there are enough orders</h3>
-        <p>When there are few orders, a handful of people can move the ratio by many points. The ranking by returns per 100 orders therefore only includes countries with at least 250 orders a year on average over the chosen period (1,000 over four years); in the other sort orders, the ratio for countries below that threshold is shown in grey.</p>
-        <h3>From where, to where</h3>
-        <p>Eurostat records the citizenship of the people returned, not the country where they land. The two almost always coincide, but for Italy the detail on the actual destination is not published. On the map every line starts from Italy as a whole: the data do not say from which city, airport or pre-removal detention centre each person left.</p>
-        <h3>Sources</h3>
-        <ul class="sources" id="sources" data-only="rimpatri"></ul>
-        <p>The data can be rebuilt with <code>python3 scripts/build_rimpatri.py</code>. For the method behind the whole atlas: <a href="../progetto/#metodo">Methodology and sources</a>.</p>
-      </div>
+      <p class="note">The ratio of returns to orders is an approximation: someone returned in one year may have received the order earlier, and the same person can receive more than one. The figures, from Eurostat on Ministry of the Interior data, do not include people turned back at the border and may not match the Ministry’s own published figures.</p>
+      <details class="dd-method">
+        <summary>How the numbers were built, and sources</summary>
+        <div class="method">
+          <h3>What these numbers count</h3>
+          <p>Orders are citizens of non-EU countries whom Italy has ordered to leave its territory; returns are those who left after an order, through a forced or voluntary return. People who leave Italy without anyone recording it are not counted. Eurostat rounds every value to 5, and the totals also include stateless people and people of unknown citizenship, who do not appear in the list of countries: this is why the sum of the countries can differ from the total (by 1,140 orders in 2008, almost all of unknown citizenship).</p>
+          <h3>Orders and returns are not the same people</h3>
+          <p>This is why a country can have more returns than orders in a given year. The ratio is affected by, among other things, readmission agreements with individual countries and the availability of flights and of places in detention centres.</p>
+          <h3>Why the ratio is shown only where there are enough orders</h3>
+          <p>With few orders, a handful of people can move the ratio by many points. The ranking by returns per 100 orders therefore only includes countries with at least 250 orders a year on average over the chosen period (1,000 over four years); in the other sort orders, the ratio for countries below that threshold is shown in grey.</p>
+          <h3>From where, to where</h3>
+          <p>Eurostat records the citizenship of the people returned, not the country where they land; the two almost always coincide, but for Italy the actual destination is not published. On the map every line starts from Italy as a whole: the data do not say from which city, airport or pre-removal detention centre each person left.</p>
+          <h3>Sources</h3>
+          <ul class="sources" id="sources" data-only="rimpatri"></ul>
+          <p>The data can be rebuilt with <code>python3 scripts/build_rimpatri.py</code>. For the method behind the whole atlas: <a href="../progetto/#metodo">Methodology and sources</a>.</p>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -388,6 +393,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=58"></script>
+<script src="../../vc.js?v=59"></script>
 </body>
 </html>
