@@ -34,7 +34,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=60">
+<link rel="stylesheet" href="../vc.css?v=61">
 <style>
   /* solo in questa pagina: l'indice in cima e la riga dei link dell'autore */
   .toc { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 18px 0; font-size: var(--step--1); font-weight: 600; }
@@ -175,7 +175,7 @@
         <h3>Solo dati pubblici</h3>
         <p>Tutti i numeri vengono da fonti pubbliche: l’ISTAT per i reati denunciati, la popolazione, la percezione del rischio e le carceri, Eurostat per i rimpatri, il Ministero della Giustizia e il Garante nazionale delle persone private della libertà per la custodia cautelare e le carceri istituto per istituto, il Comune di Milano per i quartieri. Per le morti in carcere, accanto ai conteggi ufficiali ci sono quelli di Ristretti Orizzonti e di Antigone, che contano da fuori e non sono dati ufficiali. Niente stime e niente modelli: dove un dato non esiste, come i reati quartiere per quartiere, l’atlante lo dice invece di inventarlo.</p>
         <h3>I numeri con i loro limiti</h3>
-        <p>Una denuncia non è un reato commesso, e un tasso calcolato sui residenti pesa di più dove arrivano ogni giorno pendolari e turisti. I grafici lo ricordano accanto ai numeri, e una variazione che potrebbe essere dovuta al caso, o che poggia su meno di 20 casi in uno dei due anni, resta grigia: né rossa né blu.</p>
+        <p>Una denuncia non è un reato commesso, né una condanna, e un tasso calcolato sui residenti pesa di più dove arrivano ogni giorno pendolari e turisti. I grafici lo ricordano accanto ai numeri, e una variazione che potrebbe essere dovuta al caso, o che poggia su meno di 20 casi in uno dei due anni, resta grigia: né rossa né blu.</p>
         <h3>Quello che si denuncia e quello che si teme</h3>
         <p>Accanto alle denunce c’è quanto le persone si sentono in pericolo nella zona in cui vivono. Le due cose non vanno sempre insieme, e guardarle vicine aiuta a leggere il dibattito sulla sicurezza.</p>
         <h3>Ogni comune, non solo i capoluoghi</h3>
@@ -232,6 +232,8 @@
       <div class="method">
         <h3>Sono denunce, non tutti i reati commessi</h3>
         <p>I dati contano i delitti che le forze di polizia hanno comunicato all’autorità giudiziaria. Molti reati non vengono mai denunciati, e la propensione a denunciare cambia da reato a reato e da luogo a luogo: un furto d’auto si denuncia quasi sempre per l’assicurazione, una violenza in famiglia molto meno. Un aumento delle denunce può voler dire più reati, ma anche più fiducia o più facilità nel denunciare.</p>
+        <h3 id="condanna">Una denuncia non è una condanna</h3>
+        <p>Una denuncia dice che un fatto è arrivato alle forze di polizia e da lì all’autorità giudiziaria, non che qualcuno ne sia colpevole. Denunce e condanne non si contano allo stesso modo: le denunce sono fatti, contati nell’anno in cui vengono denunciati e nel comune in cui sono avvenuti; le condanne sono persone, contate nell’anno in cui la condanna diventa definitiva, spesso anni dopo, e non comune per comune. Lungo la strada il reato può cambiare nome, per esempio da tentato omicidio a lesioni, e molti procedimenti si chiudono prima di un processo, per esempio perché l’autore resta ignoto. Una sentenza di primo grado non è ancora una condanna definitiva: lo diventa quando non si può più impugnare, di solito dopo l’appello e la Cassazione, e fino ad allora chi è accusato non è considerato colpevole. Per questo nessuna fonte pubblica dice quante denunce finiscono in una condanna, e l’atlante non lo calcola.</p>
         <h3>Il tasso si calcola sui residenti</h3>
         <p>Il tasso è il numero di delitti ogni 100.000 abitanti residenti, calcolato sulla popolazione media dell’anno, come fa l’ISTAT. Nelle città che ogni giorno accolgono pendolari, studenti e turisti, come Milano, Firenze, Bologna, Rimini o Venezia, i reati colpiscono anche chi non vi risiede, quindi il tasso risulta più alto della probabilità reale di essere vittima per chi ci vive.</p>
         <h3>Comune, non provincia</h3>
@@ -293,6 +295,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=60"></script>
+<script src="../vc.js?v=61"></script>
 </body>
 </html>

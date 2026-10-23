@@ -34,7 +34,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=60">
+<link rel="stylesheet" href="../../vc.css?v=61">
 <style>
   /* solo in questa pagina: l'indice in cima e la riga dei link dell'autore */
   .toc { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 18px 0; font-size: var(--step--1); font-weight: 600; }
@@ -175,7 +175,7 @@
         <h3>Public data only</h3>
         <p>Every number comes from public sources: ISTAT for reported crimes, population, perceived risk and prisons, Eurostat for returns, the Ministry of Justice and the national Guarantor for the rights of people deprived of liberty for pre-trial custody and prison by prison, and the Comune di Milano (Milano city council) for neighbourhoods. For deaths in prison, the official counts sit next to those of Ristretti Orizzonti and Antigone, which count from outside and are not official data. No estimates and no models: where a figure does not exist, as with crimes neighbourhood by neighbourhood, the atlas says so instead of making it up.</p>
         <h3>The numbers and their limits</h3>
-        <p>A report is not the same as a crime committed, and a rate calculated on residents weighs more heavily where commuters and tourists arrive every day. The charts point this out next to the numbers, and a change that could be down to chance, or that rests on fewer than 20 cases in one of the two years, stays grey: neither red nor blue.</p>
+        <p>A report is not the same as a crime committed, nor is it a conviction, and a rate calculated on residents weighs more heavily where commuters and tourists arrive every day. The charts point this out next to the numbers, and a change that could be down to chance, or that rests on fewer than 20 cases in one of the two years, stays grey: neither red nor blue.</p>
         <h3>What people report and what they fear</h3>
         <p>Alongside the reports is how unsafe people feel in the area where they live. The two don’t always go together, and looking at them side by side helps in reading the debate on public safety.</p>
         <h3>Every town, not just the provincial capitals</h3>
@@ -232,6 +232,8 @@
       <div class="method">
         <h3>These are reports, not every crime committed</h3>
         <p>The data count the crimes that the police reported to the judicial authorities. Many crimes are never reported, and the propensity to report varies from crime to crime and from place to place: a car theft is almost always reported, for the insurance, domestic violence much less often. A rise in reports can mean more crime, but also more trust, or that reporting has become easier.</p>
+        <h3 id="condanna">A report is not a conviction</h3>
+        <p>A report says that an event reached the police and, through them, the judicial authorities, not that anyone is guilty of it. Reports and convictions are not counted in the same way: reports are events, counted in the year they are reported and in the comune where they happened; convictions are people, counted in the year the conviction becomes final, often years later, and not comune by comune. Along the way the offence can change name, for example from attempted murder to assault, and many cases close before any trial, for example because the offender remains unknown. A first-instance sentence is not yet a final conviction: it becomes one when it can no longer be appealed, usually after the appeal and the Court of Cassation, and until then the accused is not considered guilty. This is why no public source says how many reports end in a conviction, and the atlas does not calculate it.</p>
         <h3>The rate is calculated on residents</h3>
         <p>The rate is the number of crimes per 100,000 residents, calculated on the average population for the year, as ISTAT does. In cities that take in commuters, students and tourists every day, such as Milano, Firenze, Bologna, Rimini or Venezia, crimes also affect people who don’t live there, so the rate comes out higher than the real likelihood of being a victim for those who do.</p>
         <h3>Municipality, not province</h3>
@@ -293,6 +295,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=60"></script>
+<script src="../../vc.js?v=61"></script>
 </body>
 </html>

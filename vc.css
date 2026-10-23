@@ -1410,6 +1410,17 @@ details.dd-method .method { padding: 8px 0 6px; }
 .dd-card[data-dd="cautelari"]::before  { background-image: var(--cctv), url("img/dd/cautelari.jpg"); --shot-pos: 50% 55%; }
 .dd-card[data-dd="istituti"]::before   { background-image: var(--cctv), url("img/dd/istituti.jpg"); }
 .dd-card:hover::before, .dd-card:focus-visible::before { animation: dd-roll 4s linear infinite; }
+/* la fase del percorso penale da cui vengono i numeri (la scrive vc.js): sulla foto, in alto a sinistra, come la scritta
+   di un monitor; colori fissi, perché la foto è la stessa nei due temi */
+.dd-card { position: relative; }
+.dd-card .dd-fase {
+  position: absolute; top: 10px; left: 12px; z-index: 1; max-width: calc(100% - 24px);
+  padding: 3px 8px; border-radius: 4px; background: rgba(8, 10, 9, 0.82); color: #f3f4f0;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.45;
+}
+.dd-card .dd-fase > span { font-weight: 500; color: rgba(243, 244, 240, 0.72); margin-right: 3px; }
+/* i titoli del metodo raggiunti da un link (progetto/#condanna) non finiscono sotto la barra */
+.method h3[id] { scroll-margin-top: 76px; }
 @keyframes dd-roll {
   from { background-position: 0 0, 0 0, 0 -30%, 0 0, var(--shot-pos, 50% 50%); }
   to   { background-position: 0 0, 0 0, 0 130%, 0 0, var(--shot-pos, 50% 50%); }
@@ -1422,6 +1433,7 @@ details.dd-method .method { padding: 8px 0 6px; }
 @media (min-width: 921px) {
   .dd-cards:not(.two):not(.four) > .dd-card:last-child:nth-child(3n + 1) { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); column-gap: 24px; row-gap: 8px; align-content: start; }
   .dd-cards:not(.two):not(.four) > .dd-card:last-child:nth-child(3n + 1) > * { grid-column: 2; }
+  .dd-cards:not(.two):not(.four) > .dd-card:last-child:nth-child(3n + 1) > .dd-fase { grid-column: auto; } /* sulla foto, a sinistra */
   .dd-cards:not(.two):not(.four) > .dd-card:last-child:nth-child(3n + 1)::before { grid-column: 1; grid-row: 1 / span 6; margin: -18px 0 -16px -20px; aspect-ratio: auto; min-height: 100%; border-radius: 7px 0 0 7px; }
 }
 @media (max-width: 920px) and (min-width: 561px) {

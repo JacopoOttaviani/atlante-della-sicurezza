@@ -749,6 +749,19 @@
       `Per confrontare città grandi e piccole si contano le denunce ogni 100.000 abitanti: i ${nf0.format(tot[LAST])} dell’Italia nel ${Y[LAST]} sono circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno.`,
       "progetto/#metodo", "Come leggere questi numeri");
 
+    // denunce e condanne: nessuna fonte le collega, e la quota senza autore noto arriva quando c'è data/autori.json
+    const ign = AUTORI ? { y: AUTORI.meta.last, n: Math.round(100 - AUTORI.italia.TOT[AUTORI.meta.years.indexOf(AUTORI.meta.last)]) } : null;
+    if (EN) card("How many reports end in a conviction?",
+      "No public source says, and dividing convictions by reports would give a meaningless number. Reports count events, in the year they reach the police; convictions count people, in the year the conviction becomes final, often years later, and the offence can change name along the way. " +
+      `In between, many cases close without a trial, for example because the offender remains unknown${ign ? `: of the crimes committed and reported in ${ign.y}, ${nf0.format(ign.n)} in 100 were still without a known offender by the end of the year` : ""}. ` +
+      "And a conviction is final only when it can no longer be appealed: until then, the accused is not considered guilty.",
+      "progetto/#condanna", "A report is not a conviction");
+    else card("Quante denunce finiscono in una condanna?",
+      "Nessuna fonte pubblica lo dice, e dividere le condanne per le denunce darebbe un numero senza senso. Le denunce contano fatti, nell’anno in cui arrivano alle forze di polizia; le condanne contano persone, nell’anno in cui la condanna diventa definitiva, spesso anni dopo, e lungo la strada il reato può cambiare nome. " +
+      `In mezzo molti procedimenti si chiudono senza un processo, per esempio perché l’autore resta ignoto${ign ? `: dei delitti commessi e denunciati nel ${ign.y}, ${nf0.format(ign.n)} su 100 erano ancora senza un autore noto a fine anno` : ""}. ` +
+      "E una condanna è definitiva solo quando non si può più impugnare: fino ad allora chi è accusato non è considerato colpevole.",
+      "progetto/#condanna", "Una denuncia non è una condanna");
+
     // si ridisegna quando arrivano carceri e rimpatri o cambia la larghezza: le risposte aperte restano aperte
     const open = new Set(Array.from(host.querySelectorAll("details[open] h3"), (x) => x.textContent));
     host.innerHTML = cards.join("");
@@ -756,8 +769,25 @@
     reveal(host, host.querySelectorAll(".faq-q"));
   }
 
+  // La fase del percorso penale da cui vengono i numeri di ogni scheda, sulla foto: una denuncia non è una condanna.
+  // Custodia cautelare e carceri dicono «carcere», non «pena»: tra le persone detenute c'è chi non ha una condanna definitiva.
+  // La scrive vc.js e non l'HTML perché le schede stanno anche in fondo a ogni approfondimento.
+  const FASE = {
+    percezione: ["Denuncia", "Police report"], autori: ["Denuncia", "Police report"], minori: ["Denuncia", "Police report"],
+    cautelari: ["Prima della condanna", "Before the verdict"], carceri: ["Carcere", "Prison"], istituti: ["Carcere", "Prison"],
+  };
+  function renderFasi() {
+    document.querySelectorAll(".dd-card[data-dd]").forEach((el) => {
+      if (el.querySelector(".dd-fase")) return;
+      const f = FASE[el.dataset.dd];
+      if (f) el.insertAdjacentHTML("afterbegin", `<span class="dd-fase"><span>${L("Fase", "Stage")}</span> ${L(...f)}</span>`);
+      else if (el.dataset.dd === "rimpatri") el.insertAdjacentHTML("afterbegin", `<span class="dd-fase">${L("Fuori dal percorso penale", "Outside criminal justice")}</span>`);
+    });
+  }
+
   // Le schede degli approfondimenti, nella home e nella pagina che li raccoglie: una cifra per ognuno, appena i suoi dati ci sono.
   function renderDeepCards() {
+    renderFasi();
     const fill = (k, fig, cap) => document.querySelectorAll(`[data-dd="${k}"]`).forEach((el) => {
       const f = el.querySelector(".dd-fig"), c = el.querySelector(".dd-cap");
       if (f) f.textContent = fig;
@@ -3295,6 +3325,7 @@
         sel.addEventListener("change", () => { state.autoriType = sel.value; renderAutoriCities(); });
       }
       if (has("autori-facts")) renderAutori();
+      renderBrief();
       renderDeepCards();
     } catch (e) {
       if (has("autori-facts")) $("#autori-facts").innerHTML = `<p class="note">${L("I dati sugli autori dei delitti non si sono caricati", "The data on offenders did not load")} (${esc(e.message)}).</p>`;
