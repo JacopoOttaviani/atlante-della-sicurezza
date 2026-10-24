@@ -42,7 +42,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=67">
+<link rel="stylesheet" href="vc.css?v=68">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -351,7 +351,7 @@
       <header>
         <div class="kicker">Il quadro nazionale</div>
         <h2 id="mix-title">Cosa sale e cosa scende</h2>
-        <p class="dek" id="mix-dek" aria-live="polite">I reati non calano tutti insieme. Tocca un reato per vederlo in tutte le città.</p>
+        <p class="dek" id="mix-dek" aria-live="polite">Sono delitti denunciati alle forze di polizia, non condanne. Le denunce non calano tutte insieme: tocca un reato per vederlo in tutte le città.</p>
         <!-- il periodo del confronto: vale solo per questa sezione (vc.js scrive l'ultimo anno nei bottoni) -->
         <div class="seg mix-period" id="mix-base-seg" role="group" aria-label="Periodo del confronto">
           <button type="button" data-mbase="2014" aria-pressed="false">Tra il 2014 e il 2024</button>
@@ -359,11 +359,12 @@
         </div>
       </header>
       <div class="mix-key" aria-hidden="true">
+        <span class="mk-lbl">Denunce per abitante:</span>
         <span><i class="k-up"></i>in aumento</span>
         <span><i class="k-down"></i>in calo</span>
         <span><i class="k-flat"></i>minima o incerta</span>
         <span><i class="k-zero"></i>nessuna variazione</span>
-        <span><i class="k-ref"></i>tutti i delitti</span>
+        <span><i class="k-ref"></i>tutti i delitti denunciati</span>
       </div>
       <div class="mix" id="mix-grid"></div>
     </div>
@@ -561,6 +562,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=67"></script>
+<script src="vc.js?v=68"></script>
 </body>
 </html>

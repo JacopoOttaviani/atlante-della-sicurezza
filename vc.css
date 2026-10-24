@@ -1448,6 +1448,8 @@ details.dd-method .method { padding: 8px 0 6px; }
 .fase-tag > span { font-weight: 500; color: var(--muted); margin-right: 3px; }
 .fase-line { margin: 0 0 14px; font-size: var(--step--1); color: var(--ink-2); max-width: 70ch; }
 .fase-line .fase-tag { vertical-align: 0.08em; }
+.dek .fase-tag { font-family: var(--font-display); vertical-align: 0.2em; }
+.mix-key .mk-lbl { font-weight: 700; color: var(--ink); }
 /* i titoli del metodo raggiunti da un link (progetto/#condanna) non finiscono sotto la barra */
 .method h3[id] { scroll-margin-top: 76px; }
 @keyframes dd-roll {

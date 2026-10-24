@@ -42,7 +42,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=67">
+<link rel="stylesheet" href="../vc.css?v=68">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -330,7 +330,7 @@
       <header>
         <div class="kicker">The national picture</div>
         <h2 id="mix-title">What’s going up and what’s going down</h2>
-        <p class="dek" id="mix-dek" aria-live="polite">Crimes don’t all fall together. Tap a crime to see it in every city.</p>
+        <p class="dek" id="mix-dek" aria-live="polite">These are crimes reported to the police, not convictions. Reports don’t all fall together: tap a crime to see it in every city.</p>
         <!-- il periodo del confronto: vale solo per questa sezione (vc.js scrive l'ultimo anno nei bottoni) -->
         <div class="seg mix-period" id="mix-base-seg" role="group" aria-label="Comparison period">
           <button type="button" data-mbase="2014" aria-pressed="false">Between 2014 and 2024</button>
@@ -338,11 +338,12 @@
         </div>
       </header>
       <div class="mix-key" aria-hidden="true">
+        <span class="mk-lbl">Reports per resident:</span>
         <span><i class="k-up"></i>rising</span>
         <span><i class="k-down"></i>falling</span>
         <span><i class="k-flat"></i>minimal or uncertain</span>
         <span><i class="k-zero"></i>no change</span>
-        <span><i class="k-ref"></i>all crimes</span>
+        <span><i class="k-ref"></i>all reported crimes</span>
       </div>
       <div class="mix" id="mix-grid"></div>
     </div>
@@ -540,6 +541,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=67"></script>
+<script src="../vc.js?v=68"></script>
 </body>
 </html>

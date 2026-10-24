@@ -1119,9 +1119,10 @@
     }).filter((d) => isFinite(d.ch)).sort((a, b) => b.ch - a.ch);
     const totCh = ITALY.rate.TOT[LAST] / ITALY.rate.TOT[iB] - 1;
     const up = items.filter((d) => d.s === "up").length, down = items.filter((d) => d.s === "down").length, rest = items.length - up - down;
+    // sono denunce, non condanne: lo dice l'etichetta della fase, come nelle schede dei comuni, e lo ripete la frase
     $("#mix-dek").innerHTML = EN
-      ? `Between ${base} and ${Y[LAST]}, <strong>${up} of ${items.length} crimes</strong> rose in Italy and <strong>${down}</strong> fell; for the other ${rest} the change is minimal or could be down to chance. All crimes combined, ${fmtPct(totCh)}. Crimes do not move together: tap a crime to see it on the map of provincial capitals.`
-      : `Tra il ${base} e il ${Y[LAST]}, in Italia <strong>${up} reati su ${items.length}</strong> sono aumentati e <strong>${down}</strong> sono calati; per gli altri ${rest} la variazione è minima o può dipendere dal caso. Tutti i delitti insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
+      ? `${faseTag("denuncia")}These are crimes reported to the police, not convictions. Between ${base} and ${Y[LAST]}, reports per resident rose in Italy for <strong>${up} of ${items.length} crimes</strong> and fell for <strong>${down}</strong>; for the other ${rest} the change is minimal or could be down to chance. All reported crimes combined, ${fmtPct(totCh)}. Crimes do not move together: tap a crime to see it on the map of provincial capitals.`
+      : `${faseTag("denuncia")}Sono delitti denunciati alle forze di polizia, non condanne. Tra il ${base} e il ${Y[LAST]}, in Italia le denunce per abitante sono aumentate per <strong>${up} reati su ${items.length}</strong> e calate per <strong>${down}</strong>; per gli altri ${rest} la variazione è minima o può dipendere dal caso. Tutti i delitti denunciati insieme ${fmtPct(totCh)}. I reati non si muovono insieme: tocca un reato per vederlo sulla mappa dei capoluoghi.`;
     // scala comune con tetto fisso: la barra si ferma, il numero dice il valore vero
     const cap = Math.min(1.5, Math.max(0.3, Math.ceil(d3.max(items, (d) => Math.abs(d.ch)) * 10) / 10));
     const pos = (v) => 50 + 50 * Math.max(-1, Math.min(1, v / cap));
@@ -1137,8 +1138,8 @@
         `<span class="mbar" aria-hidden="true"><i class="z"></i><i class="b ${cls} rv-grow" style="left:${left}%;width:${width}%"></i><i class="ref rv-fade" style="left:${pos(totCh)}%"></i></span>` +
         `<span class="mv ${cls}">${fmtPct(d.ch)}</span><svg aria-hidden="true"></svg>`;
       b.setAttribute("aria-label", EN
-        ? `${d.t.label}: ${fmtRate(d.it[LAST])} per 100,000 residents in ${Y[LAST]}, ${fmtPct(d.ch)} compared with ${base}${cls === "flat" ? ", a minimal change or one that could be down to chance" : ""}. Show it on the map`
-        : `${d.t.label}: ${fmtRate(d.it[LAST])} ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${base}${cls === "flat" ? ", una variazione minima o che può dipendere dal caso" : ""}. Mostralo sulla mappa`);
+        ? `${d.t.label}: ${fmtRate(d.it[LAST])} reports per 100,000 residents in ${Y[LAST]}, ${fmtPct(d.ch)} compared with ${base}${cls === "flat" ? ", a minimal change or one that could be down to chance" : ""}. Show it on the map`
+        : `${d.t.label}: ${fmtRate(d.it[LAST])} denunce ogni 100.000 abitanti nel ${Y[LAST]}, ${fmtPct(d.ch)} rispetto al ${base}${cls === "flat" ? ", una variazione minima o che può dipendere dal caso" : ""}. Mostralo sulla mappa`);
       b.addEventListener("click", () => showOnMap(d.t.id, base));
       grid.appendChild(b);
     });
@@ -1147,7 +1148,7 @@
       const d = items[k];
       drawSpark(b.querySelector("svg"), {
         w, h: 32, pad: { t: 4, r: 3, b: 3, l: 1 }, values: d.it, yMax: d3.max(d.it) * 1.08,
-        hover: (i) => `<b>${esc(d.t.label)}</b><br>${Y[i]}: ${fmtRate(d.it[i])} ${L("ogni 100.000 ab.", "per 100,000 res.")}`,
+        hover: (i) => `<b>${esc(d.t.label)}</b><br>${Y[i]}: ${fmtRate(d.it[i])} ${L("denunce ogni 100.000 ab.", "reports per 100,000 res.")}`,
       });
     });
     reveal(grid, grid.querySelectorAll(".mrow"));
