@@ -34,7 +34,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=61">
+<link rel="stylesheet" href="../../vc.css?v=62">
 <style>
   /* solo in questa pagina: l'indice in cima e la riga dei link dell'autore */
   .toc { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 18px 0; font-size: var(--step--1); font-weight: 600; }
@@ -173,7 +173,7 @@
       </header>
       <div class="method">
         <h3>Public data only</h3>
-        <p>Every number comes from public sources: ISTAT for reported crimes, population, perceived risk and prisons, Eurostat for returns, the Ministry of Justice and the national Guarantor for the rights of people deprived of liberty for pre-trial custody and prison by prison, and the Comune di Milano (Milano city council) for neighbourhoods. For deaths in prison, the official counts sit next to those of Ristretti Orizzonti and Antigone, which count from outside and are not official data. No estimates and no models: where a figure does not exist, as with crimes neighbourhood by neighbourhood, the atlas says so instead of making it up.</p>
+        <p>Every number comes from public sources: ISTAT for reported crimes, population, perceived risk and prisons, Eurostat for returns, the Ministry of Justice and the national Guarantor for the rights of people deprived of liberty for pre-trial custody and prison by prison, the Ministry of Justice also for trials, the statute of limitations and sentences served outside prison (its data may be used for non-commercial purposes, citing the source), and the Comune di Milano (Milano city council) for neighbourhoods. For deaths in prison, the official counts sit next to those of Ristretti Orizzonti and Antigone, which count from outside and are not official data. No estimates and no models: where a figure does not exist, as with crimes neighbourhood by neighbourhood, the atlas says so instead of making it up.</p>
         <h3>The numbers and their limits</h3>
         <p>A report is not the same as a crime committed, nor is it a conviction, and a rate calculated on residents weighs more heavily where commuters and tourists arrive every day. The charts point this out next to the numbers, and a change that could be down to chance, or that rests on fewer than 20 cases in one of the two years, stays grey: neither red nor blue.</p>
         <h3>What people report and what they fear</h3>
@@ -250,7 +250,7 @@
         <h3>Sources</h3>
         <ul class="sources" id="sources"></ul>
         <p style="margin-top:16px">Data downloaded from the SDMX API of <a href="https://esploradati.istat.it/" rel="noopener">esploradati.istat.it</a>. The dataset is rebuilt with <code>python3 scripts/build_data.py</code>; the municipalities and provinces with <code>python3 scripts/build_comuni.py</code>. Not from ISTAT are returns (from the <a href="https://ec.europa.eu/eurostat/web/migration-asylum/managed-migration/database" rel="noopener">Eurostat</a> API, with <code>python3 scripts/build_rimpatri.py</code>), pre-trial measures and compensation (the Ministry of Justice’s reports to Parliament, with <code>python3 scripts/build_cautelari.py</code>) and prison by prison (Ministry of Justice, national Guarantor, Ristretti Orizzonti and Antigone, with <code>python3 scripts/build_istituti.py</code>).</p>
-        <p>The photos on the deep-dive cards come from Unsplash (Unsplash licence): prisons by <a href="https://unsplash.com/photos/a-long-hallway-with-prison-cells-on-the-left-SZSh5wHtmPY" rel="noopener">Anil Baki Durmus</a>, returns by <a href="https://unsplash.com/photos/airport-jet-bridge-at-night-with-planes-and-vehicles-PsTviXbeCgk" rel="noopener">Alexander Schimmeck</a>, perception by <a href="https://unsplash.com/photos/empty-street-with-buildings-and-clock-tower-at-night-ca_5BEvg-LY" rel="noopener">Mohamed Marey</a>, unknown offenders by <a href="https://unsplash.com/photos/a-couple-of-police-cars-parked-next-to-each-other-Fn57NtC4ddk" rel="noopener">Alex Suprun</a>, minors by <a href="https://unsplash.com/photos/portable-basketball-hoop-20K-JZ2ppbE" rel="noopener">Piotr Osmenda</a>, pre-trial detention by <a href="https://unsplash.com/photos/a-courtroom-with-a-large-wooden-bench-ZV0kXnONoHo" rel="noopener">Rai Singh Uriarte</a> (the Supreme Court of Chile, in Santiago), prison by prison by <a href="https://unsplash.com/photos/stone-wall-with-barred-windows-32Yl7cAOqwQ" rel="noopener">Dan Stephens</a>.</p>
+        <p>The photos on the deep-dive cards come from Unsplash (Unsplash licence): prisons by <a href="https://unsplash.com/photos/a-long-hallway-with-prison-cells-on-the-left-SZSh5wHtmPY" rel="noopener">Anil Baki Durmus</a>, returns by <a href="https://unsplash.com/photos/airport-jet-bridge-at-night-with-planes-and-vehicles-PsTviXbeCgk" rel="noopener">Alexander Schimmeck</a>, perception by <a href="https://unsplash.com/photos/empty-street-with-buildings-and-clock-tower-at-night-ca_5BEvg-LY" rel="noopener">Mohamed Marey</a>, unknown offenders by <a href="https://unsplash.com/photos/a-couple-of-police-cars-parked-next-to-each-other-Fn57NtC4ddk" rel="noopener">Alex Suprun</a>, minors by <a href="https://unsplash.com/photos/portable-basketball-hoop-20K-JZ2ppbE" rel="noopener">Piotr Osmenda</a>, pre-trial detention by <a href="https://unsplash.com/photos/a-courtroom-with-a-large-wooden-bench-ZV0kXnONoHo" rel="noopener">Rai Singh Uriarte</a> (the Supreme Court of Chile, in Santiago), prison by prison by <a href="https://unsplash.com/photos/stone-wall-with-barred-windows-32Yl7cAOqwQ" rel="noopener">Dan Stephens</a>, trials by <a href="https://unsplash.com/photos/stacks-of-paper-documents-and-file-folders-snNHKZ-mGfE" rel="noopener">Wesley Tingey</a>, outside prison by <a href="https://unsplash.com/photos/apartment-building-facade-at-night-378FLAOipMY" rel="noopener">Ian An</a>.</p>
       </div>
     </div>
   </section>
@@ -295,6 +295,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=61"></script>
+<script src="../../vc.js?v=62"></script>
 </body>
 </html>

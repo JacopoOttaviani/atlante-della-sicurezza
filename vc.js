@@ -131,7 +131,7 @@
   // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
   // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT", cautMode: "ord", istMode: "reg", istSort: "ratio", istSel: null };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT", cautMode: "ord", istMode: "reg", istSort: "ratio", istSel: null, procMode: "presc", procSort: "dur", esMode: "pop" };
   let CARCERI = null;
   let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
@@ -775,6 +775,7 @@
   const FASE = {
     percezione: ["Denuncia", "Police report"], autori: ["Denuncia", "Police report"], minori: ["Denuncia", "Police report"],
     cautelari: ["Prima della condanna", "Before the verdict"], carceri: ["Carcere", "Prison"], istituti: ["Carcere", "Prison"],
+    processi: ["Processo", "Trial"], esecuzione: ["Fuori dal carcere", "Outside prison"],
   };
   function renderFasi() {
     document.querySelectorAll(".dd-card[data-dd]").forEach((el) => {
@@ -838,6 +839,18 @@
       fill("istituti", EN ? `${nf0.format(r)} per 100` : `${nf0.format(r)} ogni 100`, EN
         ? `people held for every 100 official prison places at the end of ${monthLong(M[iL])}; counting only the places that can be used, ${nf0.format(rd)} (${dayLong(isoDate(G[0]))})`
         : `persone detenute ogni 100 posti regolamentari a fine ${monthLong(M[iL])}; sui posti davvero disponibili, ${nf0.format(rd)} (${dayLong(isoDate(G[0]))})`);
+    }
+    if (GIUS) {
+      const G = GIUS, Yg = G.meta.years, L = Yg.length - 1, D = G.italia.durata.mono;
+      fill("processi", EN ? `${days(D[L])} days` : `${days(D[L])} giorni`, EN
+        ? `average length of a first-instance trial closed in ${G.meta.last} before a single judge; ${days(D[0])} days in ${Yg[0]}`
+        : `la durata media di un processo di primo grado chiuso nel ${G.meta.last} davanti al giudice monocratico; ${days(D[0])} giorni nel ${Yg[0]}`);
+    }
+    if (ESEC) {
+      const E = ESEC, L = E.meta.years.length - 1, r = Math.round((100 * altOf(E.uepe.italia, L)) / E.carcere.italia[L]);
+      fill("esecuzione", EN ? `${r} per 100` : `${r} ogni 100`, EN
+        ? `people in alternatives to prison for every 100 people in prison at the end of ${E.meta.last}`
+        : `persone in misura alternativa ogni 100 persone in carcere a fine ${E.meta.last}`);
     }
   }
 
@@ -1752,6 +1765,8 @@
     if (!PROV && !placesFailed) loadPlaces().then(() => redrawCard(c)).catch(() => {});
     // i quartieri, per le città che li hanno (data/quartieri/index.json): stessa cosa
     if (QINDEX.has(c.id) && QUART[c.id] === undefined) loadQuart(c.id).then((q) => { if (q) redrawCard(c); });
+    // il tribunale del comune (data/giustizia.json): stessa cosa
+    if (!GIUS && !giusFailed) loadGiustizia().then(() => redrawCard(c)).catch(() => {});
   }
 
   // Ridisegna la scheda quando arrivano dati in ritardo, ma solo a scheda ancora aperta sulla stessa città
@@ -1769,6 +1784,9 @@
     renderProv();
     showCard();
     try { history.replaceState(null, "", "#" + placeSlug(e)); } catch (err) { /* ignorato */ }
+    if (!GIUS && !giusFailed) loadGiustizia().then(() => {
+      setTimeout(() => { if (state.place === e) renderProv(); }, Math.max(0, (dlg._rvUntil || 0) - Date.now()));
+    }).catch(() => {});
   }
 
   function openPlace(e) {
@@ -1985,6 +2003,7 @@
           return `<tr><td>${yr}</td><td class="num">${c.n[state.cardType][i] == null ? "–" : nf0.format(c.n[state.cardType][i])}</td><td class="num">${fmtRate(r.s[i])}</td>${P ? `<td class="num">${fmtRate(pr.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
+      ${courtHTML(GIUS ? GIUS.capoluoghi[c.id] : null, c.name)}
       <p class="small src">${L("Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria (conteggi per comune capoluogo e tassi per provincia); popolazione residente ISTAT; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana.", "Sources: ISTAT, crimes reported by the police to the judicial authorities (counts for each provincial capital and rates for each province); ISTAT resident population; perceived risk from the ISTAT survey Aspetti della vita quotidiana (Aspects of daily life).")}</p>`;
     $("#city-grid").innerHTML = gridHTML(rows);
     const series = [{ name: c.name, values: r.s, color: "var(--ink)", width: 2.25 }];
@@ -2379,6 +2398,7 @@
           return `<tr><td>${yr}</td>${counts ? `<td class="num">${n == null ? "–" : nf0.format(n)}</td>` : ""}<td class="num">${fmtRate(r.s[i])}</td>${capRow ? `<td class="num">${fmtRate(capRow.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
+      ${courtHTML(GIUS && e.i != null && GIUS.comuni_trib.length === INDEX.length ? GIUS.comuni_trib[e.i] : null, e.name)}
       <p class="small src">${L("Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria, tasso di delittuosità per provincia e conteggi per comune capoluogo; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana; elenco ufficiale ISTAT dei comuni.", "Sources: ISTAT, crimes reported by the police to the judicial authorities, crime rate by province and counts for each provincial capital; perceived risk from the ISTAT survey Aspetti della vita quotidiana (Aspects of daily life); ISTAT official list of municipalities.")}${counts ? "" : L(" Per le province l’ISTAT pubblica i tassi: le variazioni qui sono rapporti tra tassi, senza il test statistico usato per i capoluoghi (cerchio vuoto).", " For the provinces ISTAT publishes rates: the changes here are ratios between rates, without the statistical test used for the provincial capitals (empty circle).")}</p>
       <div class="btns card-foot">${caps.map((c) => `<button type="button" class="btn" data-open-city="${c.id}">${EN ? `Open the ${esc(c.name)} profile` : `Apri la scheda di ${esc(c.name)}`}</button>`).join("")}</div>`;
     $("#city-grid").innerHTML = gridHTML(rows);
@@ -2403,11 +2423,12 @@
     placesPromise = Promise.all([get(ROOT + "data/comuni.json"), get(ROOT + "data/province.json")]).then(([cm, pv]) => {
       if (pv.meta.years.join() !== Y.join()) throw new Error("anni diversi tra vc.json e province.json");
       PROV = pv.prov; PROV_META = pv.meta; PERC_SIGLA = pv.perc_sigla || {}; UNITS = cm.units;
-      INDEX = cm.comuni.map(([name, alt, sigla, prov, city, x, y]) => {
+      INDEX = cm.comuni.map(([name, alt, sigla, prov, city, x, y], i) => {
         const c = city ? cityById(city) : null;
         if (c) CITY_PROV[c.id] = prov;
         // i capoluoghi usano il nome del resto della pagina (Reggio Emilia), ma si trovano anche con quello ufficiale
         const e = entry(c ? c.name : name, alt, sigla, prov, c ? c.id : "", PROV[prov].region, c && c.name !== name ? [name] : []);
+        e.i = i; // la posizione in data/comuni.json, che data/giustizia.json usa per il tribunale
         e.lon = x == null ? null : x / 100;
         e.lat = y == null ? null : y / 100;
         return e;
@@ -2631,6 +2652,8 @@
     if (MINORI && has("minori-facts")) renderMinori();
     if (CAUT && has("caut-facts")) renderCautelari();
     if (IST && has("ist-facts")) renderIstituti();
+    if (GIUS && has("proc-facts")) renderProcessi();
+    if (ESEC && has("es-facts")) renderEsecuzione();
     renderDeepCards();
     if (state.city) renderCity();
     if (state.place) renderProv();
@@ -3924,6 +3947,384 @@
       : `${top.d.name} spicca${every ? " in ogni misura" : ""}: ${nf0.format(top.o)} ordinanze e ${nf1.format(top.e / 1e6)} milioni di euro in ${Yr.length} anni, per un distretto di ${nf0.format(Math.round(top.d.pop / 1000) * 1000)} abitanti, ${nf0.format(xIt(top))} volte la media italiana ${eur ? "dei pagamenti per abitante" : "delle ordinanze per abitante"}. Segue ${second.d.name}. Un solo grande processo finito con molte assoluzioni può riempire più anni di pagamenti, e la relazione non dice da quali procedimenti vengano le ordinanze.`;
   }
 
+  // ------------------------------------------------------------------ dal reato alla sentenza (procure, tribunali, Corti d'appello)
+
+  let GIUS = null, giusPromise = null, giusFailed = false;
+  // data/giustizia.json serve alla sua pagina e alle schede di tutti i comuni (il tribunale): si carica una volta sola
+  function loadGiustizia() {
+    if (!giusPromise) {
+      giusPromise = fetch(ROOT + "data/giustizia.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => {
+        GIUS = d;
+        d.distretti.forEach((x) => x.map.forEach((p) => { DIST_OF[p] = x.id; }));
+        addSources(d.meta.sources, "giustizia");
+        return d;
+      }).catch((e) => { giusFailed = true; throw e; });
+    }
+    return giusPromise;
+  }
+  async function loadProcessi() {
+    try {
+      await loadGiustizia();
+      if (has("proc-dist-seg")) seg("#proc-dist-seg", "pmode", (v) => { state.procMode = v; renderProcDistricts(); });
+      if (has("proc-sort")) seg("#proc-sort", "psort", (v) => { state.procSort = v; renderProcTable(); });
+      if (has("proc-find")) $("#proc-find").addEventListener("input", renderProcTable);
+      if (has("proc-facts")) renderProcessi();
+      renderDeepCards();
+    } catch (e) {
+      if (has("proc-facts")) $("#proc-facts").innerHTML = `<p class="note">${L("I dati sui procedimenti penali non si sono caricati", "The data on criminal proceedings did not load")} (${esc(e.message)}).</p>`;
+      console.error(e);
+    }
+  }
+
+  // il primo grado è il dibattimento monocratico, collegiale e di assise: le sezioni si sommano anno per anno
+  function flowSum(list) {
+    const f = list.filter(Boolean), add = (k) => f[0][k].map((_, i) => d3.sum(f, (x) => x[k][i]));
+    return { s: add("s"), d: add("d"), p: add("p") };
+  }
+  const gFlow = (F, k) => (k === "trib" ? flowSum([F.mono, F.coll, F.assise]) : F[k]);
+  // disposition time: i giorni che servirebbero a chiudere i procedimenti aperti al ritmo dell'anno (pendenti / definiti × 365)
+  const dtime = (f, i) => (f && f.d[i] ? (365 * f.p[i]) / f.d[i] : null);
+  // prescritti ogni 100 definiti negli ultimi k anni che hanno tutti e due i numeri
+  function prescShare(p, d, k = 3) {
+    let sp = 0, sd = 0, n = 0;
+    for (let i = p.length - 1; i >= 0 && n < k; i--) if (p[i] != null && d[i]) { sp += p[i]; sd += d[i]; n++; }
+    return sd ? (100 * sp) / sd : null;
+  }
+  const lastK = (Yg, k = 3) => `${Yg[Yg.length - k]}–${Yg[Yg.length - 1]}`;
+  const days = (v) => (v == null ? "–" : nf0.format(Math.round(v)));
+
+  const GSTAGES = [
+    { k: "procura", name: L("Procure", "Prosecutors"), what: L("le indagini", "investigation"), dur: "procura" },
+    { k: "gip", name: L("GIP e GUP", "Preliminary judges"), what: L("archiviazioni, riti alternativi, rinvii a giudizio", "dismissals, fast-track trials, committals"), dur: "gip" },
+    { k: "trib", name: L("Tribunali", "Trial courts"), what: L("il processo di primo grado", "the first-instance trial"), dur: "mono" },
+    { k: "appello", name: L("Corti d’appello", "Courts of appeal"), what: L("il secondo grado", "the appeal"), dur: "appello" },
+    { k: "cass", name: L("Cassazione", "Court of Cassation"), what: L("l’ultimo grado", "the final appeal"), dur: null },
+  ];
+
+  function renderProcessi() {
+    const G = GIUS, Yg = G.meta.years, iL = Yg.length - 1, last = G.meta.last, y0 = Yg[0], i19 = Yg.indexOf(2019);
+    const F = G.italia.flussi, Du = G.italia.durata, P = G.italia.presc;
+    const st = GSTAGES.map((s) => ({ ...s, f: gFlow(F, s.k) }));
+    const pend = (i) => d3.sum(st, (s) => s.f.p[i]);
+    const pL = pend(iL), p0 = pend(0);
+    $("#proc-lead").textContent = EN
+      ? `${nf1.format(pL / 1e6)} million criminal proceedings were open at the end of ${last}, ${fmtPct(pL / p0 - 1).replace("−", "")} fewer than in ${y0}`
+      : `A fine ${last} erano aperti ${nf1.format(pL / 1e6)} milioni di procedimenti penali, ${fmtPct(pL / p0 - 1).replace("−", "")} in meno che nel ${y0}`;
+    $("#proc-lead-sub").textContent = EN
+      ? `Proceedings with a known suspect, from the prosecutor's office to the Court of Cassation, on 31 December ${last}. Each stage counts the proceedings it has open; the same case moves from one stage to the next over the years.`
+      : `Procedimenti con un indagato noto, dalla procura alla Cassazione, al 31 dicembre ${last}. Ogni fase conta i procedimenti che ha aperti; lo stesso procedimento passa da una fase all’altra negli anni.`;
+    $("#proc-stages").innerHTML = `<ol class="proc-stages">${st.map((s, j) => {
+      const d = s.dur ? Du[s.dur][iL] : null;
+      return `<li class="rv-pop" style="--i:${j}"><span class="ps-k">${s.name}</span><span class="ps-w">${s.what}</span>
+        <span class="ps-v">${nf0.format(s.f.p[iL])}</span><span class="ps-l">${L("procedimenti aperti", "open proceedings")}</span>
+        <span class="ps-c">${fmtPct(s.f.p[iL] / s.f.p[0] - 1)} ${L("dal", "since")} ${y0}</span>
+        <span class="ps-d">${d != null ? (EN ? `average length ${days(d)} days` : `durata media ${days(d)} giorni`) : EN ? `${nf0.format(s.f.d[iL])} closed in ${last}` : `${nf0.format(s.f.d[iL])} chiusi nel ${last}`}</span></li>`;
+    }).join("")}</ol>`;
+    reveal($("#proc-stages"), $("#proc-stages").querySelectorAll("li"));
+
+    const mono = Du.mono, lg = Du.lunghi.mono[iL], lgA = Du.lunghi.appello[iL];
+    const prTot = (i) => (P.gip_arch[i] == null ? null : P.appello[i] + P.trib[i] + P.gip_arch[i] + P.gip_sent[i] + P.gdp[i]);
+    const prL = prTot(iL), pr0 = prTot(0);
+    $("#proc-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${days(mono[iL])}<small> days</small></div><div class="fl">average length of the first-instance trials closed in ${last} before a single judge, most of them; in ${y0}, ${days(mono[0])} days.</div></div>
+      <div class="fact"><div class="fv">${nf0.format((100 * lg[0]) / lg[1])}%</div><div class="fl">of those trials ended more than two years after reaching the court; in the courts of appeal, ${nf0.format((100 * lgA[0]) / lgA[1])}% took more than three years.</div></div>
+      <div class="fact"><div class="fv">${days(Du.appello[iL])}<small> days</small></div><div class="fl">average length of an appeal closed in ${last}, ${days(Du.appello[i19])} in 2019.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(prL)}</div><div class="fl">proceedings closed in ${last} because the time limit for prosecution had run out; ${nf0.format(pr0)} in ${y0}.</div></div>` : `
+      <div class="fact"><div class="fv">${days(mono[iL])}<small> giorni</small></div><div class="fl">la durata media dei processi di primo grado chiusi nel ${last} davanti al giudice monocratico, la maggior parte; nel ${y0}, ${days(mono[0])} giorni.</div></div>
+      <div class="fact"><div class="fv">${nf0.format((100 * lg[0]) / lg[1])}%</div><div class="fl">di quei processi si è chiuso più di due anni dopo l’arrivo in tribunale; in appello ${pctA("il", (100 * lgA[0]) / lgA[1])} è durato più di tre anni.</div></div>
+      <div class="fact"><div class="fv">${days(Du.appello[iL])}<small> giorni</small></div><div class="fl">la durata media di un appello chiuso nel ${last}; ${days(Du.appello[i19])} nel 2019.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(prL)}</div><div class="fl">procedimenti chiusi nel ${last} per prescrizione, cioè perché era passato il tempo per giudicare; ${nf0.format(pr0)} nel ${y0}.</div></div>`;
+
+    // nel tempo: gli arretrati (2014 = 100) e le durate medie
+    const idx = (f) => f.p.map((v) => (100 * v) / f.p[0]);
+    const S = Object.fromEntries(st.map((s) => [s.k, s]));
+    $("#proc-pend-sub").textContent = EN ? `Proceedings open at the end of each year, ${y0} = 100` : `Procedimenti aperti a fine anno, ${y0} = 100`;
+    seriesChart($("#proc-pend"), {
+      years: Yg, label: EN ? `Open proceedings by stage, ${y0} = 100` : `Procedimenti aperti per fase, ${y0} = 100`, height: 260, yMin: 0, yMax: 115, covid: true,
+      fmt: (v) => nf0.format(v), ref: 100,
+      series: [
+        { name: S.procura.name, values: idx(S.procura.f), color: "var(--ink)", at: 2015, dy: -10 },
+        { name: S.gip.name, values: idx(S.gip.f), color: "var(--ink-2)", at: 2016, dy: 16, dyEnd: 16 },
+        { name: S.trib.name, values: idx(S.trib.f), color: "var(--fall)", width: 2.5, at: 2018, dy: -10 },
+        { name: S.appello.name, values: idx(S.appello.f), color: "var(--rise)", width: 2.5, at: 2017, dy: -10 },
+        { name: S.cass.name, values: idx(S.cass.f), color: "var(--muted)", at: 2022, dy: 16, dyEnd: 16 },
+      ],
+      tip: (i) => `<b>${Yg[i]}</b><br>` + st.map((s) => `${s.name}: ${nf0.format(s.f.p[i])}`).join("<br>"),
+    });
+    $("#proc-dur-sub").textContent = EN ? `Average length of the proceedings closed each year, in days` : `Durata media dei procedimenti chiusi ogni anno, in giorni`;
+    seriesChart($("#proc-dur"), {
+      years: Yg, label: EN ? `Average length of closed proceedings, days, ${y0}–${last}` : `Durata media dei procedimenti chiusi, giorni, ${y0}–${last}`, height: 260, yMin: 0, covid: true,
+      series: [
+        { name: L("appello", "appeal"), values: Du.appello, color: "var(--rise)", width: 2.5, at: 2015, dy: -10 },
+        { name: L("collegiale", "panel of judges"), values: Du.coll, color: "var(--ink-2)", at: 2015, dy: -10 },
+        { name: L("monocratico", "single judge"), values: Du.mono, color: "var(--fall)", width: 2.5, at: 2015, dy: 16, dyEnd: 16 },
+        { name: L("procura", "prosecutors"), values: Du.procura, color: "var(--ink)", at: 2015, dy: 16, dyEnd: 16 },
+      ],
+    });
+    const dtM = (i) => dtime(S.trib.f, i), dtA = (i) => dtime(S.appello.f, i);
+    $("#proc-time-note").textContent = EN
+      ? `Backlogs have fallen at every stage, but average lengths have not: when a court closes its oldest files, the average length of the cases it closes goes up. The disposition time, which the Ministry uses for the targets of the Recovery Plan (PNRR), estimates instead how long it would take to clear the backlog at the current pace: in first-instance trials, ${days(dtM(i19))} days in 2019 and ${days(dtM(iL))} in ${last}; in appeal, ${days(dtA(i19))} and ${days(dtA(iL))}. Italy committed to cutting the criminal disposition time of trial courts, courts of appeal and the Court of Cassation by 25% from 2019 by June 2026.`
+      : `Gli arretrati sono scesi in ogni fase, le durate medie no: quando un tribunale chiude i fascicoli più vecchi, la durata media di quelli che chiude sale. Il disposition time, che il Ministero usa per gli obiettivi del PNRR, stima invece quanto servirebbe a smaltire l’arretrato al ritmo dell’anno: nel primo grado ${days(dtM(i19))} giorni nel 2019 e ${days(dtM(iL))} nel ${last}; in appello ${days(dtA(i19))} e ${days(dtA(iL))}. L’Italia si è impegnata a ridurre del 25%, entro giugno 2026 e rispetto al 2019, il disposition time penale di tribunali, Corti d’appello e Cassazione.`;
+
+    renderProcPresc();
+    renderProcDistricts();
+    renderProcTable();
+  }
+
+  function renderProcPresc() {
+    const G = GIUS, Yg = G.meta.years, iL = Yg.length - 1, last = G.meta.last, y0 = Yg[0], P = G.italia.presc;
+    const gip = Yg.map((_, i) => (P.gip_arch[i] == null ? null : P.gip_arch[i] + P.gip_sent[i]));
+    const sh = (p, d) => p.map((v, i) => (v != null && d[i] ? (100 * v) / d[i] : null));
+    const shA = sh(P.appello, P.def.appello), shT = sh(P.trib, P.def.trib);
+    $("#proc-presc-title").textContent = EN
+      ? `In appeal, ${nf0.format(shA[iL])} proceedings in 100 still end because time ran out`
+      : `In appello ${nf0.format(shA[iL])} procedimenti su 100 finiscono ancora per prescrizione`;
+    $("#proc-presc-sub").textContent = EN ? `Proceedings closed because of the statute of limitations, each year` : `Procedimenti chiusi per prescrizione, ogni anno`;
+    seriesChart($("#proc-presc"), {
+      years: Yg, label: EN ? `Proceedings closed because of the statute of limitations, ${y0}–${last}` : `Procedimenti chiusi per prescrizione, ${y0}–${last}`, height: 240, yMin: 0, covid: true,
+      series: [
+        { name: L("GIP e GUP", "preliminary judges"), values: gip, color: "var(--ink)", at: 2015, dy: -10, dyEnd: -14 },
+        { name: L("tribunali", "trial courts"), values: P.trib, color: "var(--fall)", width: 2.5, at: 2022, dy: -10, dyEnd: 4 },
+        { name: L("Corti d’appello", "courts of appeal"), values: P.appello, color: "var(--rise)", width: 2.5, at: 2020, dy: 18, dyEnd: 22 },
+      ],
+    });
+    $("#proc-presc-share-sub").textContent = EN ? `Closed because of the statute of limitations, per 100 proceedings closed in the same office` : `Chiusi per prescrizione ogni 100 procedimenti chiusi nello stesso ufficio`;
+    seriesChart($("#proc-presc-share"), {
+      years: Yg, label: EN ? `Share closed because of the statute of limitations, ${y0}–${last}` : `Quota chiusa per prescrizione, ${y0}–${last}`, height: 240, yMin: 0, covid: true,
+      yFmt: (v) => v + "%", fmt: (v) => nf1.format(v) + "%",
+      series: [
+        { name: L("appello", "appeal"), values: shA, color: "var(--rise)", width: 2.5, at: 2015, dy: -10 },
+        { name: L("tribunale", "trial court"), values: shT, color: "var(--fall)", width: 2.5, at: 2015, dy: 16, dyEnd: 16 },
+      ],
+    });
+    const iMax = shA.indexOf(d3.max(shA));
+    $("#proc-presc-note").textContent = EN
+      ? `In the courts of appeal the share peaked in ${Yg[iMax]} (${nf1.format(shA[iMax])}%) and has fallen since. The rules changed three times in a few years: in 2017; in 2019, for crimes committed from 2020 onwards, the clock stops after the first-instance judgment; in 2021 the Cartabia reform confirmed that rule and added a time limit for appeals, after which the proceedings end as inadmissible (improcedibilità). The fall in appeal therefore also depends on the law, not only on the speed of the courts. The Ministry did not publish the preliminary judges' dismissals for prescription in 2024.`
+      : `Nelle Corti d’appello la quota ha toccato il massimo nel ${Yg[iMax]} (${nf1.format(shA[iMax])}%) ed è scesa da allora. Le regole sono cambiate tre volte in pochi anni: nel 2017; nel 2019, per i reati commessi dal 2020 la prescrizione si ferma con la sentenza di primo grado; nel 2021 la riforma Cartabia ha confermato quella regola e ha aggiunto un tempo massimo per l’appello, superato il quale il procedimento si chiude per improcedibilità. Il calo in appello dipende quindi anche dalla legge, non solo dalla velocità dei tribunali. Le archiviazioni per prescrizione dei GIP del 2024 il Ministero non le ha pubblicate.`;
+  }
+
+  // distretto per distretto: tre misure a scelta, sulla carta e in classifica
+  function renderProcDistricts() {
+    const G = GIUS, Yg = G.meta.years, iL = Yg.length - 1, last = G.meta.last, mode = state.procMode, k3 = lastK(Yg);
+    const it = G.italia;
+    const M = {
+      presc: { v: (d) => prescShare(d.presc.appello, d.presc.appello_def), itv: prescShare(it.presc.appello, it.presc.def.appello), fmt: (v) => nf1.format(v) + "%",
+        title: EN ? `Closed because of the statute of limitations per 100 appeals closed, ${k3}` : `Prescritti ogni 100 procedimenti chiusi in appello, ${k3}`, unit: L("prescritti ogni 100", "time-barred per 100") },
+      app: { v: (d) => d.durata.appello[iL], itv: it.durata.appello[iL], fmt: (v) => days(v),
+        title: EN ? `Average length of an appeal closed in ${last}, days` : `Durata media di un appello chiuso nel ${last}, giorni`, unit: L("giorni", "days") },
+      trib: { v: (d) => d.durata.mono[iL], itv: it.durata.mono[iL], fmt: (v) => days(v),
+        title: EN ? `Average length of a first-instance trial before a single judge, closed in ${last}, days` : `Durata media di un processo di primo grado davanti al giudice monocratico, chiuso nel ${last}, giorni`, unit: L("giorni", "days") },
+    }[mode];
+    const rows = G.distretti.map((d) => ({ d, v: M.v(d) })).filter((r) => r.v != null).sort((a, b) => b.v - a.v);
+    const miss = G.distretti.filter((d) => M.v(d) == null).map((d) => d.name);
+    $("#proc-dist-title").textContent = M.title;
+    $("#proc-dist-sub").textContent = (EN
+      ? `Court of appeal districts, with the detached sections of Sassari, Taranto and Bolzano. The line is Italy (${M.fmt(M.itv)}).`
+      : `Distretti di Corte d’appello, con le sezioni distaccate di Sassari, Taranto e Bolzano. La linea è l’Italia (${M.fmt(M.itv)}).`) +
+      (miss.length ? (EN ? ` No separate figure for ${andList(miss)}: counted with their main district.` : ` Nessun dato a parte per ${andList(miss)}: contati con il distretto principale.`) : "");
+    const tip = (r) => `<b>${esc(r.d.name)}</b><br>${M.fmt(r.v)} ${M.unit}`;
+    barList($("#proc-districts"), rows.map((r) => ({ name: r.d.name, v: r.v, title: `${r.d.name}: ${M.fmt(r.v)} ${M.unit}` })), { max: d3.max(rows, (r) => r.v) * 1.02, ref: M.itv, fmt: M.fmt });
+    if (has("proc-dist-map")) {
+      provMap($("#proc-dist-map"), $("#proc-dist-legend"), new Map(rows.map((r) => [r.d.id, { v: r.v, tip: tip(r) }])),
+        { by: "dist", label: EN ? `Map of court districts: ${M.title}` : `Carta dei distretti: ${M.title}`, legend: M.title, fmt: (v) => (mode === "presc" ? nf0.format(v) + "%" : nf0.format(v)) });
+    }
+    const hi = rows.slice(0, 2), lo = rows.slice(-2).reverse(), nm = (r) => `${r.d.name} (${M.fmt(r.v)})`;
+    $("#proc-dist-note").textContent = EN
+      ? `Highest: ${hi.map(nm).join(" and ")}; lowest: ${lo.map(nm).join(" and ")}. ` + (mode === "presc"
+        ? "A district with many old cases still pending under the old rules can show many prescriptions for years, even if its courts are now faster."
+        : "Average lengths depend on the mix of cases and on how many old files a court closes in the year, not only on how fast it works.")
+      : `I valori più alti: ${hi.map(nm).join(" e ")}; i più bassi: ${lo.map(nm).join(" e ")}. ` + (mode === "presc"
+        ? "Un distretto con molti fascicoli vecchi, ancora con le regole di prima, può avere molte prescrizioni per anni anche se oggi i suoi tribunali sono più veloci."
+        : "La durata media dipende dal tipo di processi e da quanti fascicoli vecchi un ufficio chiude nell’anno, non solo da quanto lavora in fretta.");
+  }
+
+  // tribunale per tribunale: la tabella, con l'ordine scelto e una ricerca per nome
+  function renderProcTable() {
+    const G = GIUS, Yg = G.meta.years, iL = Yg.length - 1, last = G.meta.last, i19 = Yg.indexOf(2019), k3 = lastK(Yg);
+    const dn = Object.fromEntries(G.distretti.map((d) => [d.id, d.name]));
+    const q = has("proc-find") ? normQ($("#proc-find").value || "") : "";
+    const rows = G.tribunali.map((t) => {
+      const f = flowSum([t.flussi.mono, t.flussi.coll, t.flussi.assise]), lg = t.lunghi.mono[iL];
+      return { t, f, dm: t.durata.mono[iL], dc: t.durata.coll[iL], lg: lg ? (100 * lg[0]) / lg[1] : null, dt: dtime(f, iL), pr: prescShare(t.presc.trib, t.presc.trib_def), ch: f.p[i19] ? f.p[iL] / f.p[i19] - 1 : null };
+    }).filter((r) => !q || normQ(r.t.name).includes(q) || normQ(dn[r.t.dist]).includes(q));
+    const by = { dur: (a, b) => (b.dm ?? -1) - (a.dm ?? -1), dt: (a, b) => (b.dt ?? -1) - (a.dt ?? -1), presc: (a, b) => (b.pr ?? -1) - (a.pr ?? -1), name: (a, b) => a.t.name.localeCompare(b.t.name, LOCALE) }[state.procSort];
+    rows.sort(by);
+    $("#proc-table-sub").textContent = EN
+      ? `The 140 trial courts and the residents of the municipalities they cover (1 January ${G.meta.pop_year}). Lengths: first-instance trials closed in ${last}. Over 2 years: share of single-judge trials closed after more than two years. Backlog: days needed to close the open trials at the ${last} pace. Time-barred: per 100 trials closed, ${k3}. Small courts close few trials, and their averages can rest on a handful of cases.`
+      : `I 140 tribunali e i residenti dei comuni di cui sono competenti (1° gennaio ${G.meta.pop_year}). Durate: processi di primo grado chiusi nel ${last}. Oltre 2 anni: quota dei processi monocratici chiusi dopo più di due anni. Arretrato: giorni per chiudere i processi aperti al ritmo del ${last}. Prescritti: ogni 100 processi chiusi, ${k3}. I tribunali piccoli chiudono pochi processi, e le loro medie possono dipendere da pochi fascicoli.`;
+    const f1 = (v) => (v == null ? "–" : nf1.format(v) + "%"), f0 = (v) => (v == null ? "–" : nf0.format(Math.round(v)));
+    $("#proc-table").innerHTML = rows.length ? `<table class="ist-table proc-table"><thead><tr>
+        <th scope="col">${L("Tribunale", "Court")}</th><th scope="col">${L("Distretto", "District")}</th><th scope="col" class="num">${L("Residenti", "Residents")}</th>
+        <th scope="col" class="num">${L("Monocratico, giorni", "Single judge, days")}</th><th scope="col" class="num">${L("Collegiale, giorni", "Panel, days")}</th>
+        <th scope="col" class="num">${L("Oltre 2 anni", "Over 2 years")}</th><th scope="col" class="num">${L("Arretrato, giorni", "Backlog, days")}</th>
+        <th scope="col" class="num">${L("Prescritti", "Time-barred")}</th><th scope="col" class="num">${L(`Chiusi nel ${last}`, `Closed in ${last}`)}</th><th scope="col" class="num">${L(`Aperti a fine ${last}`, `Open, end ${last}`)}</th><th scope="col" class="num">${L("Dal 2019", "Since 2019")}</th></tr></thead><tbody>${rows.map((r) =>
+      `<tr><th scope="row">${esc(r.t.name)}</th><td>${esc(dn[r.t.dist])}</td><td class="num">${nf0.format(r.t.pop)}</td>
+        <td class="num">${f0(r.dm)}</td><td class="num">${f0(r.dc)}</td><td class="num">${f1(r.lg)}</td><td class="num">${f0(r.dt)}</td>
+        <td class="num">${f1(r.pr)}</td><td class="num">${nf0.format(r.f.d[iL])}</td><td class="num">${nf0.format(r.f.p[iL])}</td><td class="num">${fmtPct(r.ch)}</td></tr>`).join("")}</tbody></table>`
+      : `<p class="note">${L("Nessun tribunale con questo nome.", "No court with that name.")}</p>`;
+  }
+
+  // ------------------------------------------------------------------ il tribunale nella scheda di un comune
+
+  // ti = indice in GIUS.tribunali; where = il nome del comune, per la frase
+  function courtHTML(ti, where) {
+    if (!GIUS || ti == null) return "";
+    const G = GIUS, t = G.tribunali[ti], Yg = G.meta.years, iL = Yg.length - 1, last = G.meta.last, i19 = Yg.indexOf(2019), it = G.italia, k3 = lastK(Yg);
+    const f = flowSum([t.flussi.mono, t.flussi.coll, t.flussi.assise]), fIt = gFlow(it.flussi, "trib");
+    const lg = t.lunghi.mono[iL], lgIt = it.durata.lunghi.mono[iL];
+    const pr = prescShare(t.presc.trib, t.presc.trib_def), prIt = prescShare(it.presc.trib, it.presc.def.trib);
+    const d = G.distretti.find((x) => x.id === t.dist), same = normQ(t.name) === normQ(where);
+    const intro = EN
+      ? `${same ? `The court of ${esc(t.name)} tries` : `${esc(where)} falls under the court of ${esc(t.name)}, which tries`} crimes committed in ${nf0.format(t.comuni)} ${t.comuni === 1 ? "municipality" : "municipalities"} with ${nf0.format(t.pop)} residents; appeals go to the court of appeal of ${esc(d.name)}. These are its figures, not the town's alone: proceedings with a known suspect, all crime types together.`
+      : `${same ? `Il tribunale di ${esc(t.name)} giudica` : `${esc(where)} è nel circondario del tribunale di ${esc(t.name)}, che giudica`} i reati di ${nf0.format(t.comuni)} ${t.comuni === 1 ? "comune" : "comuni"} con ${nf0.format(t.pop)} residenti; in appello si va alla Corte d’appello di ${esc(d.name)}. Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme.`;
+    const vs = (a, b, fmt) => (a == null || b == null ? "" : a > b * 1.1 ? L(`più dell’Italia (${fmt(b)})`, `more than Italy (${fmt(b)})`) : a < b * 0.9 ? L(`meno dell’Italia (${fmt(b)})`, `less than Italy (${fmt(b)})`) : L(`come l’Italia (${fmt(b)})`, `similar to Italy (${fmt(b)})`));
+    const pc = (v) => nf0.format(v) + "%";
+    return `<h3 class="subhead">${L("Dopo la denuncia: il tribunale di", "After the report: the court of")} ${esc(t.name)}</h3>
+      <p class="small">${intro}</p>
+      <div class="facts">
+        <div class="fact"><div class="fv">${days(t.durata.mono[iL])}<small> ${L("giorni", "days")}</small></div><div class="fl">${EN ? `average length of the first-instance trials closed in ${last} before a single judge; ${vs(t.durata.mono[iL], it.durata.mono[iL], days)}` : `la durata media dei processi di primo grado chiusi nel ${last} davanti al giudice monocratico; ${vs(t.durata.mono[iL], it.durata.mono[iL], days)}`}</div></div>
+        ${lg ? `<div class="fact"><div class="fv">${pc((100 * lg[0]) / lg[1])}</div><div class="fl">${EN ? `of those trials took more than two years; ${vs((100 * lg[0]) / lg[1], (100 * lgIt[0]) / lgIt[1], pc)}` : `di quei processi è durato più di due anni; ${vs((100 * lg[0]) / lg[1], (100 * lgIt[0]) / lgIt[1], pc)}`}</div></div>` : ""}
+        ${pr != null ? `<div class="fact"><div class="fv">${nf1.format(pr)}</div><div class="fl">${EN ? `trials time-barred per 100 closed in court, ${k3}; Italy ${nf1.format(prIt)}` : `processi prescritti ogni 100 chiusi in tribunale, ${k3}; Italia ${nf1.format(prIt)}`}</div></div>` : ""}
+        <div class="fact"><div class="fv">${nf0.format(f.p[iL])}</div><div class="fl">${EN ? `trials still open at the end of ${last}: ${fmtPct(f.p[iL] / f.p[i19] - 1)} compared with 2019 (Italy ${fmtPct(fIt.p[iL] / fIt.p[i19] - 1)})` : `processi ancora aperti a fine ${last}: ${fmtPct(f.p[iL] / f.p[i19] - 1)} rispetto al 2019 (Italia ${fmtPct(fIt.p[iL] / fIt.p[i19] - 1)})`}</div></div>
+      </div>
+      <p class="small">${L("Fonte: Ministero della Giustizia, Direzione generale di statistica.", "Source: Ministry of Justice, Statistics Directorate.")} <a href="${PAGES}approfondimenti/processi.html#tribunali">${L("Tutti i 140 tribunali, e che cosa succede dopo una denuncia", "All 140 courts, and what happens after a report")}</a></p>`;
+  }
+
+  // ------------------------------------------------------------------ fuori dal carcere (misure alternative e messa alla prova)
+
+  let ESEC = null;
+  async function loadEsecuzione() {
+    try {
+      const r = await fetch(ROOT + "data/esecuzione.json");
+      if (!r.ok) throw new Error(r.status);
+      ESEC = await r.json();
+      ESEC.distretti.forEach((x) => x.map.forEach((p) => { DIST_OF[p] = x.id; }));
+      addSources(ESEC.meta.sources, "esecuzione");
+      if (has("es-reg-seg")) seg("#es-reg-seg", "emode", (v) => { state.esMode = v; renderEsRegions(); });
+      if (has("es-facts")) renderEsecuzione();
+      renderDeepCards();
+    } catch (e) {
+      if (has("es-facts")) $("#es-facts").innerHTML = `<p class="note">${L("I dati sulle misure fuori dal carcere non si sono caricati", "The data on community sentences did not load")} (${esc(e.message)}).</p>`;
+      console.error(e);
+    }
+  }
+  // misure alternative alla detenzione: affidamento in prova, detenzione domiciliare, semilibertà
+  const altOf = (u, i) => u.affidamento[i] + u.domiciliare[i] + u.semiliberta[i];
+  const sostOf = (u, i) => u.domiciliare_sost[i] + u.semiliberta_sost[i] + u.lpu_sost[i];
+
+  function renderEsecuzione() {
+    const E = ESEC, Ye = E.meta.years, iL = Ye.length - 1, last = E.meta.last, y0 = Ye[0], U = E.uepe.italia, C = E.carcere.italia;
+    const alt = altOf(U, iL), alt0 = altOf(U, 0), pr = C[iL], per100 = Math.round((100 * alt) / pr);
+    const S = E.stato_2025, free = S.affidamento.dalla_liberta + S.domiciliare.dalla_liberta + S.semiliberta.dalla_liberta;
+    $("#es-lead").textContent = EN
+      ? `For every 100 people in prison, ${per100} serve their sentence outside it`
+      : `Per ogni 100 persone in carcere, ${per100} scontano la pena fuori`;
+    $("#es-lead-sub").textContent = EN
+      ? `On 31 December ${last}: ${nf0.format(pr)} people in prison and ${nf0.format(alt)} on probation, in home detention or in semi-liberty, the alternatives to prison, supervised by the probation offices (UEPE). Below, everyone those offices were following, by measure.`
+      : `Al 31 dicembre ${last}: ${nf0.format(pr)} persone in carcere e ${nf0.format(alt)} in affidamento in prova, in detenzione domiciliare o in semilibertà, le misure alternative al carcere, seguite dagli uffici di esecuzione penale esterna (UEPE). Sotto, tutte le persone seguite da quegli uffici, per misura.`;
+    const lpu = U.lpu_strada[iL] + U.lpu_droga[iL];
+    const who = [
+      { name: L("In carcere", "In prison"), v: pr, strong: true, title: L("Persone detenute negli istituti per adulti (ISTAT su dati DAP)", "People held in adult prisons (ISTAT on prison administration data)") },
+      { name: L("Affidamento in prova", "Probation"), v: U.affidamento[iL], title: L("Misura alternativa: la pena si sconta fuori, con un programma seguito dall’UEPE", "Alternative to prison: the sentence is served outside, under a programme supervised by the UEPE") },
+      { name: L("Detenzione domiciliare", "Home detention"), v: U.domiciliare[iL], title: L("Misura alternativa: la pena si sconta a casa o in un luogo di cura", "Alternative to prison: the sentence is served at home or in a care facility") },
+      { name: L("Semilibertà", "Semi-liberty"), v: U.semiliberta[iL], title: L("Misura alternativa: di giorno fuori, di notte in carcere", "Alternative to prison: out by day, in prison at night") },
+      { name: L("Messa alla prova", "Probation before trial"), v: U.map[iL], title: L("Il processo si sospende e, se la prova va bene, il reato si estingue: non è una condanna", "The trial is suspended and, if the probation goes well, the offence is extinguished: it is not a conviction") },
+      { name: L("Pene sostitutive", "Substitute sentences"), v: sostOf(U, iL), title: L("Dalla riforma Cartabia (2023): detenzione domiciliare, semilibertà o lavoro di pubblica utilità decisi dal giudice del processo al posto di una pena breve", "Since the Cartabia reform (2023): home detention, semi-liberty or community service ordered by the trial judge instead of a short prison sentence") },
+      { name: L("Lavoro di pubblica utilità", "Community service"), v: lpu, title: L("Per guida in stato di ebbrezza o reati di droga", "For drink-driving or drug offences") },
+      { name: L("Libertà vigilata", "Supervised liberty"), v: U.liberta_vigilata[iL], title: L("Misura di sicurezza, di solito dopo la pena", "A security measure, usually after the sentence") },
+      { name: L("Pena sospesa con obblighi", "Suspended sentence"), v: U.sospensione[iL], title: L("Pena sospesa con obblighi seguiti dall’UEPE (dal 2023)", "Suspended sentence with conditions supervised by the UEPE (since 2023)") },
+    ];
+    $("#es-who-sub").textContent = EN ? `People on 31 December ${last}` : `Persone al 31 dicembre ${last}`;
+    barList($("#es-who"), who.map((r) => ({ name: r.name, v: r.v, title: `${r.title}: ${nf0.format(r.v)}` })), { max: pr * 1.02, fmt: (v) => nf0.format(v) });
+    $("#es-who").querySelectorAll("li")[0].classList.add("strong");
+    $("#es-facts").innerHTML = EN ? `
+      <div class="fact"><div class="fv">${nf0.format(alt)}</div><div class="fl">people in an alternative to prison at the end of ${last}; ${nf0.format(alt0)} at the end of ${y0}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format((100 * free) / alt)}%</div><div class="fl">of them started the measure from freedom, without going to prison for that sentence: ${nf0.format(free)} people.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(U.map[iL])}</div><div class="fl">people on probation before trial (messa alla prova), which is not a conviction; ${nf0.format(U.map[0])} at the end of ${y0}, the year it was extended to adults.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(E.ingressi.tot[E.ingressi.tot.length - 1])}</div><div class="fl">entries into prison from freedom in ${E.ingressi.years[E.ingressi.years.length - 1]}; ${nf0.format(d3.max(E.ingressi.tot))} in ${E.ingressi.years[E.ingressi.tot.indexOf(d3.max(E.ingressi.tot))]}.</div></div>` : `
+      <div class="fact"><div class="fv">${nf0.format(alt)}</div><div class="fl">persone in misura alternativa al carcere a fine ${last}; ${nf0.format(alt0)} a fine ${y0}.</div></div>
+      <div class="fact"><div class="fv">${nf0.format((100 * free) / alt)}%</div><div class="fl">di loro ha cominciato la misura dalla libertà, senza passare dal carcere per quella pena: ${nf0.format(free)} persone.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(U.map[iL])}</div><div class="fl">persone in messa alla prova, che non è una condanna; ${nf0.format(U.map[0])} a fine ${y0}, l’anno in cui è stata estesa agli adulti.</div></div>
+      <div class="fact"><div class="fv">${nf0.format(E.ingressi.tot[E.ingressi.tot.length - 1])}</div><div class="fl">ingressi in carcere dalla libertà nel ${E.ingressi.years[E.ingressi.years.length - 1]}; ${nf0.format(d3.max(E.ingressi.tot))} nel ${E.ingressi.years[E.ingressi.tot.indexOf(d3.max(E.ingressi.tot))]}.</div></div>`;
+
+    // nel tempo
+    const altS = Ye.map((_, i) => altOf(U, i)), sost = Ye.map((_, i) => (sostOf(U, i) ? sostOf(U, i) : null));
+    $("#es-time-title").textContent = EN
+      ? `Since ${y0} people in alternatives to prison have gone from ${nf0.format(alt0)} to ${nf0.format(alt)}`
+      : `Dal ${y0} le persone in misura alternativa sono passate da ${nf0.format(alt0)} a ${nf0.format(alt)}`;
+    $("#es-time-sub").textContent = EN ? `People on 31 December of each year, ${y0}–${last}` : `Persone al 31 dicembre di ogni anno, ${y0}–${last}`;
+    seriesChart($("#es-time"), {
+      years: Ye, label: EN ? `People in prison, in alternatives to prison, on probation before trial and in substitute sentences, ${y0}–${last}` : `Persone in carcere, in misura alternativa, in messa alla prova e in pena sostitutiva, ${y0}–${last}`, height: 260, yMin: 0, covid: true,
+      series: [
+        { name: L("in carcere", "in prison"), values: C, color: "var(--ink)", width: 2.5, at: 2015, dy: -10 },
+        { name: L("misure alternative", "alternatives to prison"), values: altS, color: "var(--fall)", width: 2.5, at: 2015, dy: -10 },
+        { name: L("messa alla prova", "probation before trial"), values: U.map, color: "var(--ink-2)", at: 2017, dy: 16, dyEnd: 16 },
+        { name: L("pene sostitutive", "substitute sentences"), values: sost, color: "var(--muted)", at: 2023, dy: -10, dyEnd: 16 },
+      ],
+    });
+    $("#es-time-note").textContent = EN
+      ? `Alternatives to prison grew fastest after 2021: from ${nf0.format(altS[Ye.indexOf(2021)])} to ${nf0.format(alt)}, mostly probation (affidamento in prova), while the prison population also grew. Probation before trial took off after Law 67 of 2014 extended it to adults; substitute sentences exist since the Cartabia reform, in force from 30 December 2022.`
+      : `Le misure alternative sono cresciute soprattutto dopo il 2021: da ${nf0.format(altS[Ye.indexOf(2021)])} a ${nf0.format(alt)}, soprattutto affidamenti in prova, mentre crescevano anche le persone in carcere. La messa alla prova è decollata dopo la legge 67 del 2014, che l’ha estesa agli adulti; le pene sostitutive ci sono dalla riforma Cartabia, in vigore dal 30 dicembre 2022.`;
+    const I = E.ingressi, Li = I.years.length - 1;
+    $("#es-ing-sub").textContent = EN ? `Entries into prison from freedom each year, ${I.years[0]}–${I.years[Li]}` : `Ingressi in carcere dalla libertà ogni anno, ${I.years[0]}–${I.years[Li]}`;
+    seriesChart($("#es-ing"), {
+      years: I.years, label: EN ? `Entries into prison from freedom, ${I.years[0]}–${I.years[Li]}` : `Ingressi in carcere dalla libertà, ${I.years[0]}–${I.years[Li]}`, height: 220, yMin: 0,
+      xTicks: [1991, 2000, 2010, 2020, I.years[Li]],
+      series: [
+        { name: L("tutti", "everyone"), values: I.tot, color: "var(--ink)", width: 2.5, at: 1995, dy: -10 },
+        { name: L("stranieri", "foreign nationals"), values: I.str, color: "var(--fall)", at: 1995, dy: 16, dyEnd: 16 },
+      ],
+    });
+    $("#es-ing-note").textContent = EN
+      ? `Entries from freedom are arrests and orders to serve a sentence. They halved between 2008 and 2015, the years of the European Court's Torreggiani judgment and of the laws on house arrest and short sentences, and have risen slowly since 2020.`
+      : `Gli ingressi dalla libertà sono arresti e ordini di esecuzione di una pena. Si sono dimezzati tra il 2008 e il 2015, gli anni della sentenza Torreggiani della Corte europea e delle leggi su domiciliari e pene brevi, e risalgono piano dal 2020.`;
+    renderEsRegions();
+    renderEsSorv();
+  }
+
+  function renderEsRegions() {
+    const E = ESEC, Ye = E.meta.years, iL = Ye.length - 1, last = E.meta.last, mode = state.esMode;
+    const reg = E.regioni.map((r) => {
+      const u = E.uepe.regioni[r.id], a = u ? altOf(u, iL) : null, p = E.carcere.regioni[r.id][iL];
+      return { r, a, p, v: a == null ? null : mode === "pop" ? (1e5 * a) / r.pop : (100 * a) / p };
+    }).filter((d) => d.v != null).sort((a, b) => b.v - a.v);
+    const aIt = altOf(E.uepe.italia, iL), itv = mode === "pop" ? (1e5 * aIt) / d3.sum(E.regioni, (r) => r.pop) : (100 * aIt) / E.carcere.italia[iL];
+    const fmt = (v) => nf0.format(Math.round(v));
+    const T = mode === "pop"
+      ? [L(`Persone in misura alternativa ogni 100.000 abitanti, fine ${last}`, `People in alternatives to prison per 100,000 residents, end of ${last}`), L("ogni 100.000 abitanti", "per 100,000 residents")]
+      : [L(`Persone in misura alternativa ogni 100 persone detenute nella regione, fine ${last}`, `People in alternatives to prison per 100 people held in the region's prisons, end of ${last}`), L("ogni 100 persone detenute", "per 100 people in prison")];
+    $("#es-reg-title").textContent = T[0];
+    $("#es-reg-sub").textContent = EN
+      ? `Region of the probation office; prisons by region where they are. The line is Italy (${fmt(itv)}).`
+      : `Regione dell’ufficio di esecuzione penale esterna; le carceri per regione in cui si trovano. La linea è l’Italia (${fmt(itv)}).`;
+    const tip = (d) => `<b>${esc(d.r.name)}</b><br>${fmt(d.v)} ${T[1]}<br><span class="small">${nf0.format(d.a)} ${L("in misura alternativa", "in alternatives")}, ${nf0.format(d.p)} ${L("in carcere", "in prison")}</span>`;
+    barList($("#es-regions"), reg.map((d) => ({ name: d.r.name, v: d.v, title: tip(d).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() })), { max: reg[0].v * 1.02, ref: itv, fmt });
+    if (has("es-reg-map")) provMap($("#es-reg-map"), $("#es-reg-legend"), new Map(reg.map((d) => [d.r.istat, { v: d.v, tip: tip(d) }])),
+      { by: "reg", label: EN ? `Map of regions: ${T[0]}` : `Carta delle regioni: ${T[0]}`, legend: T[0], fmt });
+    const hi = reg.slice(0, 2), lo = reg.slice(-2).reverse(), nm = (d) => `${d.r.name} (${fmt(d.v)})`;
+    $("#es-reg-note").textContent = EN
+      ? `Highest: ${hi.map(nm).join(" and ")}; lowest: ${lo.map(nm).join(" and ")}. ${mode === "pop" ? "More people in alternatives can mean more convictions as well as more use of alternatives." : "People in prison are counted where the prison is, and can come from other regions: the ratio is a rough comparison."} Someone supervised by more than one office counts in each region.`
+      : `I valori più alti: ${hi.map(nm).join(" e ")}; i più bassi: ${lo.map(nm).join(" e ")}. ${mode === "pop" ? "Più persone in misura alternativa possono voler dire più condanne, oltre che un uso maggiore delle alternative." : "Le persone detenute si contano dove si trova il carcere e possono venire da altre regioni: il rapporto è un confronto di massima."} Chi è seguito da più uffici conta in ogni regione.`;
+  }
+
+  function renderEsSorv() {
+    const E = ESEC, Ys = E.meta.sorv_years, iL = Ys.length - 1, S = E.sorveglianza.italia, c = S.concesse, rv = S.revocate;
+    const totC = Ys.map((_, i) => c.affidamento[i] + c.domiciliare[i] + c.semiliberta[i]), totR = Ys.map((_, i) => rv.affidamento[i] + rv.domiciliare[i] + rv.semiliberta[i]);
+    $("#es-sorv-sub").textContent = EN ? `Alternatives to prison granted and revoked by the supervision courts each year, ${Ys[0]}–${Ys[iL]}` : `Misure alternative concesse e revocate dai tribunali di sorveglianza ogni anno, ${Ys[0]}–${Ys[iL]}`;
+    seriesChart($("#es-sorv"), {
+      years: Ys, xTicks: Ys, label: EN ? `Alternatives to prison granted and revoked, ${Ys[0]}–${Ys[iL]}` : `Misure alternative concesse e revocate, ${Ys[0]}–${Ys[iL]}`, height: 230, yMin: 0,
+      series: [
+        { name: L("affidamenti concessi", "probation granted"), values: c.affidamento, color: "var(--fall)", width: 2.5, at: Ys[0], dy: -10 },
+        { name: L("domiciliari concessi", "home detention granted"), values: c.domiciliare, color: "var(--ink-2)", at: Ys[0], dy: -10 },
+        { name: L("revoche", "revoked"), values: totR, color: "var(--rise)", at: Ys[0], dy: 16, dyEnd: 16 },
+      ],
+      tip: (i) => `<b>${Ys[i]}</b><br>${EN ? `${nf0.format(totC[i])} granted: ${nf0.format(c.affidamento[i])} probation, ${nf0.format(c.domiciliare[i])} home detention, ${nf0.format(c.semiliberta[i])} semi-liberty<br>${nf0.format(totR[i])} revoked<br>${nf0.format(c.espulsione[i])} expulsions as an alternative sanction` : `${nf0.format(totC[i])} concesse: ${nf0.format(c.affidamento[i])} affidamenti, ${nf0.format(c.domiciliare[i])} domiciliari, ${nf0.format(c.semiliberta[i])} semilibertà<br>${nf0.format(totR[i])} revocate<br>${nf0.format(c.espulsione[i])} espulsioni come sanzione alternativa`}`,
+    });
+    $("#es-sorv-note").textContent = EN
+      ? `In ${Ys[iL]} the supervision courts granted ${nf0.format(totC[iL])} alternatives to prison and revoked ${nf0.format(totR[iL])}, ${nf0.format((100 * totR[iL]) / totC[iL])} for every 100 granted: revocations concern measures granted in earlier years too, so they are not a failure rate. The supervision offices also ordered ${nf0.format(c.espulsione[iL])} expulsions of foreign nationals as an alternative to the last two years of a sentence. These are decisions, not people: the same person can receive more than one.`
+      : `Nel ${Ys[iL]} i tribunali di sorveglianza hanno concesso ${nf0.format(totC[iL])} misure alternative e ne hanno revocate ${nf0.format(totR[iL])}, ${nf0.format((100 * totR[iL]) / totC[iL])} ogni 100 concesse: le revoche riguardano anche misure degli anni prima, quindi non sono una percentuale di fallimenti. Gli uffici di sorveglianza hanno disposto anche ${nf0.format(c.espulsione[iL])} espulsioni di persone straniere al posto degli ultimi due anni di pena. Sono provvedimenti, non persone: la stessa persona può riceverne più d’uno.`;
+  }
+
   // ------------------------------------------------------------------ carcere per carcere (affollamento e morti negli istituti)
 
   async function loadIstituti() {
@@ -4678,6 +5079,8 @@
       if (has("minori-facts") || $('[data-dd="minori"]') || allSources) loads.push(loadMinori());
       if (has("caut-facts") || $('[data-dd="cautelari"]') || allSources) loads.push(loadCautelari());
       if (has("ist-facts") || $('[data-dd="istituti"]') || allSources) loads.push(loadIstituti());
+      if (has("proc-facts") || $('[data-dd="processi"]') || allSources) loads.push(loadProcessi());
+      if (has("es-facts") || $('[data-dd="esecuzione"]') || allSources) loads.push(loadEsecuzione());
       if (allSources) QINDEX.forEach((id) => loadQuart(id));
       // L'indirizzo dice quale scheda è aperta: si legge all'apertura e a ogni cambio (tasto indietro, link #roma, un
       // indirizzo scritto a mano). Le maiuscole non contano (#ROMA). Un indirizzo che non è una scheda chiude quella aperta.

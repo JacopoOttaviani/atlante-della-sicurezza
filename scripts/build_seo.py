@@ -294,6 +294,54 @@ SOURCES = (
 
 # ------------------------------------------------------------------ una pagina per città
 
+def presc_share(p, d, k=3):
+    """Prescritti ogni 100 definiti negli ultimi k anni che hanno tutti e due i numeri (come prescShare in vc.js)."""
+    sp = sd = n = 0
+    for a, b in zip(reversed(p), reversed(d)):
+        if n == k:
+            break
+        if a is not None and b:
+            sp, sd, n = sp + a, sd + b, n + 1
+    return 100 * sp / sd if sd else None
+
+
+def court_section(c):
+    """Il tribunale del capoluogo (data/giustizia.json), con i numeri del suo circondario: gli stessi della scheda."""
+    G = load_json("giustizia.json")
+    if not G or c["id"] not in G.get("capoluoghi", {}):
+        return ""
+    t, Yg, it = G["tribunali"][G["capoluoghi"][c["id"]]], G["meta"]["years"], G["italia"]
+    Lg, last, i19 = len(Yg) - 1, G["meta"]["last"], Yg.index(2019)
+    d = next(x for x in G["distretti"] if x["id"] == t["dist"])
+    fs = [t["flussi"][k] for k in ("mono", "coll", "assise") if t["flussi"].get(k)]
+    pend = lambda f, i: sum(x["p"][i] for x in f)  # noqa: E731
+    fi = [it["flussi"][k] for k in ("mono", "coll", "assise")]
+    same = slug(t["name"]) == slug(c["name"])
+    who = f"Il tribunale di {esc(t['name'])}" if same else f"{esc(c['name'])} è nel circondario del tribunale di {esc(t['name'])}, che"
+    paras = [f"{who} giudica i reati di {nf0(t['comuni'])} comuni con {nf0(t['pop'])} residenti; in appello si va alla Corte d’appello di {esc(d['name'])}. "
+             "Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme."]
+    dm, di = t["durata"]["mono"][Lg], it["durata"]["mono"][Lg]
+    if dm is not None:
+        paras.append(f"I processi di primo grado chiusi nel {last} davanti al giudice monocratico sono durati in media {nf0(dm)} giorni (in Italia {nf0(di)}). "
+                     f"A fine {last} ne restavano aperti {nf0(pend(fs, Lg))}, {fmt_pct(pend(fs, Lg) / pend(fs, i19) - 1)} rispetto al 2019 (in Italia {fmt_pct(pend(fi, Lg) / pend(fi, i19) - 1)}).")
+    pr, pri = presc_share(t["presc"]["trib"], t["presc"]["trib_def"]), presc_share(it["presc"]["trib"], it["presc"]["def"]["trib"])
+    if pr is not None:
+        paras.append(f"Tra il {Yg[-3]} e il {last} si sono prescritti {nf1(pr)} processi ogni 100 chiusi in tribunale (in Italia {nf1(pri)}).")
+    paras.append('Fonte: Ministero della Giustizia, Direzione generale di statistica. <a href="../approfondimenti/processi.html#tribunali">Tutti i 140 tribunali, e che cosa succede dopo una denuncia</a>.')
+    return f"""
+  <section class="block" aria-labelledby="cp-court">
+    <div class="wrap">
+      <header>
+        <div class="kicker">Dopo la denuncia</div>
+        <h2 id="cp-court">Il tribunale di {esc(t['name'])}</h2>
+      </header>
+      <div class="cp-body note">
+        {''.join(f'<p>{x}</p>' for x in paras)}
+      </div>
+    </div>
+  </section>"""
+
+
 def city_page(c):
     name, cid = c["name"], c["id"]
     url = SITE + "citta/" + page_name(c)
@@ -504,6 +552,7 @@ def city_page(c):
       </div>
     </div>
   </section>
+{court_section(c)}
 {region_links}
 </main>
 
@@ -776,6 +825,8 @@ Delitti denunciati ogni 100.000 residenti e posizione tra i capoluoghi: misurano
 - [data/minori.json]({SITE}data/minori.json): segnalazioni di minorenni e di tutte le persone denunciate e arrestate, per tipo di delitto, in Italia e nelle regioni.
 - [data/cautelari.json]({SITE}data/cautelari.json): persone detenute a fine anno per posizione giuridica (Italia e regioni, per cittadinanza e sesso), misure cautelari disposte ed esiti, domande e ordinanze di riparazione per ingiusta detenzione per distretto di Corte d’appello, procedimenti disciplinari.
 - [data/istituti.json]({SITE}data/istituti.json): persone presenti e capienza regolamentare per istituto penitenziario a fine mese dal 2019, posti regolarmente disponibili per istituto, morti in carcere per causa (dal 1992) e per istituto (2025), con i conteggi dei suicidi di Ministero, Garante nazionale, Ristretti Orizzonti e Antigone.
+- [data/giustizia.json]({SITE}data/giustizia.json): procedimenti penali con autore noto sopravvenuti, definiti e pendenti per fase (procura, GIP/GUP, tribunale, Corte d’appello, Cassazione), durata media e prescrizioni, per distretto e per i 140 tribunali, 2014-2025, con il tribunale di ogni comune.
+- [data/esecuzione.json]({SITE}data/esecuzione.json): persone in misura alternativa alla detenzione, in messa alla prova e in altre misure seguite dagli uffici di esecuzione penale esterna (Italia e regioni, 2014-2025), ingressi in carcere dalla libertà (1991-2025), misure concesse e revocate dai tribunali di sorveglianza (2020-2025).
 - [Codice e script dei dati su GitHub](https://github.com/JacopoOttaviani/atlante-della-sicurezza): chiunque può rifare i conti.
 
 ## Fonti
@@ -790,6 +841,8 @@ Delitti denunciati ogni 100.000 residenti e posizione tra i capoluoghi: misurano
 - Ministero della Giustizia, Relazione al Parlamento sulle misure cautelari personali e sulla riparazione per ingiusta detenzione (legge 47/2015, art. 15), dati 2024; importi delle riparazioni di fonte Ministero dell’Economia
 - ISTAT, Demografia in cifre: popolazione residente per provincia (demo.istat.it)
 - Ministero della Giustizia, Detenuti italiani e stranieri presenti e capienze per istituto (tabelle mensili dal 2019) ed Eventi critici negli istituti penitenziari (1992-2025), su dati del DAP
+- Ministero della Giustizia, Direzione generale di statistica e analisi organizzativa (datiestatistiche.giustizia.it): procedimenti penali per ufficio, durate, prescrizioni, provvedimenti di sorveglianza; Giustizia Map, uffici giudiziari competenti per comune. Uso non commerciale con citazione della fonte
+- Ministero della Giustizia, Dipartimento per la giustizia minorile e di comunità: adulti in area penale esterna (persone in carico agli UEPE); ingressi in carcere dalla libertà
 - Garante nazionale dei diritti delle persone private della libertà personale, report analitici sui posti disponibili e report sui decessi in carcere, su dati del DAP; Ristretti Orizzonti, dossier «Morire di carcere»; Antigone, rapporti sulle condizioni di detenzione
 
 ## Autore
@@ -886,6 +939,24 @@ def deep_facts():
         out["carcere-per-carcere"] = (
             f"A fine {m_it} nelle carceri per adulti c’erano {nf0(p)} persone per {nf0(c)} posti regolamentari: {js_round(100 * p / c)} ogni 100 posti. Nel {g['anni'][-1]} il Garante nazionale conta {g['totale'][-1]} morti, di cui {g['suicidi'][-1]} suicidi; le serie partono dal 2015, e i conteggi cambiano a seconda di chi li fa.",
             f"At the end of {m_en} adult prisons held {en0(p)} people for {en0(c)} official places: {js_round(100 * p / c)} per 100 places. In {g['anni'][-1]} the national Guarantor counted {g['totale'][-1]} deaths, {g['suicidi'][-1]} of them suicides; its series starts in 2015, and the counts differ depending on who does them.",
+        )
+    G = load_json("giustizia.json")
+    if G:
+        Yg, last = G["meta"]["years"], G["meta"]["last"]
+        D, P = G["italia"]["durata"], G["italia"]["presc"]
+        sa = 100 * P["appello"][-1] / P["def"]["appello"][-1]
+        out["processi"] = (
+            f"Nel {last} i processi di primo grado chiusi davanti al giudice monocratico sono durati in media {nf0(D['mono'][-1])} giorni ({nf0(D['mono'][0])} nel {Yg[0]}), gli appelli {nf0(D['appello'][-1])}; in appello {nf1(sa)} procedimenti su 100 si sono chiusi per prescrizione. Sono procedimenti con un indagato noto, non persone né reati, e indagato o imputato non vuol dire colpevole.",
+            f"In {last} first-instance trials closed before a single judge lasted {en0(D['mono'][-1])} days on average ({en0(D['mono'][0])} in {Yg[0]}), appeals {en0(D['appello'][-1])}; in appeal {en1(sa)} proceedings in 100 ended because the statute of limitations ran out. These are proceedings with a known suspect, not people or crimes, and being investigated or charged does not mean being guilty.",
+        )
+    E = load_json("esecuzione.json")
+    if E:
+        u, last = E["uepe"]["italia"], E["meta"]["last"]
+        alt = u["affidamento"][-1] + u["domiciliare"][-1] + u["semiliberta"][-1]
+        pr = E["carcere"]["italia"][-1]
+        out["fuori-dal-carcere"] = (
+            f"A fine {last} erano in affidamento in prova, in detenzione domiciliare o in semilibertà {nf0(alt)} persone, contro {nf0(pr)} in carcere: {js_round(100 * alt / pr)} ogni 100. Altre {nf0(u['map'][-1])} erano in messa alla prova, che sospende il processo e non è una condanna.",
+            f"At the end of {last}, {en0(alt)} people were on probation, in home detention or in semi-liberty, against {en0(pr)} in prison: {js_round(100 * alt / pr)} for every 100. Another {en0(u['map'][-1])} were on probation before trial, which suspends the trial and is not a conviction.",
         )
     return out
 

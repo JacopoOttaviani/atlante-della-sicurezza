@@ -34,7 +34,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=61">
+<link rel="stylesheet" href="../vc.css?v=62">
 <style>
   /* solo in questa pagina: l'indice in cima e la riga dei link dell'autore */
   .toc { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 18px 0; font-size: var(--step--1); font-weight: 600; }
@@ -173,7 +173,7 @@
       </header>
       <div class="method">
         <h3>Solo dati pubblici</h3>
-        <p>Tutti i numeri vengono da fonti pubbliche: l’ISTAT per i reati denunciati, la popolazione, la percezione del rischio e le carceri, Eurostat per i rimpatri, il Ministero della Giustizia e il Garante nazionale delle persone private della libertà per la custodia cautelare e le carceri istituto per istituto, il Comune di Milano per i quartieri. Per le morti in carcere, accanto ai conteggi ufficiali ci sono quelli di Ristretti Orizzonti e di Antigone, che contano da fuori e non sono dati ufficiali. Niente stime e niente modelli: dove un dato non esiste, come i reati quartiere per quartiere, l’atlante lo dice invece di inventarlo.</p>
+        <p>Tutti i numeri vengono da fonti pubbliche: l’ISTAT per i reati denunciati, la popolazione, la percezione del rischio e le carceri, Eurostat per i rimpatri, il Ministero della Giustizia e il Garante nazionale delle persone private della libertà per la custodia cautelare e le carceri istituto per istituto, il Ministero della Giustizia anche per i processi, la prescrizione e le pene fuori dal carcere (i suoi dati si possono usare per scopi non commerciali, citando la fonte), il Comune di Milano per i quartieri. Per le morti in carcere, accanto ai conteggi ufficiali ci sono quelli di Ristretti Orizzonti e di Antigone, che contano da fuori e non sono dati ufficiali. Niente stime e niente modelli: dove un dato non esiste, come i reati quartiere per quartiere, l’atlante lo dice invece di inventarlo.</p>
         <h3>I numeri con i loro limiti</h3>
         <p>Una denuncia non è un reato commesso, né una condanna, e un tasso calcolato sui residenti pesa di più dove arrivano ogni giorno pendolari e turisti. I grafici lo ricordano accanto ai numeri, e una variazione che potrebbe essere dovuta al caso, o che poggia su meno di 20 casi in uno dei due anni, resta grigia: né rossa né blu.</p>
         <h3>Quello che si denuncia e quello che si teme</h3>
@@ -250,7 +250,7 @@
         <h3>Fonti</h3>
         <ul class="sources" id="sources"></ul>
         <p style="margin-top:16px">Dati scaricati dall’API SDMX di <a href="https://esploradati.istat.it/" rel="noopener">esploradati.istat.it</a>. Il dataset si ricostruisce con <code>python3 scripts/build_data.py</code>; i comuni e le province con <code>python3 scripts/build_comuni.py</code>. Non vengono dall’ISTAT i rimpatri (dall’API di <a href="https://ec.europa.eu/eurostat/web/migration-asylum/managed-migration/database" rel="noopener">Eurostat</a>, con <code>python3 scripts/build_rimpatri.py</code>), le misure cautelari e le riparazioni (relazioni del Ministero della Giustizia al Parlamento, con <code>python3 scripts/build_cautelari.py</code>) e le carceri istituto per istituto (Ministero della Giustizia, Garante nazionale, Ristretti Orizzonti e Antigone, con <code>python3 scripts/build_istituti.py</code>).</p>
-        <p>Le foto delle schede degli approfondimenti vengono da Unsplash (licenza Unsplash): carceri di <a href="https://unsplash.com/photos/a-long-hallway-with-prison-cells-on-the-left-SZSh5wHtmPY" rel="noopener">Anil Baki Durmus</a>, rimpatri di <a href="https://unsplash.com/photos/airport-jet-bridge-at-night-with-planes-and-vehicles-PsTviXbeCgk" rel="noopener">Alexander Schimmeck</a>, percezione di <a href="https://unsplash.com/photos/empty-street-with-buildings-and-clock-tower-at-night-ca_5BEvg-LY" rel="noopener">Mohamed Marey</a>, autori ignoti di <a href="https://unsplash.com/photos/a-couple-of-police-cars-parked-next-to-each-other-Fn57NtC4ddk" rel="noopener">Alex Suprun</a>, minori di <a href="https://unsplash.com/photos/portable-basketball-hoop-20K-JZ2ppbE" rel="noopener">Piotr Osmenda</a>, custodia cautelare di <a href="https://unsplash.com/photos/a-courtroom-with-a-large-wooden-bench-ZV0kXnONoHo" rel="noopener">Rai Singh Uriarte</a> (la Corte suprema del Cile, a Santiago), carcere per carcere di <a href="https://unsplash.com/photos/stone-wall-with-barred-windows-32Yl7cAOqwQ" rel="noopener">Dan Stephens</a>.</p>
+        <p>Le foto delle schede degli approfondimenti vengono da Unsplash (licenza Unsplash): carceri di <a href="https://unsplash.com/photos/a-long-hallway-with-prison-cells-on-the-left-SZSh5wHtmPY" rel="noopener">Anil Baki Durmus</a>, rimpatri di <a href="https://unsplash.com/photos/airport-jet-bridge-at-night-with-planes-and-vehicles-PsTviXbeCgk" rel="noopener">Alexander Schimmeck</a>, percezione di <a href="https://unsplash.com/photos/empty-street-with-buildings-and-clock-tower-at-night-ca_5BEvg-LY" rel="noopener">Mohamed Marey</a>, autori ignoti di <a href="https://unsplash.com/photos/a-couple-of-police-cars-parked-next-to-each-other-Fn57NtC4ddk" rel="noopener">Alex Suprun</a>, minori di <a href="https://unsplash.com/photos/portable-basketball-hoop-20K-JZ2ppbE" rel="noopener">Piotr Osmenda</a>, custodia cautelare di <a href="https://unsplash.com/photos/a-courtroom-with-a-large-wooden-bench-ZV0kXnONoHo" rel="noopener">Rai Singh Uriarte</a> (la Corte suprema del Cile, a Santiago), carcere per carcere di <a href="https://unsplash.com/photos/stone-wall-with-barred-windows-32Yl7cAOqwQ" rel="noopener">Dan Stephens</a>, processi di <a href="https://unsplash.com/photos/stacks-of-paper-documents-and-file-folders-snNHKZ-mGfE" rel="noopener">Wesley Tingey</a>, fuori dal carcere di <a href="https://unsplash.com/photos/apartment-building-facade-at-night-378FLAOipMY" rel="noopener">Ian An</a>.</p>
       </div>
     </div>
   </section>
@@ -295,6 +295,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=61"></script>
+<script src="../vc.js?v=62"></script>
 </body>
 </html>

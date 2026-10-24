@@ -37,6 +37,8 @@ SHOTS = {
     "minori":     ("photo-1544919982-b61976f0ba43", "portable-basketball-hoop-20K-JZ2ppbE", "Piotr Osmenda", 0.5, 0.5, 0.75),
     "cautelari":  ("photo-1660784670019-33a36fd82515", "a-courtroom-with-a-large-wooden-bench-ZV0kXnONoHo", "Rai Singh Uriarte", 0.5, 0.45, 1.0),
     "istituti":   ("photo-1791469257164-f2a100f93630", "stone-wall-with-barred-windows-32Yl7cAOqwQ", "Dan Stephens", 0.5, 0.5, 1.0),
+    "processi":   ("photo-1583521214690-73421a1829a9", "stacks-of-paper-documents-and-file-folders-snNHKZ-mGfE", "Wesley Tingey", 0.5, 0.6, 1.0),
+    "esecuzione": ("photo-1791777107532-7301b3a8eedd", "apartment-building-facade-at-night-378FLAOipMY", "Ian An", 0.5, 0.5, 0.45),
 }
 
 

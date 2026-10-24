@@ -1390,7 +1390,7 @@ details.dd-method .method { padding: 8px 0 6px; }
     linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0) 100%),
     repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
 }
-.dd-card:is([data-dd="carceri"], [data-dd="rimpatri"], [data-dd="percezione"], [data-dd="autori"], [data-dd="minori"], [data-dd="cautelari"], [data-dd="istituti"])::before {
+.dd-card:is([data-dd="carceri"], [data-dd="rimpatri"], [data-dd="percezione"], [data-dd="autori"], [data-dd="minori"], [data-dd="cautelari"], [data-dd="istituti"], [data-dd="processi"], [data-dd="esecuzione"])::before {
   content: "";
   flex: none;
   margin: -18px -20px 4px;
@@ -1409,6 +1409,8 @@ details.dd-method .method { padding: 8px 0 6px; }
 .dd-card[data-dd="minori"]::before     { background-image: var(--cctv), url("img/dd/minori.jpg"); --shot-pos: 50% 35%; }
 .dd-card[data-dd="cautelari"]::before  { background-image: var(--cctv), url("img/dd/cautelari.jpg"); --shot-pos: 50% 55%; }
 .dd-card[data-dd="istituti"]::before   { background-image: var(--cctv), url("img/dd/istituti.jpg"); }
+.dd-card[data-dd="processi"]::before   { background-image: var(--cctv), url("img/dd/processi.jpg"); --shot-pos: 50% 60%; }
+.dd-card[data-dd="esecuzione"]::before { background-image: var(--cctv), url("img/dd/esecuzione.jpg"); }
 .dd-card:hover::before, .dd-card:focus-visible::before { animation: dd-roll 4s linear infinite; }
 /* la fase del percorso penale da cui vengono i numeri (la scrive vc.js): sulla foto, in alto a sinistra, come la scritta
    di un monitor; colori fissi, perché la foto è la stessa nei due temi */
@@ -1441,4 +1443,35 @@ details.dd-method .method { padding: 8px 0 6px; }
 }
 @media (max-width: 560px) {
   .dd-card[data-dd]::before { margin: -16px -16px 4px; }
+}
+
+/* ---------------------------------------------------------------- dal reato alla sentenza */
+/* le cinque fasi del procedimento in fila, con una freccia tra l'una e l'altra; sotto i 920px una sotto l'altra */
+#proc-stages { margin-bottom: 30px; }
+.proc-stages { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; }
+.proc-stages li { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 14px 14px 12px; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+.proc-stages li + li::before { content: "→"; position: absolute; left: -10px; top: 50%; transform: translate(-50%, -50%); color: var(--muted); font-weight: 700; }
+.proc-stages .ps-k { font-weight: 750; font-size: var(--step-0); line-height: 1.2; }
+.proc-stages .ps-w { font-size: var(--step--1); color: var(--ink-2); min-height: 2.6em; }
+.proc-stages .ps-v { margin-top: 8px; font-size: var(--step-2); font-weight: 750; font-stretch: 108%; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.proc-stages .ps-l, .proc-stages .ps-d { font-size: var(--step--1); color: var(--ink-2); }
+.proc-stages .ps-c { font-size: var(--step--1); font-weight: 700; color: var(--fall); }
+/* fuori dal carcere: la prima riga, le persone in carcere, si distingue dalle misure */
+#es-who li.strong .name { font-weight: 750; }
+#es-who li.strong .bar i { background: var(--ink); }
+.proc-find { width: min(100%, 320px); padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; }
+.proc-table th[scope="row"] { white-space: nowrap; }
+.proc-tools { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; justify-content: space-between; margin: 8px 0 12px; }
+@media (max-width: 920px) {
+  .proc-stages { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .proc-stages li + li::before { content: "↓"; left: 50%; top: -12px; }
+  .proc-stages .ps-w { min-height: 0; }
+}
+@media (max-width: 560px) {
+  .proc-stages { gap: 18px; }
+  .proc-stages li { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 1px; padding: 10px 12px; }
+  .proc-stages .ps-k, .proc-stages .ps-w { grid-column: 1; }
+  .proc-stages .ps-v { grid-column: 2; grid-row: 1 / span 2; align-self: center; margin-top: 0; }
+  .proc-stages .ps-l, .proc-stages .ps-c, .proc-stages .ps-d { grid-column: 1 / -1; }
+  .proc-stages .ps-l { margin-top: 4px; }
 }
