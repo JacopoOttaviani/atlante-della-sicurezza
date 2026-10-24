@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=63">
+<link rel="stylesheet" href="../../vc.css?v=64">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -327,7 +327,7 @@
         <div class="kicker">Method and sources</div>
         <h2 id="notes-title">What we don’t know</h2>
       </header>
-      <p class="note">Which crimes: the Ministry's open data do not split proceedings by offence, so it is impossible to say how long trials for sexual violence or theft last, or how many become time-barred. How they end: convictions, acquittals and dismissals by court are not among the open data. How long a case takes from start to finish: lengths are those of each stage, and the same case moves between stages in different years. Whether the prescription reports also count the appeals declared inadmissible for exceeding the time limits introduced in 2021.</p>
+      <p class="note">Which crimes: the Ministry's open data do not split proceedings by offence, so it is impossible to say how long trials for sexual violence or theft last, or how many become time-barred. How they end: the Ministry does not publish convictions and acquittals by court; before the preliminary judges we know how many cases are dismissed, closed with a penal decree of conviction, with a fast-track judgment or committed for trial, but not for which offences. How long a case takes from start to finish: lengths are those of each stage, and the same case moves between stages in different years. Whether the prescription reports also count the appeals declared inadmissible for exceeding the time limits introduced in 2021.</p>
       <details class="dd-method">
         <summary>How the figures are built, and the sources</summary>
         <div class="method">
@@ -339,6 +339,8 @@
           <p>Average length is the one published by the Ministry for the proceedings closed in the year, from arrival at the office to closure; for districts with a detached section it is the average of their courts weighted by closed cases, and where the Ministry publishes the district the two averages match within 3%. The backlog (disposition time) is pending divided by closed, times 365: the days needed to close the open cases at that year's pace. Recomputed from the flows, it matches the Ministry's figure for every court within 2%.</p>
           <h3>The statute of limitations</h3>
           <p>From the reports of the Statistics Directorate, year by year: judgments declaring the offence time-barred in courts of appeal and trial courts, and dismissals and judgments on the same grounds by preliminary judges. The share is out of the proceedings closed by the same office in the same report; for districts and courts the last three years are added together. Courts add up to their district and districts to the national series. Prosecutors' requests to dismiss on these grounds are not added: they become dismissals by the preliminary judge.</p>
+          <h3>How preliminary judges close cases</h3>
+          <p>For each court, from the Ministry's report on how proceedings are closed, year by year: dismissal decrees, fast-track judgments (plea bargains and abbreviated trials together), penal decrees of conviction that became enforceable, and committals for trial. These are the main outcomes, not all of them: in 2025 they cover 91% of the cases closed by preliminary judges. Courts add up to their district; a single cell does not match the Ministry's own flows (Piacenza 2015) and is left blank. They appear in every town's profile, under its court.</p>
           <h3>Courts and their municipalities</h3>
           <p>Each municipality's court comes from the Ministry's Giustizia Map, queried one municipality at a time: jurisdiction follows Legislative Decree 14 of 2014 and does not change when municipalities merge; municipalities created later take the court of those they came from (Lu e Cuccaro Monferrato, formed from municipalities under two courts, goes with Alessandria, the court of Lu, the more populous; Mappano with Ivrea, the court of three of the four municipalities it came from). The exceptions are the courts of Avezzano, Sulmona, Lanciano and Vasto: the 2012 reform abolished them, the abolition has been postponed and they are still open, but the Giustizia Map already assigns their municipalities to L’Aquila and Chieti; their municipalities come from the «Competenza territoriale» pages of their own websites. Residents are ISTAT's on 1 January 2025. A court's figures cover its whole area, not only the town where it sits.</p>
           <h3>How the data were built</h3>
@@ -458,6 +460,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=63"></script>
+<script src="../../vc.js?v=64"></script>
 </body>
 </html>

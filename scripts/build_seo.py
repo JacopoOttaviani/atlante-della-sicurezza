@@ -320,7 +320,7 @@ def court_section(c):
     who = f"Il tribunale di {esc(t['name'])}" if same else f"{esc(c['name'])} è nel circondario del tribunale di {esc(t['name'])}, che"
     paras = [f"{who} giudica i reati di {nf0(t['comuni'])} {'comune' if t['comuni'] == 1 else 'comuni'} con {nf0(t['pop'])} residenti; in appello si va alla Corte d’appello di {esc(d['name'])}. "
              "Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme. "
-             "Contano processi, non condanne: un processo chiuso può finire con una condanna, un’assoluzione o una prescrizione."]
+             "Durate e processi aperti contano processi, non condanne: un processo chiuso può finire con una condanna, un’assoluzione o una prescrizione."]
     dm, di = t["durata"]["mono"][Lg], it["durata"]["mono"][Lg]
     if dm is not None:
         paras.append(f"I processi di primo grado chiusi nel {last} davanti al giudice monocratico sono durati in media {nf0(dm)} giorni (in Italia {nf0(di)}). "
@@ -328,6 +328,19 @@ def court_section(c):
     pr, pri = presc_share(t["presc"]["trib"], t["presc"]["trib_def"]), presc_share(it["presc"]["trib"], it["presc"]["def"]["trib"])
     if pr is not None:
         paras.append(f"Tra il {Yg[-3]} e il {last} si sono prescritti {nf1(pr)} processi ogni 100 chiusi in tribunale (in Italia {nf1(pri)}).")
+    ge, gi = t.get("gip_esiti"), it.get("gip_esiti")
+    if ge and ge["arch"][Lg] is not None:
+        parts = lambda X: [X[k][Lg] for k in ("arch", "decreti", "riti", "giudizio")]  # noqa: E731
+        pc = lambda X: [js_round(100 * v / sum(parts(X))) for v in parts(X)]  # noqa: E731
+        a, b = pc(ge), pc(gi)
+        cov = 100 * sum(parts(ge)) / t["flussi"]["gip"]["d"][Lg]
+        paras.append(f"Davanti al GIP e al GUP, i giudici che decidono se un procedimento si archivia o va a processo, su 100 procedimenti chiusi nel {last} in uno dei quattro modi principali: "
+                     f"{a[0]} archiviati, {a[1]} con un decreto penale di condanna, {a[2]} con un rito alternativo, {a[3]} rinviati a giudizio "
+                     f"(in Italia {b[0]}, {b[1]}, {b[2]} e {b[3]}). Sono le modalità principali che il Ministero conta, e coprono il {js_round(cov)}% dei procedimenti chiusi dal GIP e dal GUP del tribunale. "
+                     "Il decreto penale di condanna è una condanna a una pena pecuniaria decisa senza processo, diventata esecutiva perché nessuno si è opposto. "
+                     "Tra i riti alternativi ci sono i patteggiamenti, che valgono come una condanna, e i giudizi abbreviati, che possono finire anche con un’assoluzione: il Ministero non li separa. "
+                     "L’archiviazione chiude il procedimento senza processo e non dice che la persona sia colpevole. "
+                     "Come finiscono i processi dopo il rinvio a giudizio, con una condanna o un’assoluzione, il Ministero non lo pubblica tribunale per tribunale.")
     paras.append('Fonte: Ministero della Giustizia, Direzione generale di statistica. <a href="../approfondimenti/processi.html#tribunali">Tutti i 140 tribunali, e che cosa succede dopo una denuncia</a>.')
     return f"""
   <section class="block" aria-labelledby="cp-court">

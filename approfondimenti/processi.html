@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=63">
+<link rel="stylesheet" href="../vc.css?v=64">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -327,7 +327,7 @@
         <div class="kicker">Metodo e fonti</div>
         <h2 id="notes-title">Che cosa non sappiamo</h2>
       </header>
-      <p class="note">Per quali reati: i dati aperti del Ministero non dividono i procedimenti per tipo di reato, quindi non si può sapere quanto durano i processi per violenza sessuale o per furto, né quanti si prescrivono. Come finiscono: condanne, assoluzioni e archiviazioni per tribunale non sono tra i dati aperti. Quanto dura un procedimento dall’inizio alla fine: le durate sono quelle di ogni fase, e lo stesso procedimento passa da una fase all’altra in anni diversi. Se i report sulla prescrizione contino anche le improcedibilità in appello introdotte nel 2021.</p>
+      <p class="note">Per quali reati: i dati aperti del Ministero non dividono i procedimenti per tipo di reato, quindi non si può sapere quanto durano i processi per violenza sessuale o per furto, né quanti si prescrivono. Come finiscono: condanne e assoluzioni per tribunale il Ministero non le pubblica; davanti al GIP e al GUP si sa quanti procedimenti si archiviano, quanti si chiudono con un decreto penale di condanna, con un rito alternativo o con un rinvio a giudizio, ma non per quali reati. Quanto dura un procedimento dall’inizio alla fine: le durate sono quelle di ogni fase, e lo stesso procedimento passa da una fase all’altra in anni diversi. Se i report sulla prescrizione contino anche le improcedibilità in appello introdotte nel 2021.</p>
       <details class="dd-method">
         <summary>Come sono costruiti i numeri, e le fonti</summary>
         <div class="method">
@@ -339,6 +339,8 @@
           <p>La durata media è quella pubblicata dal Ministero per i procedimenti definiti nell’anno, dall’arrivo nell’ufficio alla chiusura; per i distretti con una sezione distaccata è la media dei suoi tribunali pesata con i procedimenti chiusi, e dove il Ministero pubblica il distretto le due medie coincidono entro il 3%. L’arretrato (disposition time) è pendenti diviso definiti per 365: i giorni che servirebbero a chiudere i procedimenti aperti al ritmo dell’anno. Ricalcolato dai flussi, torna con quello pubblicato dal Ministero per ogni sede, entro il 2%.</p>
           <h3>La prescrizione</h3>
           <p>Dai report della Direzione generale di statistica, anno per anno: sentenze che dichiarano la prescrizione in Corte d’appello e in tribunale (proscioglimenti prima del dibattimento e sentenze di non doversi procedere), archiviazioni e sentenze per prescrizione dei GIP e GUP. La quota è sui procedimenti definiti dello stesso ufficio nello stesso report; per distretti e tribunali si sommano gli ultimi tre anni. I tribunali sommano il loro distretto e i distretti la serie nazionale. Le richieste di archiviazione per prescrizione delle procure non si sommano: diventano archiviazioni del GIP.</p>
+          <h3>Come si chiudono davanti al GIP</h3>
+          <p>Per ogni tribunale, dal report del Ministero sulle modalità di definizione, anno per anno: decreti di archiviazione, sentenze con rito alternativo (patteggiamenti e giudizi abbreviati insieme), decreti penali di condanna diventati esecutivi e decreti che dispongono il giudizio. Sono le modalità principali, non tutte: nel 2025 coprono il 91% dei procedimenti chiusi dal GIP e dal GUP. I tribunali sommano il loro distretto; una sola cella non torna con i flussi dello stesso Ministero (Piacenza 2015) ed è lasciata vuota. Si vedono nella scheda di ogni comune, sotto il suo tribunale.</p>
           <h3>I tribunali e i loro comuni</h3>
           <p>Il comune di ogni tribunale viene dalla Giustizia Map del Ministero, chiesta comune per comune: la competenza è quella del decreto legislativo 14 del 2014, che non cambia quando i comuni si fondono; i comuni nati dopo prendono il tribunale dei comuni da cui vengono (Lu e Cuccaro Monferrato, nato da comuni di due tribunali, va con Alessandria, il tribunale di Lu, il più popoloso; Mappano con Ivrea, il tribunale di tre dei quattro comuni da cui è nato). Fanno eccezione i tribunali di Avezzano, Sulmona, Lanciano e Vasto: la riforma del 2012 li ha soppressi, la soppressione è stata rinviata e sono ancora aperti, ma la Giustizia Map dà già i loro comuni all’Aquila e a Chieti; i loro comuni vengono dalle pagine «Competenza territoriale» dei loro siti. I residenti sono quelli ISTAT al 1° gennaio 2025. I numeri di un tribunale sono quelli del suo circondario, non del solo comune in cui ha sede.</p>
           <h3>Come sono stati costruiti i dati</h3>
@@ -458,6 +460,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=63"></script>
+<script src="../vc.js?v=64"></script>
 </body>
 </html>

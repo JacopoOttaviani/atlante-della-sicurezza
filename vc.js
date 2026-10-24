@@ -4186,10 +4186,34 @@
     const pr = prescShare(t.presc.trib, t.presc.trib_def), prIt = prescShare(it.presc.trib, it.presc.def.trib);
     const d = G.distretti.find((x) => x.id === t.dist), same = normQ(t.name) === normQ(where);
     const intro = EN
-      ? `${same ? `The court of ${esc(t.name)} tries` : `${esc(where)} falls under the court of ${esc(t.name)}, which tries`} crimes committed in ${nf0.format(t.comuni)} ${t.comuni === 1 ? "municipality" : "municipalities"} with ${nf0.format(t.pop)} residents; appeals go to the court of appeal of ${esc(d.name)}. These are its figures, not the town's alone: proceedings with a known suspect, all crime types together. They count trials, not convictions: a closed trial can end in a conviction, an acquittal or a time bar.`
-      : `${same ? `Il tribunale di ${esc(t.name)} giudica` : `${esc(where)} è nel circondario del tribunale di ${esc(t.name)}, che giudica`} i reati di ${nf0.format(t.comuni)} ${t.comuni === 1 ? "comune" : "comuni"} con ${nf0.format(t.pop)} residenti; in appello si va alla Corte d’appello di ${esc(d.name)}. Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme. Contano processi, non condanne: un processo chiuso può finire con una condanna, un’assoluzione o una prescrizione.`;
+      ? `${same ? `The court of ${esc(t.name)} tries` : `${esc(where)} falls under the court of ${esc(t.name)}, which tries`} crimes committed in ${nf0.format(t.comuni)} ${t.comuni === 1 ? "municipality" : "municipalities"} with ${nf0.format(t.pop)} residents; appeals go to the court of appeal of ${esc(d.name)}. These are its figures, not the town's alone: proceedings with a known suspect, all crime types together. Lengths and open trials count trials, not convictions: a closed trial can end in a conviction, an acquittal or a time bar.`
+      : `${same ? `Il tribunale di ${esc(t.name)} giudica` : `${esc(where)} è nel circondario del tribunale di ${esc(t.name)}, che giudica`} i reati di ${nf0.format(t.comuni)} ${t.comuni === 1 ? "comune" : "comuni"} con ${nf0.format(t.pop)} residenti; in appello si va alla Corte d’appello di ${esc(d.name)}. Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme. Durate e processi aperti contano processi, non condanne: un processo chiuso può finire con una condanna, un’assoluzione o una prescrizione.`;
     const vs = (a, b, fmt) => (a == null || b == null ? "" : a > b * 1.1 ? L(`più dell’Italia (${fmt(b)})`, `more than Italy (${fmt(b)})`) : a < b * 0.9 ? L(`meno dell’Italia (${fmt(b)})`, `less than Italy (${fmt(b)})`) : L(`come l’Italia (${fmt(b)})`, `similar to Italy (${fmt(b)})`));
     const pc = (v) => nf0.format(v) + "%";
+    // come si chiudono i procedimenti davanti al GIP e al GUP: le quattro modalità principali che il Ministero conta,
+    // nel tribunale e in Italia, in barre al 100% (le stesse classi delle barre di custodia cautelare)
+    const ge = t.gip_esiti, gi = it.gip_esiti, gparts = (X) => [X.arch[iL], X.decreti[iL], X.riti[iL], X.giudizio[iL]];
+    const gcats = EN
+      ? [{ cls: "o3", label: "dismissed, no trial" }, { cls: "o1", label: "penal decree of conviction" }, { cls: "o2", label: "fast-track judgment (plea bargain or abbreviated trial)" }, { cls: "o4", label: "sent to trial" }]
+      : [{ cls: "o3", label: "archiviati, senza processo" }, { cls: "o1", label: "decreto penale di condanna" }, { cls: "o2", label: "rito alternativo (patteggiamento o abbreviato)" }, { cls: "o4", label: "rinviati a giudizio" }];
+    const sbarRow = (name, parts, strong) => {
+      const tot = d3.sum(parts);
+      return `<li${strong ? ' class="strong"' : ""}><span class="name">${esc(name)}</span><span class="sbar">${parts.map((n, i) => {
+        const p = (100 * n) / tot;
+        return `<i class="${gcats[i].cls}" style="width:${p}%" title="${esc(gcats[i].label)}: ${nf1.format(p)}% (${nf0.format(n)})">${p >= 7 ? `<span>${nf0.format(Math.round(p))}%</span>` : ""}</i>`;
+      }).join("")}</span><span class="val">${nf0.format(tot)}</span></li>`;
+    };
+    const gcov = ge && ge.arch[iL] != null ? (100 * d3.sum(gparts(ge))) / t.flussi.gip.d[iL] : null;
+    const gip = gcov == null ? "" : `
+      <p class="chart-title">${EN ? `How proceedings close before the preliminary judges, ${last}` : `Come si chiudono i procedimenti davanti al GIP e al GUP, ${last}`}</p>
+      <p class="chart-sub">${EN
+        ? `The four main outcomes the Ministry counts, per 100; on the right, how many proceedings. They cover ${nf0.format(gcov)}% of the proceedings closed by the court's preliminary judges (GIP and GUP), who decide whether a case is dismissed or goes to trial.`
+        : `Le quattro modalità principali che il Ministero conta, ogni 100; a destra quanti procedimenti. Coprono ${pctA("il", Math.round(gcov)).replace(",0%", "%")} dei procedimenti chiusi dal GIP e dal GUP del tribunale, i giudici che decidono se un procedimento si archivia o va a processo.`}</p>
+      <ul class="sbar-key" aria-hidden="true">${gcats.map((c) => `<li><i class="${c.cls}"></i>${c.label}</li>`).join("")}</ul>
+      <ol class="sbars">${sbarRow(L("Tribunale di ", "Court of ") + t.name, gparts(ge), true)}${sbarRow(L("Italia", "Italy"), gparts(gi))}</ol>
+      <p class="small">${EN
+        ? "A penal decree of conviction is a conviction to a fine decided without a trial, which became enforceable because nobody opposed it. Fast-track judgments include plea bargains, which count as convictions, and abbreviated trials, which can also end in an acquittal: the Ministry does not separate them. A dismissal closes the proceedings without a trial and does not say that the person is guilty. With a committal for trial the case goes to court: how it ends, conviction or acquittal, the Ministry does not publish court by court."
+        : "Il decreto penale di condanna è una condanna a una pena pecuniaria decisa senza processo, diventata esecutiva perché nessuno si è opposto. Tra i riti alternativi ci sono i patteggiamenti, che valgono come una condanna, e i giudizi abbreviati, che possono finire anche con un’assoluzione: il Ministero non li separa. L’archiviazione chiude il procedimento senza processo e non dice che la persona sia colpevole. Con il rinvio a giudizio il procedimento va in tribunale: come finisce, con una condanna o un’assoluzione, il Ministero non lo pubblica tribunale per tribunale."}</p>`;
     return `<h3 class="subhead">${faseTag("processo")}${L("Dopo la denuncia: il tribunale di", "After the report: the court of")} ${esc(t.name)}</h3>
       <p class="small">${intro}</p>
       <div class="facts">
@@ -4197,7 +4221,7 @@
         ${lg ? `<div class="fact"><div class="fv">${pc((100 * lg[0]) / lg[1])}</div><div class="fl">${EN ? `of those trials took more than two years; ${vs((100 * lg[0]) / lg[1], (100 * lgIt[0]) / lgIt[1], pc)}` : `di quei processi è durato più di due anni; ${vs((100 * lg[0]) / lg[1], (100 * lgIt[0]) / lgIt[1], pc)}`}</div></div>` : ""}
         ${pr != null ? `<div class="fact"><div class="fv">${nf1.format(pr)}</div><div class="fl">${EN ? `trials time-barred per 100 closed in court, ${k3}; Italy ${nf1.format(prIt)}` : `processi prescritti ogni 100 chiusi in tribunale, ${k3}; Italia ${nf1.format(prIt)}`}</div></div>` : ""}
         <div class="fact"><div class="fv">${nf0.format(f.p[iL])}</div><div class="fl">${EN ? `trials still open at the end of ${last}: ${fmtPct(f.p[iL] / f.p[i19] - 1)} compared with 2019 (Italy ${fmtPct(fIt.p[iL] / fIt.p[i19] - 1)})` : `processi ancora aperti a fine ${last}: ${fmtPct(f.p[iL] / f.p[i19] - 1)} rispetto al 2019 (Italia ${fmtPct(fIt.p[iL] / fIt.p[i19] - 1)})`}</div></div>
-      </div>
+      </div>${gip}
       <p class="small">${L("Fonte: Ministero della Giustizia, Direzione generale di statistica.", "Source: Ministry of Justice, Statistics Directorate.")} <a href="${PAGES}approfondimenti/processi.html#tribunali">${L("Tutti i 140 tribunali, e che cosa succede dopo una denuncia", "All 140 courts, and what happens after a report")}</a></p>`;
   }
 

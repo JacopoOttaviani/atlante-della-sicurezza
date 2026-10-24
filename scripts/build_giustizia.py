@@ -51,12 +51,15 @@ DOCS = "https://datiestatistiche.giustizia.it/cmsresources/cms/documents/"
 POSAS_COM = "https://demo.istat.it/data/posas/POSAS_{year}_it_Comuni.zip"
 UA = "Mozilla/5.0 (atlantedellasicurezza.it; dati pubblici)"
 SSRS = "https://reportistica.dgstat.giustizia.it"
-PRESC = "/Pubblica/Statistiche della DGSTAT/Materia Penale/2. Modalita di definizione/3. definiti per prescrizione/"
+MODALITA = "/Pubblica/Statistiche della DGSTAT/Materia Penale/2. Modalita di definizione/"
 REPORTS = {
-    "naz": "1. dati nazionali/1. tutti gli uffici in serie storica",
-    "ca": "2. dati distrettuali/2. corte di appello",
-    "trib": "3. dati circondariali/2. tribunale ordinario",
-    "gip": "3. dati circondariali/3. tribunale ordinario gip gup",
+    # i procedimenti definiti per prescrizione
+    "naz": "3. definiti per prescrizione/1. dati nazionali/1. tutti gli uffici in serie storica",
+    "ca": "3. definiti per prescrizione/2. dati distrettuali/2. corte di appello",
+    "trib": "3. definiti per prescrizione/3. dati circondariali/2. tribunale ordinario",
+    "gip": "3. definiti per prescrizione/3. dati circondariali/3. tribunale ordinario gip gup",
+    # come si chiudono i procedimenti davanti al GIP e al GUP, per circondario
+    "gip_mod": "2. dati circondariali/3. tribunale ordinario gip gup",
 }
 PAUSE = 0.5
 
@@ -170,10 +173,10 @@ def report(key, year=None):
     Il visualizzatore (SQL Server Reporting Services) vuole una sessione: si apre la pagina, si sceglie l'anno, si
     preme «View Report» e si esporta. In cache per report e anno, mai per indirizzo (contiene la sessione)."""
     os.makedirs(GCACHE, exist_ok=True)
-    path = os.path.join(GCACHE, f"presc_{key}_{year or 'serie'}.csv")
+    path = os.path.join(GCACHE, f"report_{key}_{year or 'serie'}.csv")
     if os.path.exists(path) and os.path.getsize(path):
         return open(path, encoding="utf-8").read()
-    url = SSRS + "/VisualizzatoreReport.Aspx?Report=" + urllib.parse.quote(PRESC + REPORTS[key])
+    url = SSRS + "/VisualizzatoreReport.Aspx?Report=" + urllib.parse.quote(MODALITA + REPORTS[key])
     jar = tempfile.NamedTemporaryFile(delete=False).name
     try:
         page = curl(url, jar=jar).decode("utf-8")
@@ -518,6 +521,63 @@ def prescriptions(D, tribs):
     return italia
 
 
+GIP_MODES = ["arch", "decreti", "riti", "giudizio"]
+# Celle del report sulle modalità di definizione che non tornano con i flussi dello stesso Ministero: restano vuote.
+# Piacenza 2015: le quattro modalità sommano 4.171, i procedimenti definiti dal GIP nei flussi sono 3.728.
+GIP_FUORI = {("piacenza", 2015)}
+
+
+def gip_modes(tribs):
+    """Come si chiudono i procedimenti davanti al GIP e al GUP, per circondario e anno: le quattro modalità principali che
+    il Ministero conta (archiviazioni, decreti penali di condanna diventati esecutivi, sentenze con rito alternativo,
+    rinvii a giudizio). I circondari devono sommare il loro distretto e le quattro modalità non possono superare i
+    procedimenti definiti dal GIP nei flussi."""
+    by_norm = {norm(t["sede"]): t for t in tribs}
+    for t in tribs:
+        t["gip_esiti"] = {k: [None] * len(YEARS) for k in GIP_MODES}
+    italia = {k: [None] * len(YEARS) for k in GIP_MODES}
+    gone, over = set(), []
+    for i, y in enumerate(YEARS):
+        # [distretto, circondario, archiviazioni, riti alternativi, decreti di condanna esecutivi, rinviati a giudizio,
+        #  le stesse quattro per il distretto]
+        b = blocks(report("gip_mod", y))[0]
+        dist_tot, dist_sum, nd = {}, defaultdict(lambda: [0, 0, 0, 0]), set()
+        for r in b["rows"]:
+            d = norm(r[0])
+            dist_tot[d] = [num(x) or 0 for x in r[6:10]]
+            arch, riti, dec, giu = (num(x) for x in r[2:6])
+            c = by_norm.get(norm(r[1]))
+            if None in (arch, riti, dec, giu):
+                if c is not None:
+                    nd.add(d)  # un tribunale aperto senza dati: il distretto non si può controllare
+                continue
+            dist_sum[d] = [a + v for a, v in zip(dist_sum[d], (arch, riti, dec, giu))]
+            if c is None:
+                gone.add(r[1])
+                continue
+            for k, v in zip(("arch", "riti", "decreti", "giudizio"), (arch, riti, dec, giu)):
+                c["gip_esiti"][k][i] = v
+        for d, tot in dist_tot.items():
+            if d not in nd and dist_sum[d] != tot:
+                raise SystemExit(f"modalità di definizione GIP {y}, {d}: i circondari sommano {dist_sum[d]}, il distretto {tot}")
+        for j, k in enumerate(("arch", "riti", "decreti", "giudizio")):
+            italia[k][i] = sum(t[j] for t in dist_tot.values())
+        for t in tribs:
+            s = sum(t["gip_esiti"][k][i] or 0 for k in GIP_MODES)
+            if (norm(t["sede"]), y) in GIP_FUORI:
+                for k in GIP_MODES:
+                    t["gip_esiti"][k][i] = None
+            elif s > t["flussi"]["gip"]["d"][i] * 1.02:
+                over.append((t["name"], y, s, t["flussi"]["gip"]["d"][i]))
+    if over:
+        raise SystemExit(f"modalità di definizione GIP oltre i definiti dei flussi: {over[:5]}")
+    L = len(YEARS) - 1
+    cov = sum(italia[k][L] for k in GIP_MODES) / sum(t["flussi"]["gip"]["d"][L] for t in tribs)
+    log(f"  modalità di definizione GIP: {len(YEARS)} anni, i circondari tornano con i distretti; nel {YEARS[-1]} coprono il "
+        f"{100 * cov:.0f}% dei definiti dei flussi" + (f"; tribunali soppressi solo nei distretti: {sorted(gone)}" if gone else ""))
+    return italia
+
+
 def build():
     D, pop_year = districts()
     v = flows()
@@ -596,6 +656,7 @@ def build():
 
     italia["durata"] = durations(D, tribs, v)
     italia["presc"] = prescriptions(D, tribs)
+    italia["gip_esiti"] = gip_modes(tribs)
 
     # il tribunale di ogni comune, nell'ordine di data/comuni.json (la ricerca della scheda)
     order = [t["id"] for t in tribs]
@@ -631,8 +692,8 @@ def build():
                  "en": "Ministry of Justice, Statistics Directorate: average length of closed criminal proceedings, and closed proceedings by length, 2014-2025"},
                 {"id": "Indicatori_Penali", "label": "Ministero della Giustizia, DG Statistica: clearance rate e disposition time per sede (per il controllo)",
                  "en": "Ministry of Justice, Statistics Directorate: clearance rate and disposition time by court (as a cross-check)"},
-                {"id": "reportistica.dgstat", "label": "Ministero della Giustizia, DG Statistica: procedimenti penali definiti per prescrizione, per ufficio, distretto e circondario (report su reportistica.dgstat.giustizia.it)",
-                 "en": "Ministry of Justice, Statistics Directorate: criminal proceedings closed because of the statute of limitations, by office, district and court (reports on reportistica.dgstat.giustizia.it)"},
+                {"id": "reportistica.dgstat", "label": "Ministero della Giustizia, DG Statistica: procedimenti penali definiti per prescrizione, per ufficio, distretto e circondario, e modalità di definizione davanti al GIP e al GUP per circondario (report su reportistica.dgstat.giustizia.it)",
+                 "en": "Ministry of Justice, Statistics Directorate: criminal proceedings closed because of the statute of limitations, by office, district and court, and how preliminary judges close proceedings, by court (reports on reportistica.dgstat.giustizia.it)"},
                 {"id": "Giustizia Map", "label": "Ministero della Giustizia, Giustizia Map: uffici giudiziari competenti per ogni comune (d.lgs. 14/2014)",
                  "en": "Ministry of Justice, Giustizia Map: the courts with jurisdiction over each municipality (Legislative Decree 14/2014)"},
                 {"id": f"POSAS_{POP_YEAR}", "label": f"ISTAT, Demografia in cifre: popolazione residente al 1° gennaio {POP_YEAR} per comune (residenti dei circondari)",
