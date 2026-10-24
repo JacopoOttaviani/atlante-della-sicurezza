@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlante della Sicurezza — il logo in movimento, tre proposte</title>
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="vc.css?v=66">
+<script>
+  // Con «riduci movimento» del sistema la pagina parte ferma, come il sito; il pulsante in alto la fa muovere lo stesso.
+  document.documentElement.classList.toggle("still", matchMedia("(prefers-reduced-motion: reduce)").matches);
+</script>
+<style>
+/* I due temi della pagina affiancati, qualunque sia quello del sistema. */
+.light {
+  --bg: #f3f4f0; --surface: #fbfbf9; --ink: #121614; --ink-2: #454c48; --muted: #747b76; --rule: #d6dbd4; --gold: #c98d00; --gold-ink: #8a6200;
+  background: var(--bg); color: var(--ink); color-scheme: light;
+}
+.dark {
+  --bg: #0e1110; --surface: #151917; --ink: #eef0ec; --ink-2: #bcc3be; --muted: #8a918c; --rule: #2b312e; --gold: #bf8a0e; --gold-ink: #d9a226;
+  background: var(--bg); color: var(--ink); color-scheme: dark;
+}
+body { padding-block: 40px 80px; }
+.intro { max-width: 70ch; margin: 0 auto 20px; padding-inline: 16px; }
+.intro h1 { font-family: var(--font-body); font-weight: 400; font-size: var(--step-3); line-height: 1.1; margin: 0 0 12px; }
+.intro p { color: var(--ink-2); font-family: var(--font-body); font-size: var(--step-1); margin: 0 0 10px; }
+.controls { max-width: 70ch; margin: 0 auto 44px; padding-inline: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  font-family: var(--font-display); font-size: 13px; font-weight: 600; line-height: 1;
+  padding: 9px 14px; border: 1px solid var(--rule); border-radius: 999px;
+  background: var(--surface); color: var(--ink); cursor: pointer;
+}
+.btn:hover { border-color: var(--ink-2); }
+.btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.btn.force { display: none; }
+.still .btn.force { display: inline-block; }
+.hint { font-size: 12px; color: var(--muted); }
+
+.opt { max-width: var(--wide); margin: 0 auto 56px; padding-inline: 16px; }
+.opt h2 { font-size: var(--step-2); font-weight: 800; font-stretch: 112%; letter-spacing: -0.01em; margin: 0 0 4px; display: flex; align-items: baseline; gap: 12px; }
+.opt h2 b { font-weight: 800; color: var(--gold-ink); }
+.opt .why { color: var(--ink-2); font-family: var(--font-body); font-size: var(--step-1); max-width: 70ch; margin: 0 0 16px; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 24px; margin: 0 0 18px; max-width: 980px; }
+.facts div { border-top: 2px solid var(--rule); padding-top: 8px; }
+.facts dt { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.facts dd { margin: 4px 0 0; font-family: var(--font-body); font-size: var(--step-0); color: var(--ink-2); }
+.optbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 14px; }
+@media (max-width: 720px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+
+.frame { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+.frame .masthead { position: relative; z-index: auto; border-bottom: 0; }
+.cap { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 10px 16px 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; }
+.two > * { min-width: 0; }
+@media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
+
+/* La barra sopra il film della home: il fotogramma d'apertura con lo stesso trattamento del video. */
+.film { position: relative; isolation: isolate; height: 150px; background: #0e1110; }
+.film::before { content: ""; position: absolute; inset: 0; z-index: -2; background: url("video/hero-roma-poster.jpg") 50% 40% / cover; filter: grayscale(1) contrast(1.5) brightness(1.06); }
+.film::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to bottom, rgba(8, 10, 9, 0.62) 0, rgba(8, 10, 9, 0.12) 150px), #b4cdc2; mix-blend-mode: multiply; }
+.film .cap { position: absolute; left: 0; bottom: 12px; color: rgba(243, 244, 240, 0.7); }
+
+/* Il logo a misure diverse: --ic è il lato dell'icona, --k il suo rapporto con i 20 px della barra. */
+.wordmark { --ic: 20px; --k: 1; }
+.wordmark svg { width: var(--ic); height: var(--ic); }
+.big { padding: 34px 16px 38px; }
+.big .wordmark { --ic: 56px; --k: 2.8; font-size: 40px; }
+.big .wordmark svg { margin-right: 0.4em; }
+.big .wordmark .w1, .big .wordmark .w2, .big .wordmark .w3 { display: inline; }
+@media (max-width: 1100px) { .big .wordmark { --ic: 40px; --k: 2; font-size: 28px; } }
+@media (max-width: 640px) { .big .wordmark { --ic: 28px; --k: 1.4; font-size: 15px; } }
+.icons { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-end; padding: 16px 16px 20px; }
+.icons figure { margin: 0; display: grid; justify-items: center; gap: 8px; }
+.icons figcaption { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.solo .w1, .solo .w2, .solo .w3 { display: none; }
+.wordmark.solo svg { margin-right: 0; }
+.s32 { --ic: 32px; --k: 1.6; }
+.s56 { --ic: 56px; --k: 2.8; }
+
+/* Le regole delle tre proposte. Sul sito basterebbero queste, senza !important e senza html:not(.still):
+   lì ci pensa già la regola di vc.css per «riduci movimento». Qui servono per il pulsante «Fammele vedere lo stesso». */
+
+/* A · Mappamondo. Al passaggio del mouse (o con Tab) il meridiano fa un giro intero, rallenta e si ferma dov'era.
+   L'ellisse si allarga e si stringe col seno della longitudine (31 tappe calcolate, giro con frenata quadratica);
+   vector-effect tiene lo spessore della linea mentre l'ellisse cambia larghezza. */
+.o-a svg ellipse { transform-box: fill-box; transform-origin: center; vector-effect: non-scaling-stroke; stroke-width: calc(1.6px * var(--k)); }
+html:not(.still) .o-a a:hover svg ellipse,
+html:not(.still) .o-a a:focus-visible svg ellipse,
+html:not(.still) .o-a.play svg ellipse { animation: a-spin 1.6s linear !important; }
+@keyframes a-spin {
+  0% { transform: scaleX(1.00); } 3.3% { transform: scaleX(1.80); } 6.7% { transform: scaleX(2.29); } 10% { transform: scaleX(2.42); }
+  13.3% { transform: scaleX(2.22); } 16.7% { transform: scaleX(1.73); } 20% { transform: scaleX(1.06); } 23.3% { transform: scaleX(0.31); }
+  26.7% { transform: scaleX(-0.45); } 30% { transform: scaleX(-1.14); } 33.3% { transform: scaleX(-1.70); } 36.7% { transform: scaleX(-2.10); }
+  40% { transform: scaleX(-2.34); } 43.3% { transform: scaleX(-2.42); } 46.7% { transform: scaleX(-2.37); } 50% { transform: scaleX(-2.21); }
+  53.3% { transform: scaleX(-1.96); } 56.7% { transform: scaleX(-1.66); } 60% { transform: scaleX(-1.33); } 63.3% { transform: scaleX(-0.99); }
+  66.7% { transform: scaleX(-0.65); } 70% { transform: scaleX(-0.34); } 73.3% { transform: scaleX(-0.05); } 76.7% { transform: scaleX(0.20); }
+  80% { transform: scaleX(0.42); } 83.3% { transform: scaleX(0.60); } 86.7% { transform: scaleX(0.75); } 90% { transform: scaleX(0.86); }
+  93.3% { transform: scaleX(0.94); } 96.7% { transform: scaleX(0.98); } 100% { transform: scaleX(1.00); }
+}
+
+/* B · Tavola. All'apertura il logo si traccia: il cerchio dall'alto in senso orario, l'equatore da sinistra,
+   il meridiano, poi le tre parole una dopo l'altra. Le lunghezze dei tratti sono quelle delle forme (cerchio 50,3,
+   ellisse 37,1, equatore 16), così non serve toccare l'SVG. Finito, non resta niente: fermo è il logo di sempre. */
+html:not(.still) .o-b.play svg circle { animation: b-circle 0.75s cubic-bezier(0.65, 0, 0.35, 1) 0.2s backwards !important; }
+html:not(.still) .o-b.play svg path { animation: b-equator 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.65s backwards !important; }
+html:not(.still) .o-b.play svg ellipse { animation: b-meridian 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.8s backwards !important; }
+html:not(.still) .o-b.play .w1 { animation: b-word 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s backwards !important; }
+html:not(.still) .o-b.play .w2 { animation: b-word 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s backwards !important; }
+html:not(.still) .o-b.play .w3 { animation: b-word 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.85s backwards !important; }
+.o-b svg circle { transform-box: fill-box; transform-origin: center; }
+@keyframes b-circle { from { stroke-dasharray: 0 51; transform: rotate(-90deg); } to { stroke-dasharray: 51 0; transform: rotate(-90deg); } }
+@keyframes b-equator { from { stroke-dasharray: 0 17; } to { stroke-dasharray: 17 0; } }
+@keyframes b-meridian { from { stroke-dasharray: 0 38; } to { stroke-dasharray: 38 0; } }
+@keyframes b-word { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+/* C · Radar. Ogni otto secondi un raggio d'oro fa un giro dentro il globo e accende per un attimo un punto, l'Italia.
+   Raggio e punto sono i due pseudo-elementi del link del logo, dietro e sopra l'SVG: nessuna pagina da toccare. */
+.o-c a { position: relative; isolation: isolate; }
+.o-c a::before, .o-c a::after { content: ""; position: absolute; pointer-events: none; border-radius: 50%; opacity: 0; }
+.o-c a::before {
+  z-index: -1;
+  left: calc(var(--ic) * 0.15); top: calc(50% - var(--ic) * 0.35);
+  width: calc(var(--ic) * 0.7); height: calc(var(--ic) * 0.7);
+  background: conic-gradient(transparent 0 0.62turn, color-mix(in srgb, var(--gold) 70%, transparent) 1turn);
+}
+.o-c a::after {
+  z-index: 1;
+  left: calc(var(--ic) * 0.61); top: calc(50% - var(--ic) * 0.245);
+  width: calc(var(--ic) * 0.15); height: calc(var(--ic) * 0.15);
+  background: var(--gold-ink);
+  box-shadow: 0 0 0 calc(var(--ic) * 0.05) color-mix(in srgb, var(--gold) 40%, transparent);
+}
+html:not(.still) .o-c.play a::before { animation: c-sweep 8s linear 0.6s infinite !important; }
+html:not(.still) .o-c.play a::after { animation: c-blip 8s ease-out 0.6s infinite !important; }
+@keyframes c-sweep {
+  0% { transform: rotate(0deg); opacity: 0; }
+  2% { opacity: 1; }
+  24% { opacity: 1; }
+  30% { transform: rotate(360deg); opacity: 0; }
+  100% { transform: rotate(360deg); opacity: 0; }
+}
+@keyframes c-blip {
+  0%, 3.6% { opacity: 0; transform: scale(0.3); }
+  4.4% { opacity: 1; transform: scale(1.4); }
+  9% { opacity: 1; transform: scale(1); }
+  22% { opacity: 1; transform: scale(1); }
+  32%, 100% { opacity: 0; transform: scale(1); }
+}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Il logo in movimento: tre proposte</h1>
+  <p><b>Scelta il 24 ottobre 2026: B, Tavola.</b> Sul sito si disegna alla prima pagina della visita (vc.css, .logo-draw, con la riga di script in testa a ogni pagina); le altre due restano qui per confronto.</p>
+  <p>Fermi, sono tutti e tre il logo di oggi, identico: il globo d'oro con meridiano ed equatore e «Atlante della Sicurezza». Cambia che cosa si muove e quando: A solo se lo chiedi, B una volta all'arrivo, C sempre, piano.</p>
+  <p>Ogni proposta è nella barra vera, chiara e scura, sopra il film della home, in grande e come icona sola, che è quello che resta del logo sul telefono. Ognuna si avvia quando arriva sullo schermo; «Rivedi» la fa ripartire.</p>
+</div>
+<div class="controls">
+  <button class="btn" type="button" id="loop" aria-pressed="false">Ripeti di continuo</button>
+  <button class="btn force" type="button" id="force">Il sistema chiede meno movimento: fammele vedere lo stesso</button>
+</div>
+
+<!-- ============================================================ A -->
+<section class="opt" data-opt="a">
+  <h2><b>A</b> Mappamondo</h2>
+  <p class="why">Il globo gira quando ci passi sopra con il mouse, o ci arrivi con il tasto Tab, come un mappamondo da scrivania spinto con un dito: il meridiano fa un giro intero, rallenta e si ferma dov'era. È il modo di muoversi degli altri pulsanti della barra, il saltello di LinkedIn e il vapore del caffè: niente si muove finché non lo chiedi.</p>
+  <dl class="facts">
+    <div><dt>Quando</dt><dd>Al passaggio del mouse e con Tab; dura 1,6 secondi.</dd></div>
+    <div><dt>Sul telefono</dt><dd>Non si muove da solo: al più gira quando lo tocchi, e il tocco riporta in cima.</dd></div>
+    <div><dt>Per metterlo online</dt><dd>Una quindicina di righe in vc.css, quasi tutte le tappe del giro; nessuna pagina da toccare.</dd></div>
+  </dl>
+  <div class="optbar"><button class="btn" type="button" data-replay="a">Rivedi A</button><span class="hint">oppure passa il mouse su un logo qui sotto; se lo togli a metà giro torna subito dov'era, come il saltello di LinkedIn</span></div>
+  <div class="frames"></div>
+</section>
+
+<!-- ============================================================ B -->
+<section class="opt" data-opt="b">
+  <h2><b>B</b> Tavola</h2>
+  <p class="why">Il logo si disegna quando la pagina si apre, come una tavola d'atlante tracciata a mano: prima il cerchio, dall'alto in senso orario, poi l'equatore e il meridiano, poi le tre parole, una dopo l'altra. Dura un secondo e mezzo; dopo resta fermo. È il più editoriale dei tre, e l'unico che tocca anche le parole.</p>
+  <dl class="facts">
+    <div><dt>Quando</dt><dd>Una volta, all'apertura della pagina.</dd></div>
+    <div><dt>Sul telefono</dt><dd>Sì: si disegna il globo, che lì è tutto il logo.</dd></div>
+    <div><dt>Per metterlo online</dt><dd>Le regole in vc.css, più una riga in vc.js perché si disegni solo alla prima pagina della visita e non a ogni approfondimento.</dd></div>
+  </dl>
+  <div class="optbar"><button class="btn" type="button" data-replay="b">Rivedi B</button></div>
+  <div class="frames"></div>
+</section>
+
+<!-- ============================================================ C -->
+<section class="opt" data-opt="c">
+  <h2><b>C</b> Radar</h2>
+  <p class="why">Ogni otto secondi un raggio d'oro fa un giro dentro il globo, come su uno schermo radar o come la banda che scorre sul film della home, e accende per un attimo un punto: l'Italia. È il più legato all'apertura a circuito chiuso e l'unico che si muove da solo. È anche quello che dice di più: sorveglianza, allarme. In una barra che resta sempre in vista, si vede anche mentre si legge.</p>
+  <dl class="facts">
+    <div><dt>Quando</dt><dd>Sempre: un giro di 2,4 secondi ogni otto.</dd></div>
+    <div><dt>Sul telefono</dt><dd>Sì, uguale.</dd></div>
+    <div><dt>Per metterlo online</dt><dd>Le regole in vc.css; il tasto «Ferma il video» della home dovrebbe fermare anche il logo.</dd></div>
+  </dl>
+  <div class="optbar"><button class="btn" type="button" data-replay="c">Rivedi C</button></div>
+  <div class="frames"></div>
+</section>
+
+<script>
+(() => {
+  const SVG = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg>';
+  const WORDS = '<span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span>';
+  const MENU = '<nav class="menu" aria-hidden="true"><ul>' + ["Mappa", "Reati", "Impennate", "Città", "Approfondimenti", "Il progetto"].map((m) => `<li><a>${m}</a></li>`).join("") + "</ul></nav>";
+  const logo = (o, extra = "") => `<div class="wordmark o-${o}${extra}"><a href="#" aria-label="Atlante della Sicurezza">${SVG}${WORDS}</a></div>`;
+  const bar = (o, theme, cap) => `<div class="${theme}"><div class="cap">${cap}</div><header class="masthead"><div class="wrap">${logo(o)}${MENU}</div></header></div>`;
+  const icons = (o, theme) => `<div class="${theme}"><div class="cap">Icona sola</div><div class="icons">` +
+    [["", "20 · la barra sul telefono"], ["s32", "32"], ["s56", "56"]].map(([s, c]) => `<figure>${logo(o, ` solo ${s}`)}<figcaption>${c}</figcaption></figure>`).join("") + "</div></div>";
+
+  document.querySelectorAll(".opt").forEach((sec) => {
+    const o = sec.dataset.opt;
+    sec.querySelector(".frames").innerHTML =
+      `<div class="frame">${bar(o, "light", "Barra · chiaro")}${bar(o, "dark", "Barra · scuro")}</div>` +
+      `<div class="frame film"><header class="masthead on-film"><div class="wrap">${logo(o)}${MENU}</div></header><div class="cap">Barra · sul film della home</div></div>` +
+      `<div class="frame"><div class="light big">${logo(o)}</div><div class="dark big">${logo(o)}</div></div>` +
+      `<div class="frame two">${icons(o, "light")}${icons(o, "dark")}</div>`;
+  });
+  document.addEventListener("click", (ev) => { if (ev.target.closest('.wordmark a[href="#"]')) ev.preventDefault(); });
+
+  // Ripartire: tolgo la classe, forzo il ricalcolo, la rimetto.
+  const replay = (o) => document.querySelectorAll(`.o-${o}`).forEach((el) => { el.classList.remove("play"); void el.offsetWidth; el.classList.add("play"); });
+  document.querySelectorAll("[data-replay]").forEach((b) => b.addEventListener("click", () => replay(b.dataset.replay)));
+  // A gira una volta per «Rivedi»; poi torna ad aspettare il mouse.
+  document.addEventListener("animationend", (ev) => { if (ev.animationName === "a-spin") ev.target.closest(".o-a")?.classList.remove("play"); });
+
+  // Ogni proposta parte quando la sua sezione arriva sullo schermo.
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) replay(e.target.dataset.opt); }), { threshold: 0.25 });
+  document.querySelectorAll(".opt").forEach((s) => io.observe(s));
+
+  let timer = 0;
+  const loop = document.getElementById("loop");
+  loop.addEventListener("click", () => {
+    const on = loop.getAttribute("aria-pressed") !== "true";
+    loop.setAttribute("aria-pressed", String(on));
+    clearInterval(timer);
+    if (on) { replay("a"); replay("b"); timer = setInterval(() => { replay("a"); replay("b"); }, 3600); }
+  });
+  document.getElementById("force").addEventListener("click", () => { document.documentElement.classList.remove("still"); ["a", "b", "c"].forEach(replay); });
+})();
+</script>
+</body>
+</html>

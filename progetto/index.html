@@ -34,13 +34,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=65">
+<link rel="stylesheet" href="../vc.css?v=66">
+<script>try { if (!sessionStorage.getItem("vc-logo")) { document.documentElement.classList.add("logo-draw"); sessionStorage.setItem("vc-logo", "1"); } } catch (e) {}</script>
 <style>
   /* solo in questa pagina: l'indice in cima e la riga dei link dell'autore */
   .toc { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 18px 0; font-size: var(--step--1); font-weight: 600; }
   .toc span { color: var(--muted); font-weight: 500; }
   .toc a { color: var(--ink-2); text-decoration: none; border-bottom: 2px solid var(--rule); }
   .toc a:hover, .toc a:focus-visible { color: var(--ink); border-bottom-color: var(--gold); }
+  .dek + .dek { margin-top: 14px; }
   .about .bio { font-family: var(--font-body); font-size: var(--step-1); color: var(--ink-2); max-width: var(--measure); margin: 0 0 22px; }
   .about .bio + .bio { font-size: var(--step-0); }
   .cta .web svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
@@ -169,7 +171,8 @@
       <header>
         <div class="kicker">Sul progetto</div>
         <h2 id="project-title">Perché un atlante della sicurezza</h2>
-        <p class="dek">Ogni anno escono le classifiche delle città «più pericolose» d’Italia, e ogni anno diventano un titolo. L’atlante prova a fare il passo successivo: prendere gli stessi dati ufficiali e guardarli da vicino, città per città e reato per reato, perché ciascuno possa vedere da sé com’è andata dove vive.</p>
+        <p class="dek">Ogni anno escono le classifiche delle città «più pericolose» d’Italia, e ogni anno diventano un titolo. Poi i dati sulla sicurezza passano alla politica, e da un lato e dall’altro dello spettro vengono tirati per la giacca: da chi vuole dimostrare che c’è un’emergenza e da chi vuole dimostrare che non c’è. Così arrivano al pubblico a pezzi, selettivi, aneddotici, allusivi: un anno scelto perché conviene, un fatto di cronaca preso per una tendenza, un numero senza la popolazione che lo spiega, un’allusione al posto di un dato.</p>
+        <p class="dek">L’atlante prova a fare il passo successivo: mettere i fenomeni in prospettiva, nello spazio e nel tempo. Prende gli stessi dati ufficiali e li guarda da vicino, città per città e reato per reato, perché ciascuno possa vedere da sé com’è andata dove vive. Come si addice a un atlante, le sue analisi sono latitudinali e longitudinali: confrontano le città tra loro e seguono ciascuna anno per anno, dal 2006. E si allargano ai temi sempreverdi della giustizia italiana, dalle carceri alla custodia cautelare, dalla durata dei processi alla prescrizione, senza perdere d’occhio la sicurezza nelle città italiane.</p>
       </header>
       <div class="method">
         <h3>Solo dati pubblici</h3>
@@ -302,6 +305,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=65"></script>
+<script src="../vc.js?v=66"></script>
 </body>
 </html>

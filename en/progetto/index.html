@@ -34,13 +34,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../../vc.css?v=65">
+<link rel="stylesheet" href="../../vc.css?v=66">
+<script>try { if (!sessionStorage.getItem("vc-logo")) { document.documentElement.classList.add("logo-draw"); sessionStorage.setItem("vc-logo", "1"); } } catch (e) {}</script>
 <style>
   /* solo in questa pagina: l'indice in cima e la riga dei link dell'autore */
   .toc { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 18px 0; font-size: var(--step--1); font-weight: 600; }
   .toc span { color: var(--muted); font-weight: 500; }
   .toc a { color: var(--ink-2); text-decoration: none; border-bottom: 2px solid var(--rule); }
   .toc a:hover, .toc a:focus-visible { color: var(--ink); border-bottom-color: var(--gold); }
+  .dek + .dek { margin-top: 14px; }
   .about .bio { font-family: var(--font-body); font-size: var(--step-1); color: var(--ink-2); max-width: var(--measure); margin: 0 0 22px; }
   .about .bio + .bio { font-size: var(--step-0); }
   .cta .web svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
@@ -169,7 +171,8 @@
       <header>
         <div class="kicker">About the project</div>
         <h2 id="project-title">Why an atlas of public safety</h2>
-        <p class="dek">Every year the rankings of Italy’s “most dangerous” cities come out, and every year they become a headline. The atlas tries to take the next step: to take the same official data and look at them up close, city by city and crime by crime, so that everyone can see for themselves how things have gone where they live.</p>
+        <p class="dek">Every year the rankings of Italy’s “most dangerous” cities come out, and every year they become a headline. Then the figures on crime move into politics, where both sides of the spectrum pull them their own way: those who want to prove there is an emergency and those who want to prove there isn’t. So they reach the public in pieces, selective, anecdotal, allusive: a year picked because it suits, a news story taken for a trend, a number without the population that explains it, an innuendo in place of a figure.</p>
+        <p class="dek">The atlas tries to take the next step: to put things in perspective, in space and in time. It takes the same official data and looks at them up close, city by city and crime by crime, so that everyone can see for themselves how things have gone where they live. As befits an atlas, its analyses are latitudinal and longitudinal: they compare the cities with one another and follow each one year by year, since 2006. And they widen to the evergreen issues of Italian justice, from prisons to pre-trial detention, from the length of trials to the statute of limitations, without losing sight of safety in Italian cities.</p>
       </header>
       <div class="method">
         <h3>Public data only</h3>
@@ -302,6 +305,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../../vc.js?v=65"></script>
+<script src="../../vc.js?v=66"></script>
 </body>
 </html>

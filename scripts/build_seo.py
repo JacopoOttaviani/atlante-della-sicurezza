@@ -202,12 +202,15 @@ WA = grab(r'<a class="wa".*?</a>')  # il pulsante di WhatsApp, subito dopo il pi
 DIALOG = grab(r'<dialog class="cityd".*?</dialog>')
 TIP = grab(r'<div class="tip"[^>]*></div>')
 SCRIPTS = grab(r'(<script src="[^"]+"></script>\n?)+(?=</body>)').strip()
+# con i link della <head> viene anche la riga che fa disegnare il logo alla prima pagina della visita (vc.css, .logo-draw)
 HEAD_LINKS = "\n".join(
     re.findall(r'^(?:<link rel="(?:icon|apple-touch-icon|manifest|preconnect)"[^>]*>|<meta name="theme-color"[^>]*>|'
-               r'<link rel="stylesheet"[^>]*>)$', SRC, re.M)
+               r'<link rel="stylesheet"[^>]*>|<script>[^<]*logo-draw[^<]*</script>)$', SRC, re.M)
 )
 if "vc.css" not in HEAD_LINKS or "vc.js" not in SCRIPTS:
     raise SystemExit("approfondimenti/index.html: non trovo vc.css o vc.js")
+if "logo-draw" not in HEAD_LINKS:
+    raise SystemExit("approfondimenti/index.html: non trovo la riga del logo (logo-draw) nella <head>")
 
 PERSON_REF = {"@type": "Person", "@id": SITE + "progetto/#autore", "name": "Jacopo Ottaviani", "url": "https://jacopoottaviani.com/"}
 WEBSITE_REF = {"@type": "WebSite", "@id": SITE + "#website", "name": "Atlante della Sicurezza", "url": SITE}
@@ -672,13 +675,15 @@ def deep_pages():
 
 # ------------------------------------------------------------------ sitemap.xml
 
-CHROME = re.compile(r'<header class="masthead">.*?</header>|<footer class="colophon">.*?</footer>|\s*<a class="wa".*?</a>', re.S)
+CHROME = re.compile(r'<header class="masthead">.*?</header>|<footer class="colophon">.*?</footer>|\s*<a class="wa".*?</a>|'
+                    r'\s*<script>[^<]*logo-draw[^<]*</script>', re.S)
 
 
 def lastmod(rel):
     """Data dell'ultimo commit che ha cambiato il contenuto del file; oggi se il file è nuovo o modificato e non ancora
-    salvato. Non contano i ?v= di vc.css e vc.js, la testata, il piè di pagina e il pulsante di WhatsApp: cambiano tutte
-    le pagine insieme, e un logo in più tra le fonti non vuol dire che un approfondimento sia stato aggiornato."""
+    salvato. Non contano i ?v= di vc.css e vc.js, la testata, il piè di pagina, il pulsante di WhatsApp e la riga del logo
+    in testa: cambiano tutte le pagine insieme, e un logo in più tra le fonti non vuol dire che un approfondimento sia
+    stato aggiornato."""
     git = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout  # noqa: E731
     body = lambda t: CHROME.sub("", re.sub(r"\?v=\d+", "", t))  # noqa: E731
     try:
