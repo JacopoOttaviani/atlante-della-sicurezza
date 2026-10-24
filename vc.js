@@ -1812,9 +1812,16 @@
     });
   }
 
+  // La fase del percorso penale di ogni grafico della scheda, con le parole delle schede degli approfondimenti (FASE):
+  // sono tutte denunce, tranne il tribunale in fondo, che conta processi. Condanne comune per comune non ne pubblica nessuno.
+  const faseTag = (k) => `<span class="fase-tag"><span>${L("Fase", "Stage")}</span> ${k === "processo" ? L("Processo", "Trial") : L("Denuncia", "Police report")}</span> `;
+  const faseLine = (court) => `<p class="fase-line">${faseTag("denuncia")} <span>${EN
+    ? `This profile counts crimes reported to the police, not convictions: no source publishes convictions town by town.${court ? " At the bottom, the trials of the local court." : ""}`
+    : `Questa scheda conta i delitti denunciati, non le condanne: nessuna fonte pubblica le condanne comune per comune.${court ? " In fondo, i processi del tribunale." : ""}`}</span></p>`;
+
   const chartBlock = (label, keys) => `
       <div class="place-chart">
-        <h3 class="subhead">${esc(label)} ${EN ? `from ${Y[0]} to ${Y[LAST]}` : `dal ${Y[0]} al ${Y[LAST]}`}</h3>
+        <h3 class="subhead">${faseTag("denuncia")}${esc(label)} ${EN ? `from ${Y[0]} to ${Y[LAST]}` : `dal ${Y[0]} al ${Y[LAST]}`}</h3>
         <div class="key" aria-hidden="true">${keys}<span><i class="k-covid"></i>2020–21</span></div>
         <div class="chart" id="place-chart"></div>
       </div>`;
@@ -1844,7 +1851,7 @@
       ? L("Solo le variazioni abbastanza grandi da non dipendere dal caso, con almeno 20 casi in tutti e due gli anni. Furti e rapine nel loro insieme lasciano il posto ai sottotipi.", "Only changes large enough not to be down to chance, with at least 20 cases in both years. Thefts and robberies as a whole make way for their subtypes.")
       : L("Variazioni sui tassi ufficiali della provincia, senza test statistico. Furti e rapine nel loro insieme lasciano il posto ai sottotipi.", "Changes in the province’s official rates, with no statistical test. Thefts and robberies as a whole make way for their subtypes.");
     return `<div class="movers">
-        <h3>${L("Cosa è salito e cosa è sceso di più", "What rose and what fell the most")}</h3>
+        <h3>${faseTag("denuncia")}${L("Cosa è salito e cosa è sceso di più", "What rose and what fell the most")}</h3>
         <p class="small">${Y[LAST]} ${L("rispetto al", "compared with")} ${state.cardBase}. ${how} ${L("Tocca un reato per vederlo nel grafico.", "Tap a crime to see it in the chart.")}</p>
         <div class="movers-cols">
           ${col("up", L("Saliti di più", "Biggest rises"), tested ? L("Nessun aumento che superi la soglia statistica.", "No rise above the statistical threshold.") : L("Nessun reato in aumento.", "No crime type is rising."))}
@@ -1949,7 +1956,7 @@
     const ys = Object.keys(ITALY.perc).map(Number).sort((a, b) => a - b), y1 = String(ys[ys.length - 1]), y0 = String(ys[0]);
     if (!perc || perc[y1] == null) return "";
     const before = y0 !== y1 && perc[y0] != null ? EN ? `; ${nf1.format(perc[y0])}% in ${y0}` : `; ${nf1.format(perc[y0])}% nel ${y0}` : "";
-    return `<div class="fact"><div class="fv">${nf1.format(perc[y1])}%</div><div class="fl">${EN ? `households ${where} that feel their area is very or fairly at risk of crime (${y1}${before}; Italy ${nf1.format(ITALY.perc[y1])}%)` : `famiglie ${where} che sentono molto o abbastanza a rischio criminalità la propria zona (${y1}${before}; Italia ${nf1.format(ITALY.perc[y1])}%)`}</div></div>`;
+    return `<div class="fact"><div class="fv">${nf1.format(perc[y1])}%</div><div class="fl">${EN ? `households ${where} that, in an ISTAT survey, feel their area is very or fairly at risk of crime (${y1}${before}; Italy ${nf1.format(ITALY.perc[y1])}%)` : `famiglie ${where} che, in un’indagine ISTAT, sentono molto o abbastanza a rischio criminalità la propria zona (${y1}${before}; Italia ${nf1.format(ITALY.perc[y1])}%)`}</div></div>`;
   }
 
   function renderCity() {
@@ -1973,9 +1980,11 @@
     const verdict = verdictHTML({ t: state.cardType, where: EN ? "in " + esc(c.name) : (/^[Aa]/.test(c.name) ? "ad " : "a ") + esc(c.name), lvl: r.lvl, it: m.itLvl, rank: r.rank, n: m.ranked.length, unit: "capoluoghi", cmp: r.cmp, tourist: TOURIST.includes(c.name) && TOURIST_GROUPS.includes(TYPE[state.cardType].group) && !TOURIST_NOT.includes(state.cardType) });
     // le note di data/vc.json (meta.note): dati ISTAT che non tornano, confini cambiati
     const cn = META.note && META.note[c.id], dropped = (yr) => !!(cn && cn.null && (cn.null[yr] || []).includes(state.cardType));
+    const court = courtHTML(GIUS ? GIUS.capoluoghi[c.id] : null, c.name);
     $("#city-body").innerHTML = `
       <div class="card-head">
       <div class="card-main">
+      ${faseLine(court)}
       ${verdict}
       ${cn ? `<p class="note">${esc(EN ? cn.en : cn.it)}</p>` : ""}
       <div class="facts">
@@ -1992,18 +2001,18 @@
       ${chartBlock(m.label + L(" a ", " in ") + c.name, `<span><i class="k-city"></i>${esc(c.name)}</span>${P ? `<span><i class="k-prov"></i>${L("provincia di", "province of")} ${esc(P.name)}</span>` : ""}<span><i class="k-it"></i>${L("Italia", "Italy")}</span><span><i class="k-gold"></i>${L("impennata", "spike")}</span>`)}
       <p class="note">${spikeNote((t) => model(t, state.cardBase).rows.find((d) => d.c.id === c.id))}</p>
       ${q ? quartHTML(q) : ""}
-      <h3 class="subhead">${L("Tutti i reati a", "Every crime type in")} ${esc(c.name)}</h3>
+      <h3 class="subhead">${faseTag("denuncia")}${L("Tutti i reati a", "Every crime type in")} ${esc(c.name)}</h3>
       <p class="small">${L("Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.", "Each panel has its own scale. Grey line: Italy. Tap a crime to see it in this profile.")}</p>
       <div class="sm-grid" id="city-grid"></div>
-      <h3 class="subhead">${esc(m.label)}: ${L("i numeri anno per anno", "year by year")}</h3>
-      <div class="tablewrap"><table><thead><tr><th>${L("Anno", "Year")}</th><th class="num">${L("Casi", "Cases")}</th><th class="num">${L("Ogni 100.000 ab.", "Per 100,000 res.")}</th>${P ? `<th class="num">${L("Provincia", "Province")}</th>` : ""}<th class="num">${L("Italia", "Italy")}</th><th>${L("Nota", "Note")}</th></tr></thead><tbody>
+      <h3 class="subhead">${faseTag("denuncia")}${esc(m.label)}: ${L("i numeri anno per anno", "year by year")}</h3>
+      <div class="tablewrap"><table><thead><tr><th>${L("Anno", "Year")}</th><th class="num">${L("Denunce", "Reports")}</th><th class="num">${L("Ogni 100.000 ab.", "Per 100,000 res.")}</th>${P ? `<th class="num">${L("Provincia", "Province")}</th>` : ""}<th class="num">${L("Italia", "Italy")}</th><th>${L("Nota", "Note")}</th></tr></thead><tbody>
         ${Y.map((yr, i) => {
           const a = r.an[i];
           const note = dropped(yr) ? L("dato ISTAT escluso", "ISTAT figure left out") : COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `${L("Impennata", "Spike")} (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `${L("Calo netto", "Sharp fall")} (${fmtPct(a.rr - 1)})` : "";
           return `<tr><td>${yr}</td><td class="num">${c.n[state.cardType][i] == null ? "–" : nf0.format(c.n[state.cardType][i])}</td><td class="num">${fmtRate(r.s[i])}</td>${P ? `<td class="num">${fmtRate(pr.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
-      ${courtHTML(GIUS ? GIUS.capoluoghi[c.id] : null, c.name)}
+      ${court}
       <p class="small src">${L("Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria (conteggi per comune capoluogo e tassi per provincia); popolazione residente ISTAT; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana.", "Sources: ISTAT, crimes reported by the police to the judicial authorities (counts for each provincial capital and rates for each province); ISTAT resident population; perceived risk from the ISTAT survey Aspetti della vita quotidiana (Aspects of daily life).")}</p>`;
     $("#city-grid").innerHTML = gridHTML(rows);
     const series = [{ name: c.name, values: r.s, color: "var(--ink)", width: 2.25 }];
@@ -2365,9 +2374,11 @@
       if (row.cmp.win) return EN ? `${Y[LAST - 2]}–${Y[LAST]} average: ${fmtRate(d3.mean(row.s.slice(LAST - 2)))} per 100,000 res., against ${fmtRate(d3.mean(row.s.slice(iB - 2, iB + 1)))} in ${Y[iB - 2]}–${Y[iB]} (rare crime)` : `Media ${Y[LAST - 2]}–${Y[LAST]}: ${fmtRate(d3.mean(row.s.slice(LAST - 2)))} ogni 100.000 ab., contro ${fmtRate(d3.mean(row.s.slice(iB - 2, iB + 1)))} nel ${Y[iB - 2]}–${Y[iB]} (reato raro)`;
       return EN ? `${fmtRate(row.s[LAST])} per 100,000 res. in ${Y[LAST]}, ${fmtRate(row.s[iB])} in ${state.cardBase}` : `${fmtRate(row.s[LAST])} ogni 100.000 ab. nel ${Y[LAST]}, ${fmtRate(row.s[iB])} nel ${state.cardBase}`;
     }, counts);
+    const court = courtHTML(GIUS && e.i != null && GIUS.comuni_trib.length === INDEX.length ? GIUS.comuni_trib[e.i] : null, e.name);
     $("#city-body").innerHTML = `
       <div class="card-head">
       <div class="card-main">
+      ${faseLine(court)}
       <div class="prov-note">
         <p>${EN ? `<strong>ISTAT publishes reported crimes municipality by municipality only for the 108 provincial capitals.</strong> For ${esc(e.name)} the closest official figure is the one for the whole province of ${esc(P.name)}: ${nf0.format(P.comuni)} municipalities, ${capWord}. The numbers in this profile therefore describe the province, not just the municipality of ${esc(e.name)}.` : `<strong>L’ISTAT pubblica i reati denunciati comune per comune solo per i 108 capoluoghi.</strong> Per ${esc(e.name)} il dato ufficiale più vicino è quello di tutta la provincia di ${esc(P.name)}: ${nf0.format(P.comuni)} comuni, ${capWord}. I numeri di questa scheda descrivono quindi la provincia, non il solo comune di ${esc(e.name)}.`}</p>
         ${extra.map((x) => `<p>${x}</p>`).join("")}
@@ -2386,11 +2397,11 @@
       ${movers}
       ${chartBlock(m.label + L(" in provincia di ", " in the province of ") + P.name, `<span><i class="k-city"></i>${L("provincia di", "province of")} ${esc(P.name)}</span>${capRow ? `<span><i class="k-prov"></i>${esc(cap.name)}, ${L("capoluogo", "provincial capital")}</span>` : ""}<span><i class="k-it"></i>${L("Italia", "Italy")}</span>${counts ? `<span><i class="k-gold"></i>${L("impennata", "spike")}</span>` : ""}`)}
       ${counts ? `<p class="note">${spikeNote((id) => provModel(id).byId.get(e.prov))}</p>` : ""}
-      <h3 class="subhead">${L("Tutti i reati in provincia di", "Every crime type in the province of")} ${esc(P.name)}</h3>
+      <h3 class="subhead">${faseTag("denuncia")}${L("Tutti i reati in provincia di", "Every crime type in the province of")} ${esc(P.name)}</h3>
       <p class="small">${L("Ogni riquadro ha la sua scala. Linea grigia: Italia. Tocca un reato per vederlo in questa scheda.", "Each panel has its own scale. Grey line: Italy. Tap a crime to see it in this profile.")}</p>
       <div class="sm-grid" id="city-grid"></div>
-      <h3 class="subhead">${esc(m.label)}: ${L("i numeri anno per anno", "year by year")}</h3>
-      <div class="tablewrap"><table><thead><tr><th>${L("Anno", "Year")}</th>${counts ? `<th class="num">${L("Casi in provincia", "Cases in the province")}</th>` : ""}<th class="num">${L("Provincia, ogni 100.000 ab.", "Province, per 100,000 res.")}</th>${capRow ? `<th class="num">${esc(cap.name)}</th>` : ""}<th class="num">${L("Italia", "Italy")}</th><th>${L("Nota", "Note")}</th></tr></thead><tbody>
+      <h3 class="subhead">${faseTag("denuncia")}${esc(m.label)}: ${L("i numeri anno per anno", "year by year")}</h3>
+      <div class="tablewrap"><table><thead><tr><th>${L("Anno", "Year")}</th>${counts ? `<th class="num">${L("Denunce in provincia", "Reports in the province")}</th>` : ""}<th class="num">${L("Provincia, ogni 100.000 ab.", "Province, per 100,000 res.")}</th>${capRow ? `<th class="num">${esc(cap.name)}</th>` : ""}<th class="num">${L("Italia", "Italy")}</th><th>${L("Nota", "Note")}</th></tr></thead><tbody>
         ${Y.map((yr, i) => {
           const a = r.an && r.an[i];
           const note = COVID.has(yr) ? "Covid" : a && a.flag === "spike" ? `${L("Impennata", "Spike")} (${fmtPct(a.rr - 1)})` : a && a.flag === "fall" ? `${L("Calo netto", "Sharp fall")} (${fmtPct(a.rr - 1)})` : "";
@@ -2398,7 +2409,7 @@
           return `<tr><td>${yr}</td>${counts ? `<td class="num">${n == null ? "–" : nf0.format(n)}</td>` : ""}<td class="num">${fmtRate(r.s[i])}</td>${capRow ? `<td class="num">${fmtRate(capRow.s[i])}</td>` : ""}<td class="num">${fmtRate(m.it[i])}</td><td>${note}</td></tr>`;
         }).reverse().join("")}
       </tbody></table></div>
-      ${courtHTML(GIUS && e.i != null && GIUS.comuni_trib.length === INDEX.length ? GIUS.comuni_trib[e.i] : null, e.name)}
+      ${court}
       <p class="small src">${L("Fonti: ISTAT, delitti denunciati dalle forze di polizia all’autorità giudiziaria, tasso di delittuosità per provincia e conteggi per comune capoluogo; percezione del rischio dall’indagine ISTAT Aspetti della vita quotidiana; elenco ufficiale ISTAT dei comuni.", "Sources: ISTAT, crimes reported by the police to the judicial authorities, crime rate by province and counts for each provincial capital; perceived risk from the ISTAT survey Aspetti della vita quotidiana (Aspects of daily life); ISTAT official list of municipalities.")}${counts ? "" : L(" Per le province l’ISTAT pubblica i tassi: le variazioni qui sono rapporti tra tassi, senza il test statistico usato per i capoluoghi (cerchio vuoto).", " For the provinces ISTAT publishes rates: the changes here are ratios between rates, without the statistical test used for the provincial capitals (empty circle).")}</p>
       <div class="btns card-foot">${caps.map((c) => `<button type="button" class="btn" data-open-city="${c.id}">${EN ? `Open the ${esc(c.name)} profile` : `Apri la scheda di ${esc(c.name)}`}</button>`).join("")}</div>`;
     $("#city-grid").innerHTML = gridHTML(rows);
@@ -4175,11 +4186,11 @@
     const pr = prescShare(t.presc.trib, t.presc.trib_def), prIt = prescShare(it.presc.trib, it.presc.def.trib);
     const d = G.distretti.find((x) => x.id === t.dist), same = normQ(t.name) === normQ(where);
     const intro = EN
-      ? `${same ? `The court of ${esc(t.name)} tries` : `${esc(where)} falls under the court of ${esc(t.name)}, which tries`} crimes committed in ${nf0.format(t.comuni)} ${t.comuni === 1 ? "municipality" : "municipalities"} with ${nf0.format(t.pop)} residents; appeals go to the court of appeal of ${esc(d.name)}. These are its figures, not the town's alone: proceedings with a known suspect, all crime types together.`
-      : `${same ? `Il tribunale di ${esc(t.name)} giudica` : `${esc(where)} è nel circondario del tribunale di ${esc(t.name)}, che giudica`} i reati di ${nf0.format(t.comuni)} ${t.comuni === 1 ? "comune" : "comuni"} con ${nf0.format(t.pop)} residenti; in appello si va alla Corte d’appello di ${esc(d.name)}. Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme.`;
+      ? `${same ? `The court of ${esc(t.name)} tries` : `${esc(where)} falls under the court of ${esc(t.name)}, which tries`} crimes committed in ${nf0.format(t.comuni)} ${t.comuni === 1 ? "municipality" : "municipalities"} with ${nf0.format(t.pop)} residents; appeals go to the court of appeal of ${esc(d.name)}. These are its figures, not the town's alone: proceedings with a known suspect, all crime types together. They count trials, not convictions: a closed trial can end in a conviction, an acquittal or a time bar.`
+      : `${same ? `Il tribunale di ${esc(t.name)} giudica` : `${esc(where)} è nel circondario del tribunale di ${esc(t.name)}, che giudica`} i reati di ${nf0.format(t.comuni)} ${t.comuni === 1 ? "comune" : "comuni"} con ${nf0.format(t.pop)} residenti; in appello si va alla Corte d’appello di ${esc(d.name)}. Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme. Contano processi, non condanne: un processo chiuso può finire con una condanna, un’assoluzione o una prescrizione.`;
     const vs = (a, b, fmt) => (a == null || b == null ? "" : a > b * 1.1 ? L(`più dell’Italia (${fmt(b)})`, `more than Italy (${fmt(b)})`) : a < b * 0.9 ? L(`meno dell’Italia (${fmt(b)})`, `less than Italy (${fmt(b)})`) : L(`come l’Italia (${fmt(b)})`, `similar to Italy (${fmt(b)})`));
     const pc = (v) => nf0.format(v) + "%";
-    return `<h3 class="subhead">${L("Dopo la denuncia: il tribunale di", "After the report: the court of")} ${esc(t.name)}</h3>
+    return `<h3 class="subhead">${faseTag("processo")}${L("Dopo la denuncia: il tribunale di", "After the report: the court of")} ${esc(t.name)}</h3>
       <p class="small">${intro}</p>
       <div class="facts">
         <div class="fact"><div class="fv">${days(t.durata.mono[iL])}<small> ${L("giorni", "days")}</small></div><div class="fl">${EN ? `average length of the first-instance trials closed in ${last} before a single judge; ${vs(t.durata.mono[iL], it.durata.mono[iL], days)}` : `la durata media dei processi di primo grado chiusi nel ${last} davanti al giudice monocratico; ${vs(t.durata.mono[iL], it.durata.mono[iL], days)}`}</div></div>

@@ -1421,6 +1421,14 @@ details.dd-method .method { padding: 8px 0 6px; }
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.45;
 }
 .dd-card .dd-fase > span { font-weight: 500; color: rgba(243, 244, 240, 0.72); margin-right: 3px; }
+/* la stessa fase nella scheda di un comune, grafico per grafico (vc.js faseTag): denuncia o processo, mai condanna */
+.fase-tag {
+  display: inline-block; margin-right: 6px; padding: 2px 7px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.5; color: var(--ink); vertical-align: 0.18em; white-space: nowrap;
+}
+.fase-tag > span { font-weight: 500; color: var(--muted); margin-right: 3px; }
+.fase-line { margin: 0 0 14px; font-size: var(--step--1); color: var(--ink-2); max-width: 70ch; }
+.fase-line .fase-tag { vertical-align: 0.08em; }
 /* i titoli del metodo raggiunti da un link (progetto/#condanna) non finiscono sotto la barra */
 .method h3[id] { scroll-margin-top: 76px; }
 @keyframes dd-roll {

@@ -318,8 +318,9 @@ def court_section(c):
     fi = [it["flussi"][k] for k in ("mono", "coll", "assise")]
     same = slug(t["name"]) == slug(c["name"])
     who = f"Il tribunale di {esc(t['name'])}" if same else f"{esc(c['name'])} è nel circondario del tribunale di {esc(t['name'])}, che"
-    paras = [f"{who} giudica i reati di {nf0(t['comuni'])} comuni con {nf0(t['pop'])} residenti; in appello si va alla Corte d’appello di {esc(d['name'])}. "
-             "Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme."]
+    paras = [f"{who} giudica i reati di {nf0(t['comuni'])} {'comune' if t['comuni'] == 1 else 'comuni'} con {nf0(t['pop'])} residenti; in appello si va alla Corte d’appello di {esc(d['name'])}. "
+             "Sono i numeri del tribunale, non del solo comune: procedimenti con un indagato noto, per tutti i reati insieme. "
+             "Contano processi, non condanne: un processo chiuso può finire con una condanna, un’assoluzione o una prescrizione."]
     dm, di = t["durata"]["mono"][Lg], it["durata"]["mono"][Lg]
     if dm is not None:
         paras.append(f"I processi di primo grado chiusi nel {last} davanti al giudice monocratico sono durati in media {nf0(dm)} giorni (in Italia {nf0(di)}). "
@@ -333,7 +334,7 @@ def court_section(c):
     <div class="wrap">
       <header>
         <div class="kicker">Dopo la denuncia</div>
-        <h2 id="cp-court">Il tribunale di {esc(t['name'])}</h2>
+        <h2 id="cp-court">Il tribunale di {esc(t['name'])}: processi, non condanne</h2>
       </header>
       <div class="cp-body note">
         {''.join(f'<p>{x}</p>' for x in paras)}
@@ -539,7 +540,7 @@ def city_page(c):
     <div class="wrap">
       <header>
         <div class="kicker">Anno per anno</div>
-        <h2 id="cp-years">Tutti i delitti {esc(where)}, dal {Y[i0]} al {LAST}</h2>
+        <h2 id="cp-years">Tutti i delitti denunciati {esc(where)}, dal {Y[i0]} al {LAST}</h2>
       </header>
       <div class="tablewrap">
         <table>
