@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=66">
+<link rel="stylesheet" href="vc.css?v=67">
 <script>
   // Con «riduci movimento» del sistema la pagina parte ferma, come il sito; il pulsante in alto la fa muovere lo stesso.
   document.documentElement.classList.toggle("still", matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -81,6 +81,9 @@ body { padding-block: 40px 80px; }
 .wordmark.solo svg { margin-right: 0; }
 .s32 { --ic: 32px; --k: 1.6; }
 .s56 { --ic: 56px; --k: 2.8; }
+
+/* vc.css ora fa disegnare il logo in ogni barra all'apertura della pagina: qui no, ogni proposta si muove solo con le sue regole. */
+.opt .masthead .wordmark :is(circle, ellipse, path, .w1, .w2, .w3) { animation: none; }
 
 /* Le regole delle tre proposte. Sul sito basterebbero queste, senza !important e senza html:not(.still):
    lì ci pensa già la regola di vc.css per «riduci movimento». Qui servono per il pulsante «Fammele vedere lo stesso». */
@@ -157,7 +160,7 @@ html:not(.still) .o-c.play a::after { animation: c-blip 8s ease-out 0.6s infinit
 
 <div class="intro">
   <h1>Il logo in movimento: tre proposte</h1>
-  <p><b>Scelta il 24 ottobre 2026: B, Tavola.</b> Sul sito si disegna alla prima pagina della visita (vc.css, .logo-draw, con la riga di script in testa a ogni pagina); le altre due restano qui per confronto.</p>
+  <p><b>Scelta il 24 ottobre 2026: B, Tavola.</b> Sul sito si disegna a ogni pagina che si apre, anche ricaricando, con il solo vc.css; le altre due restano qui per confronto.</p>
   <p>Fermi, sono tutti e tre il logo di oggi, identico: il globo d'oro con meridiano ed equatore e «Atlante della Sicurezza». Cambia che cosa si muove e quando: A solo se lo chiedi, B una volta all'arrivo, C sempre, piano.</p>
   <p>Ogni proposta è nella barra vera, chiara e scura, sopra il film della home, in grande e come icona sola, che è quello che resta del logo sul telefono. Ognuna si avvia quando arriva sullo schermo; «Rivedi» la fa ripartire.</p>
 </div>

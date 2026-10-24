@@ -114,18 +114,18 @@ button, select, input { font: inherit; color: inherit; }
 .wordmark .w2 { font-weight: 400; color: var(--muted); }
 .wordmark .w3 { font-weight: 800; color: var(--gold-ink); }
 .wordmark svg { width: 20px; height: 20px; flex: none; margin-right: 10px; }
-/* Alla prima pagina della visita il logo si disegna, come una tavola d'atlante tracciata a mano: il cerchio dall'alto
-   in senso orario, l'equatore da sinistra, il meridiano, poi le tre parole una dopo l'altra; in un secondo e mezzo è
-   fermo, ed è il logo di sempre. Scelto fra tre proposte, che restano in logo-animation-options.html.
-   La classe .logo-draw la mette la riga di script in testa a ogni pagina, prima che la barra si veda (vc.js arriva
-   troppo tardi), e solo se in questa scheda il logo non si è ancora disegnato (sessionStorage). Le lunghezze dei
-   tratti sono quelle delle forme: cerchio 50,3, ellisse 37,1, equatore 16. Con «riduci movimento» resta fermo. */
-.logo-draw .wordmark svg circle { transform-box: fill-box; transform-origin: center; animation: wm-circle 0.75s cubic-bezier(0.65, 0, 0.35, 1) 0.2s backwards; }
-.logo-draw .wordmark svg path { animation: wm-equator 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.65s backwards; }
-.logo-draw .wordmark svg ellipse { animation: wm-meridian 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.8s backwards; }
-.logo-draw .wordmark .w1 { animation: wm-word 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s backwards; }
-.logo-draw .wordmark .w2 { animation: wm-word 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s backwards; }
-.logo-draw .wordmark .w3 { animation: wm-word 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.85s backwards; }
+/* A ogni pagina che si apre, anche ricaricando, il logo nella barra si disegna, come una tavola d'atlante tracciata a
+   mano: il cerchio dall'alto in senso orario, l'equatore da sinistra, il meridiano, poi le tre parole una dopo l'altra;
+   in un secondo e mezzo è fermo, ed è il logo di sempre. Scelto fra tre proposte, che restano in
+   logo-animation-options.html. Basta il CSS: questo foglio arriva prima che la pagina si veda, quindi il disegno parte
+   dal primo fotogramma. Le lunghezze dei tratti sono quelle delle forme: cerchio 50,3, ellisse 37,1, equatore 16.
+   Con «riduci movimento» resta fermo. Il globo grande del Progetto usa gli stessi wm-*, più lenti. */
+.masthead .wordmark svg circle { transform-box: fill-box; transform-origin: center; animation: wm-circle 0.75s cubic-bezier(0.65, 0, 0.35, 1) 0.2s backwards; }
+.masthead .wordmark svg path { animation: wm-equator 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.65s backwards; }
+.masthead .wordmark svg ellipse { animation: wm-meridian 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.8s backwards; }
+.masthead .wordmark .w1 { animation: wm-word 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s backwards; }
+.masthead .wordmark .w2 { animation: wm-word 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s backwards; }
+.masthead .wordmark .w3 { animation: wm-word 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.85s backwards; }
 @keyframes wm-circle { from { stroke-dasharray: 0 51; transform: rotate(-90deg); } to { stroke-dasharray: 51 0; transform: rotate(-90deg); } }
 @keyframes wm-equator { from { stroke-dasharray: 0 17; } to { stroke-dasharray: 17 0; } }
 @keyframes wm-meridian { from { stroke-dasharray: 0 38; } to { stroke-dasharray: 38 0; } }
