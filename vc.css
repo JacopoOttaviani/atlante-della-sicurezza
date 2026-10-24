@@ -821,6 +821,9 @@ body:has(> .wa) footer.colophon { padding-bottom: 88px; }
 .source-logos .logo-istat { -webkit-mask-image: url(img/istat.svg); mask-image: url(img/istat.svg); aspect-ratio: 142 / 40; }
 .source-logos .logo-eurostat { -webkit-mask-image: url(img/eurostat.svg); mask-image: url(img/eurostat.svg); aspect-ratio: 1608 / 217; height: 16px; }
 .source-logos .logo-openpolis { -webkit-mask-image: url(img/openpolis.svg); mask-image: url(img/openpolis.svg); aspect-ratio: 198 / 40; }
+.source-logos .logo-giustizia { -webkit-mask-image: url(img/giustizia.svg); mask-image: url(img/giustizia.svg); aspect-ratio: 301 / 41; height: 24px; }
+/* il Garante pubblica il suo logo solo in png: come maschera vale lo stesso, conta la trasparenza */
+.source-logos .logo-garante { -webkit-mask-image: url(img/garante.png); mask-image: url(img/garante.png); aspect-ratio: 548 / 154; height: 22px; }
 
 /* ---------------------------------------------------------------- assi */
 .axis text { fill: var(--muted); font-size: 11px; font-family: var(--font-display); font-variant-numeric: tabular-nums; }

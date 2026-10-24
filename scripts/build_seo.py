@@ -669,20 +669,25 @@ def deep_pages():
 
 # ------------------------------------------------------------------ sitemap.xml
 
+CHROME = re.compile(r'<header class="masthead">.*?</header>|<footer class="colophon">.*?</footer>', re.S)
+
+
 def lastmod(rel):
     """Data dell'ultimo commit che ha cambiato il contenuto del file; oggi se il file è nuovo o modificato e non ancora
-    salvato. I commit che toccano solo i ?v= di vc.css e vc.js (cambiano tutte le pagine insieme) non contano."""
+    salvato. Non contano i ?v= di vc.css e vc.js, la testata e il piè di pagina: cambiano tutte le pagine insieme, e un
+    logo in più tra le fonti non vuol dire che un approfondimento sia stato aggiornato."""
     git = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout  # noqa: E731
+    body = lambda t: CHROME.sub("", re.sub(r"\?v=\d+", "", t))  # noqa: E731
     try:
-        if git("status", "--porcelain", "--", rel).strip():
+        if git("status", "--porcelain", "--", rel).strip() and \
+                body(git("show", f"HEAD:{rel}")) != body((ROOT / rel).read_text(encoding="utf-8")):
             return date.today().isoformat()
         log = [ln.split() for ln in git("log", "-20", "--format=%H %cs", "--", rel).splitlines() if ln.strip()]
     except OSError:
         return date.today().isoformat()
+    # un file nuovo o appena aggiunto: git show del commit precedente non trova nulla, e conta come cambiato
     for h, day in log:
-        diff = [ln for ln in git("show", "-U0", "--format=", h, "--", rel).splitlines()
-                if ln[:1] in "+-" and not ln.startswith(("+++", "---"))]
-        if any(re.sub(r"\?v=\d+", "", ln[1:]) not in {re.sub(r"\?v=\d+", "", o[1:]) for o in diff if o[0] != ln[0]} for ln in diff):
+        if body(git("show", f"{h}:{rel}")) != body(git("show", f"{h}^:{rel}")):
             return day
     return log[-1][1] if log else date.today().isoformat()
 
