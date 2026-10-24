@@ -198,6 +198,7 @@ MASTHEAD, n_lang = re.subn(r'(<a class="bar-lang" href=")[^"]*(")', r"\1../en/\2
 if n_lang != 1:
     raise SystemExit("approfondimenti/index.html: non trovo il tasto della lingua (bar-lang)")
 FOOTER = grab(r'<footer class="colophon">.*?</footer>')
+WA = grab(r'<a class="wa".*?</a>')  # il pulsante di WhatsApp, subito dopo il piè di pagina
 DIALOG = grab(r'<dialog class="cityd".*?</dialog>')
 TIP = grab(r'<div class="tip"[^>]*></div>')
 SCRIPTS = grab(r'(<script src="[^"]+"></script>\n?)+(?=</body>)').strip()
@@ -268,6 +269,8 @@ def head(title, description, url, ld):
 
 def tail():
     return f"""{FOOTER}
+
+{WA}
 
 {DIALOG}
 
@@ -669,13 +672,13 @@ def deep_pages():
 
 # ------------------------------------------------------------------ sitemap.xml
 
-CHROME = re.compile(r'<header class="masthead">.*?</header>|<footer class="colophon">.*?</footer>', re.S)
+CHROME = re.compile(r'<header class="masthead">.*?</header>|<footer class="colophon">.*?</footer>|\s*<a class="wa".*?</a>', re.S)
 
 
 def lastmod(rel):
     """Data dell'ultimo commit che ha cambiato il contenuto del file; oggi se il file è nuovo o modificato e non ancora
-    salvato. Non contano i ?v= di vc.css e vc.js, la testata e il piè di pagina: cambiano tutte le pagine insieme, e un
-    logo in più tra le fonti non vuol dire che un approfondimento sia stato aggiornato."""
+    salvato. Non contano i ?v= di vc.css e vc.js, la testata, il piè di pagina e il pulsante di WhatsApp: cambiano tutte
+    le pagine insieme, e un logo in più tra le fonti non vuol dire che un approfondimento sia stato aggiornato."""
     git = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout  # noqa: E731
     body = lambda t: CHROME.sub("", re.sub(r"\?v=\d+", "", t))  # noqa: E731
     try:
@@ -1091,6 +1094,7 @@ def not_found_page():
     finder_en = absolute(pick(r'<section class="finder".*?</section>', home_en, "la ricerca inglese"), "/en/index.html")
     foot_it = absolute(FOOTER, it_base)
     foot_en = absolute(pick(r'<footer class="colophon">.*?</footer>', src_en, "il piè di pagina inglese"), en_base)
+    wa_en = pick(r'<a class="wa".*?</a>', src_en, "il pulsante di WhatsApp inglese")
     dialog_en = pick(r'<dialog class="cityd".*?</dialog>', src_en, "la scheda inglese")
     links = absolute(HEAD_LINKS, it_base)
     scripts = absolute(SCRIPTS, it_base)
@@ -1145,14 +1149,17 @@ def not_found_page():
 {foot_it}
 <template id="nf-foot-en">{foot_en}</template>
 
+{WA}
+<template id="nf-wa-en">{wa_en}</template>
+
 {DIALOG}
 <template id="nf-dialog-en">{dialog_en}</template>
 
 {TIP}
 <script>
-  // in inglese: testata, ricerca, piè di pagina e scheda dalla pagina inglese, prima che vc.js li legga
+  // in inglese: testata, ricerca, piè di pagina, WhatsApp e scheda dalla pagina inglese, prima che vc.js li legga
   if (document.documentElement.lang === "en") {{
-    [["header.masthead", "nf-mast-en"], ["section.finder", "nf-finder-en"], ["footer.colophon", "nf-foot-en"], ["dialog.cityd", "nf-dialog-en"]].forEach(([sel, id]) => {{
+    [["header.masthead", "nf-mast-en"], ["section.finder", "nf-finder-en"], ["footer.colophon", "nf-foot-en"], ["a.wa", "nf-wa-en"], ["dialog.cityd", "nf-dialog-en"]].forEach(([sel, id]) => {{
       const el = document.querySelector(sel), t = document.getElementById(id);
       if (el && t) el.replaceWith(t.content.cloneNode(true));
     }});
