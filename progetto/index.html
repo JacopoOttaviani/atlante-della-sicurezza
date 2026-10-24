@@ -47,6 +47,66 @@
   .about .bio + .bio { font-size: var(--step-0); }
   .cta .web svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
   .cta .web:hover, .cta .web:focus-visible { background: var(--bg); }
+  /* I due loghi in grande: il globo dell'atlante accanto al progetto, la moka di jacopoottaviani.com accanto all'autore.
+     Sul desktop stanno in una colonna a destra, alla stessa larghezza, all'altezza del titolo; sotto i 920px il globo
+     sale sopra il titolo e la moka resta accanto al nome, più piccola. Si animano quando arrivano sullo schermo (lo
+     script dopo #autore). */
+  .marked > .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: clamp(32px, 5vw, 72px); }
+  .marked > .wrap > * { grid-column: 1; }
+  .marked > .wrap > header > :last-child { margin-bottom: 0; }  /* nella griglia il margine del titolo non si fonde più con quello dell'intestazione */
+  .marked > .wrap > .method { grid-column: 1 / -1; }
+  .marked > .wrap > .mark { grid-column: 2; grid-row: 1; align-self: start; margin-top: 8px; }
+  #autore > .wrap > .mark { grid-row: 1 / span 4; }
+  .mark { width: 18em; font-size: clamp(15px, 1.6vw, 20px); display: flex; flex-direction: column; align-items: center; gap: 0.9em; }
+  .mark svg { display: block; overflow: visible; }
+  /* il globo è quello della barra, con le stesse proporzioni, e si disegna con gli stessi tratti (wm-* in vc.css), più lento */
+  .mark.atlas svg { width: 7.5em; height: 7.5em; }
+  .mark.atlas .words { display: inline-flex; font-weight: 800; font-stretch: 118%; letter-spacing: 0.02em; text-transform: uppercase; white-space: nowrap; }
+  .mark.atlas .w1 { color: var(--ink); }
+  .mark.atlas .w2 { font-weight: 400; color: var(--muted); }
+  .mark.atlas .w3 { color: var(--gold-ink); }
+  /* aspetta fermo all'inizio del disegno (invisibile) finché lo script non aggiunge .go; senza JavaScript o con
+     «riduci movimento» è il logo di sempre */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .mark.atlas circle { transform-box: fill-box; transform-origin: center; animation: wm-circle 1.1s cubic-bezier(0.65, 0, 0.35, 1) 0.2s backwards paused; }
+    .mark.atlas path { animation: wm-equator 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.9s backwards paused; }
+    .mark.atlas ellipse { animation: wm-meridian 0.9s cubic-bezier(0.65, 0, 0.35, 1) 1.1s backwards paused; }
+    .mark.atlas .w1 { animation: wm-word 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 1.3s backwards paused; }
+    .mark.atlas .w2 { animation: wm-word 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) 1.65s backwards paused; }
+    .mark.atlas .w3 { animation: wm-word 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) 1.85s backwards paused; }
+    .mark.atlas.go * { animation-play-state: running; }
+  }
+  /* la moka costruita con le forme del Bauhaus, nel rosso che jacopoottaviani.com usa negli altri progetti: coperchio e
+     pomolo si aprono sul cardine vicino al manico e tre sbuffi di vapore escono dal davanti, come nella barra del sito.
+     Con .go (quando arriva sullo schermo) sbuffa due volte e si richiude; al passaggio del mouse finché il mouse resta. */
+  .mark.moka svg { width: auto; height: 10em; color: var(--ink); }
+  .mark.moka .cap { transform-box: fill-box; transform-origin: 100% 100%; transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .mark.moka .steam circle { fill: currentColor; opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+  .mark.moka.go .cap { transform: rotate(24deg); }
+  .mark.moka.go .steam circle { animation: moka-steam 1.8s ease-out 0.3s 2; }
+  .mark.moka.go .steam circle:nth-child(2) { animation-delay: 0.9s; }
+  .mark.moka.go .steam circle:nth-child(3) { animation-delay: 1.5s; }
+  /* solo con un mouse: sul telefono un tocco lascerebbe il coperchio aperto e il vapore acceso fino al tocco successivo */
+  @media (hover: hover) {
+    .mark.moka:hover .cap { transform: rotate(24deg); }
+    .mark.moka:hover .steam circle { animation: moka-steam 1.8s ease-out 0.3s infinite; }
+    .mark.moka:hover .steam circle:nth-child(2) { animation-delay: 0.9s; }
+    .mark.moka:hover .steam circle:nth-child(3) { animation-delay: 1.5s; }
+  }
+  @keyframes moka-steam { 0% { opacity: 0; transform: translate(0, 0) scale(0.5); } 30% { opacity: 0.55; } 100% { opacity: 0; transform: translate(-12px, -9px) scale(1.15); } }
+  @media (prefers-reduced-motion: reduce) {
+    .mark.moka .cap { transition: none; }
+    .mark.moka:hover .steam circle { animation: none; opacity: 0.4; transform: translateY(-7px); }
+  }
+  @media (max-width: 920px) {
+    #progetto > .wrap { display: block; }
+    .mark.atlas { width: auto; align-items: flex-start; margin-bottom: 24px; }
+    .mark.atlas svg { width: 5em; height: 5em; }
+    #autore > .wrap { grid-template-columns: auto minmax(0, 1fr); }  /* la moka subito dopo il nome, non in fondo alla riga */
+    #autore > .wrap > .mark { grid-row: 1; width: auto; justify-self: start; }
+    #autore > .wrap > .bio, #autore > .wrap > .cta { grid-column: 1 / -1; }
+    .mark.moka svg { height: 5.5em; }
+  }
 </style>
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
@@ -166,8 +226,9 @@
     <a href="#metodo">Metodologia e fonti</a>
   </nav>
 
-  <section class="block" id="progetto" aria-labelledby="project-title">
+  <section class="block marked" id="progetto" aria-labelledby="project-title">
     <div class="wrap">
+      <div class="mark atlas" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/><ellipse cx="10" cy="10" rx="3.3" ry="8" fill="none" stroke="var(--gold)" stroke-width="1.6"/><path d="M2 10h16" stroke="var(--gold)" stroke-width="1.6"/></svg><span class="words"><span class="w1">Atlante</span> <span class="w2">della</span> <span class="w3">Sicurezza</span></span></div>
       <header>
         <div class="kicker">Sul progetto</div>
         <h2 id="project-title">Perché un atlante della sicurezza</h2>
@@ -190,8 +251,9 @@
     </div>
   </section>
 
-  <section class="block about" id="autore" aria-labelledby="author-title">
+  <section class="block about marked" id="autore" aria-labelledby="author-title">
     <div class="wrap">
+      <div class="mark moka" aria-hidden="true"><svg viewBox="8.5 2.5 47 58"><g class="steam"><circle cx="23" cy="16.2" r="2.2"/><circle cx="27" cy="16.2" r="1.8"/><circle cx="31" cy="16.2" r="1.4"/></g><path class="cap" fill="#C8102E" d="M29.4 6.3a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0 -6.6 0ZM19.7 11.9 L45.7 11.9 L45.7 15 L19.7 15Z"/><path fill="#C8102E" d="M18.7 17.4 L46.7 17.4 L43.7 31.4 L21.7 31.4ZM9.3 17.4 L16.3 17.4 L17.6 24ZM49.05 17.9 A7.16 7.16 0 0 1 46.05 31.9ZM21.7 33.8 L43.7 33.8 L47.2 60 L18.2 60Z"/></svg></div>
       <header>
         <div class="kicker">Sull’autore</div>
         <h2 id="author-title">Jacopo Ottaviani</h2>
@@ -214,6 +276,23 @@
       </div>
     </div>
   </section>
+
+  <!-- I due loghi grandi si animano una volta, quando arrivano sullo schermo: il globo si disegna, la moka sbuffa e si
+       richiude dopo 5,1 secondi (l'ultimo sbuffo). Sta qui e non in fondo perché il globo aspetta invisibile finché
+       questo non gira, e in fondo dovrebbe aspettare d3. Con «riduci movimento» restano fermi. -->
+  <script>
+    (() => {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      document.querySelectorAll(".mark").forEach((m) => {
+        const go = () => {
+          m.classList.add("go");
+          if (m.classList.contains("moka")) setTimeout(() => m.classList.remove("go"), 5100);
+        };
+        if (!("IntersectionObserver" in window)) { if (m.classList.contains("atlas")) go(); return; }
+        new IntersectionObserver(([e], io) => { if (e.isIntersecting) { io.disconnect(); go(); } }, { threshold: 0.6 }).observe(m);
+      });
+    })();
+  </script>
 
   <!-- Domande frequenti: una riga per domanda, la risposta si apre al tocco. Le scrive vc.js (renderBrief). -->
   <section class="block" id="domande" aria-labelledby="faq-title">
