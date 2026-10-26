@@ -1827,7 +1827,7 @@
         <div class="chart" id="place-chart"></div>
       </div>`;
 
-  const gridHTML = (rows) => rows.map(({ t, row }) => `<button type="button" class="sm" data-type="${t.id}" aria-pressed="${t.id === state.cardType}" style="${t.id === state.cardType ? "box-shadow: inset 0 0 0 2px var(--ink)" : ""}"><span class="h"><span class="n" title="${esc(t.label)}">${esc(t.label)}</span></span><svg aria-hidden="true"></svg><span class="x"><span>${fmtRate(row.s[LAST])}</span>${chgHTML(row.cmp)}</span></button>`).join("");
+  const gridHTML = (rows) => rows.map(({ t, row }) => `<button type="button" class="sm" data-type="${t.id}" aria-pressed="${t.id === state.cardType}" style="${t.id === state.cardType ? "box-shadow: inset 0 0 0 2px var(--ink)" : ""}"><span class="h"><span class="n" title="${esc(t.label)}">${esc(t.label)}</span></span><svg aria-hidden="true"></svg><span class="x"><span>${fmtRate(row.s[LAST])}</span></span></button>`).join("");
 
   // I tre reati saliti di più e i tre scesi di più rispetto all'anno base. Con i conteggi contano solo le
   // variazioni che superano la soglia statistica (z ≥ 2), come nelle mappe; senza, i rapporti tra tassi ufficiali.
