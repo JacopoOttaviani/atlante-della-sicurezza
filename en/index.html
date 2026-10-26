@@ -42,7 +42,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=70">
+<link rel="stylesheet" href="../vc.css?v=71">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -355,7 +355,7 @@
       <header>
         <div class="kicker">Spikes and falls</div>
         <h2 id="spike-title">Where something changed suddenly</h2>
-        <p class="dek">A spike is a year in which reports of a crime suddenly jump: at least a quarter above the average of the previous three years, with at least 20 cases and a jump that chance alone does not explain. “In proportion” puts the most solid increases first, “By extra cases” the ones that affect the most people. <a href="progetto/#metodo">How we spot them</a>.</p>
+        <p class="dek">A spike is a year in which reports of a crime suddenly jump: at least a quarter above the average of the previous three years, with at least 20 cases and a jump that chance alone does not explain. “By extra cases” puts first the increases that affect the most people, “By % increase” the ones that grew the most compared with the previous years. <a href="progetto/#metodo">How we spot them</a>.</p>
       </header>
       <div class="chips" role="group" aria-label="Year of the spikes">
         <span class="small">Year</span>
@@ -366,8 +366,8 @@
         </div>
         <span class="small">Sort</span>
         <div class="seg" id="spike-sort-seg">
-          <button type="button" data-ssort="rel" aria-pressed="true">In proportion</button>
-          <button type="button" data-ssort="abs" aria-pressed="false">By extra cases</button>
+          <button type="button" data-ssort="pct" aria-pressed="false">By % increase</button>
+          <button type="button" data-ssort="abs" aria-pressed="true">By extra cases</button>
         </div>
         <span class="small" id="spike-count" aria-live="polite"></span>
       </div>
@@ -541,6 +541,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=70"></script>
+<script src="../vc.js?v=71"></script>
 </body>
 </html>

@@ -131,7 +131,7 @@
   // reato e anno della scheda aperta, periodo di «Cosa sale e cosa scende» (dal 2014 o dal 2019). L'apertura e le
   // domande frequenti guardano sempre tutti i delitti confrontati con il 2019 (REF).
   const REF = 2019;
-  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "rel", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT", cautMode: "ord", istMode: "reg", istSort: "ratio", istSel: null, procMode: "presc", procSort: "dur", esMode: "pop" };
+  const state = { mapType: "TOT", mapBase: REF, gridType: "TOT", cardType: "TOT", cardBase: REF, mixBase: REF, sort: "level", scale: "shared", spikeYear: 2024, spikeSort: "abs", spikeShown: 8, gridShown: 12, city: null, place: null, treeYear: null, rimpYear: null, qLayer: "pop", qSel: null, autoriType: "TOT", minoriType: "TOT", cautMode: "ord", istMode: "reg", istSort: "ratio", istSel: null, procMode: "presc", procSort: "dur", esMode: "pop" };
   let CARCERI = null;
   let PROVP = null; // province con percezione e tassi (data/province.json), solo per l'approfondimento sulla percezione
   let RIMP = null, WORLD = null;
@@ -1363,8 +1363,9 @@
       spikeList.sort((p, q) => (q.a.n - q.a.avg) - (p.a.n - p.a.avg));
       fallList.sort((p, q) => (p.a.n - p.a.avg) - (q.a.n - q.a.avg));
     } else {
-      spikeList.sort((p, q) => q.a.low - p.a.low);
-      fallList.sort((p, q) => p.a.high - q.a.high);
+      // in percentuale: lo stesso numero grande della scheda
+      spikeList.sort((p, q) => q.a.rr - p.a.rr);
+      fallList.sort((p, q) => p.a.rr - q.a.rr);
     }
   }
 

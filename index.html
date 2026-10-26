@@ -42,7 +42,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="vc.css?v=70">
+<link rel="stylesheet" href="vc.css?v=71">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -376,7 +376,7 @@
       <header>
         <div class="kicker">Impennate e cali</div>
         <h2 id="spike-title">Dove qualcosa è cambiato all’improvviso</h2>
-        <p class="dek">Un’impennata è un anno in cui le denunce per un reato salgono di colpo: almeno un quarto sopra la media dei tre anni prima, con almeno 20 episodi e un salto che il caso da solo non spiega. «In proporzione» mette prima gli aumenti più solidi, «Per casi in più» quelli che riguardano più persone. <a href="progetto/#metodo">Come le riconosciamo</a>.</p>
+        <p class="dek">Un’impennata è un anno in cui le denunce per un reato salgono di colpo: almeno un quarto sopra la media dei tre anni prima, con almeno 20 episodi e un salto che il caso da solo non spiega. «Per casi in più» mette prima gli aumenti che riguardano più persone, «In percentuale» quelli cresciuti di più rispetto agli anni prima. <a href="progetto/#metodo">Come le riconosciamo</a>.</p>
       </header>
       <div class="chips" role="group" aria-label="Anno delle impennate">
         <span class="small">Anno</span>
@@ -387,8 +387,8 @@
         </div>
         <span class="small">Ordina</span>
         <div class="seg" id="spike-sort-seg">
-          <button type="button" data-ssort="rel" aria-pressed="true">In proporzione</button>
-          <button type="button" data-ssort="abs" aria-pressed="false">Per casi in più</button>
+          <button type="button" data-ssort="pct" aria-pressed="false">In percentuale</button>
+          <button type="button" data-ssort="abs" aria-pressed="true">Per casi in più</button>
         </div>
         <span class="small" id="spike-count" aria-live="polite"></span>
       </div>
@@ -562,6 +562,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="vc.js?v=70"></script>
+<script src="vc.js?v=71"></script>
 </body>
 </html>
