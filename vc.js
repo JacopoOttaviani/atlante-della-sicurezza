@@ -4205,16 +4205,29 @@
       }).join("")}</span><span class="val">${nf0.format(tot)}</span></li>`;
     };
     const gcov = ge && ge.arch[iL] != null ? (100 * d3.sum(gparts(ge))) / t.flussi.gip.d[iL] : null;
+    // su 100 nuovi processi di primo grado in Italia, quanti arrivano con un rinvio a giudizio del GUP: gli altri per altre
+    // strade (citazione diretta, direttissimo, giudizio immediato, opposizione a un decreto penale)
+    const gGup = Math.round((100 * gi.giudizio[iL]) / fIt.s[iL]), gDec = ge && ge.decreti[iL];
+    // decreti penali quasi assenti in un anno: non registrati, più che un tribunale che non ne emette
+    const gDecNote = gDec == null || gDec > 5 ? "" : EN
+      ? ` At the court of ${esc(t.name)} ${gDec === 0 ? "none was" : gDec === 1 ? "only one was" : `only ${gDec} were`} recorded in ${last}: probably not all of them were.`
+      : ` Al tribunale di ${esc(t.name)} nel ${last} ${gDec === 0 ? "non ne risulta nessuno" : gDec === 1 ? "ne risulta uno solo" : `ne risultano solo ${gDec}`}: probabilmente non sono stati registrati tutti.`;
     const gip = gcov == null ? "" : `
       <p class="chart-title">${EN ? `How proceedings close before the preliminary judges, ${last}` : `Come si chiudono i procedimenti davanti al GIP e al GUP, ${last}`}</p>
       <p class="chart-sub">${EN
-        ? `The four main outcomes the Ministry counts, per 100; on the right, how many proceedings. They cover ${nf0.format(gcov)}% of the proceedings closed by the court's preliminary judges (GIP and GUP), who decide whether a case is dismissed or goes to trial.`
-        : `Le quattro modalità principali che il Ministero conta, ogni 100; a destra quanti procedimenti. Coprono ${pctA("il", Math.round(gcov)).replace(",0%", "%")} dei procedimenti chiusi dal GIP e dal GUP del tribunale, i giudici che decidono se un procedimento si archivia o va a processo.`}</p>
+        ? `The four main outcomes the Ministry counts, per 100; on the right, how many proceedings. They cover ${nf0.format(gcov)}% of the proceedings closed by the court's preliminary judges (GIP and GUP).`
+        : `Le quattro modalità principali che il Ministero conta, ogni 100; a destra quanti procedimenti. Coprono ${pctA("il", Math.round(gcov)).replace(",0%", "%")} dei procedimenti chiusi dal GIP e dal GUP del tribunale.`}</p>
       <ul class="sbar-key" aria-hidden="true">${gcats.map((c) => `<li><i class="${c.cls}"></i>${c.label}</li>`).join("")}</ul>
       <ol class="sbars">${sbarRow(L("Tribunale di ", "Court of ") + t.name, gparts(ge), true)}${sbarRow(L("Italia", "Italy"), gparts(gi))}</ol>
       <p class="small">${EN
+        ? `Dismissals are the largest share because every dismissal goes through the GIP, while most trials do not: in Italy, of every 100 new first-instance trials in ${last}, only ${gGup} started with a committal by the GUP. The others reach court by other routes, mostly a direct summons by the prosecutor, which for many offences, those with lower penalties, sends the defendant to trial without a preliminary hearing. So these bars do not say how many proceedings end in a dismissal and how many in a trial.`
+        : `Le archiviazioni sono la quota più grande perché ogni archiviazione passa dal GIP, mentre la maggior parte dei processi no: in Italia, su 100 nuovi processi di primo grado nel ${last}, solo ${gGup} sono arrivati con un rinvio a giudizio del GUP. Gli altri ci arrivano per altre strade, soprattutto con la citazione diretta del pubblico ministero, che per molti reati, quelli puniti con pene più basse, porta l’imputato a processo senza udienza preliminare. Queste barre quindi non dicono quanti procedimenti finiscono archiviati e quanti a processo.`}</p>
+      <p class="small">${EN
         ? "A penal decree of conviction is a conviction to a fine decided without a trial, which became enforceable because nobody opposed it. Fast-track judgments include plea bargains, which count as convictions, and abbreviated trials, which can also end in an acquittal: the Ministry does not separate them. A dismissal closes the proceedings without a trial and does not say that the person is guilty. With a committal for trial the case goes to court: how it ends, conviction or acquittal, the Ministry does not publish court by court."
-        : "Il decreto penale di condanna è una condanna a una pena pecuniaria decisa senza processo, diventata esecutiva perché nessuno si è opposto. Tra i riti alternativi ci sono i patteggiamenti, che valgono come una condanna, e i giudizi abbreviati, che possono finire anche con un’assoluzione: il Ministero non li separa. L’archiviazione chiude il procedimento senza processo e non dice che la persona sia colpevole. Con il rinvio a giudizio il procedimento va in tribunale: come finisce, con una condanna o un’assoluzione, il Ministero non lo pubblica tribunale per tribunale."}</p>`;
+        : "Il decreto penale di condanna è una condanna a una pena pecuniaria decisa senza processo, diventata esecutiva perché nessuno si è opposto. Tra i riti alternativi ci sono i patteggiamenti, che valgono come una condanna, e i giudizi abbreviati, che possono finire anche con un’assoluzione: il Ministero non li separa. L’archiviazione chiude il procedimento senza processo e non dice che la persona sia colpevole. Con il rinvio a giudizio il procedimento va in tribunale: come finisce, con una condanna o un’assoluzione, il Ministero non lo pubblica tribunale per tribunale."}</p>
+      <p class="small">${EN
+        ? `The Ministry counts only the offices that answer its survey, and one court's figures for a single year can be incomplete or jump from one year to the next. It happens most with penal decrees: in several courts the number recorded changes a lot from year to year, and in some years it is close to zero. Where some are missing, the share of dismissals comes out a few points higher.${gDecNote}`
+        : `Il Ministero conta solo gli uffici che rispondono alla rilevazione, e i numeri di un tribunale in un singolo anno possono essere incompleti o saltare da un anno all’altro. Succede soprattutto con i decreti penali: in diversi tribunali quelli registrati cambiano molto di anno in anno, e in qualche anno sono quasi zero. Se ne mancano, la quota di archiviazioni risulta più alta di qualche punto.${gDecNote}`}</p>`;
     return `<h3 class="subhead">${faseTag("processo")}${L("Dopo la denuncia: il tribunale di", "After the report: the court of")} ${esc(t.name)}</h3>
       <p class="small">${intro}</p>
       <div class="facts">

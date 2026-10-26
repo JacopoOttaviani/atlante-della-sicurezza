@@ -337,13 +337,27 @@ def court_section(c):
         pc = lambda X: [js_round(100 * v / sum(parts(X))) for v in parts(X)]  # noqa: E731
         a, b = pc(ge), pc(gi)
         cov = 100 * sum(parts(ge)) / t["flussi"]["gip"]["d"][Lg]
-        paras.append(f"Davanti al GIP e al GUP, i giudici che decidono se un procedimento si archivia o va a processo, su 100 procedimenti chiusi nel {last} in uno dei quattro modi principali: "
+        # su 100 nuovi processi di primo grado in Italia, quanti arrivano con un rinvio a giudizio del GUP (come la scheda)
+        gup = js_round(100 * gi["giudizio"][Lg] / sum(it["flussi"][k]["s"][Lg] for k in ("mono", "coll", "assise")))
+        dec = ge["decreti"][Lg]
+        paras.append(f"Davanti al GIP e al GUP, su 100 procedimenti chiusi nel {last} in uno dei quattro modi principali: "
                      f"{a[0]} archiviati, {a[1]} con un decreto penale di condanna, {a[2]} con un rito alternativo, {a[3]} rinviati a giudizio "
                      f"(in Italia {b[0]}, {b[1]}, {b[2]} e {b[3]}). Sono le modalità principali che il Ministero conta, e coprono il {js_round(cov)}% dei procedimenti chiusi dal GIP e dal GUP del tribunale. "
-                     "Il decreto penale di condanna è una condanna a una pena pecuniaria decisa senza processo, diventata esecutiva perché nessuno si è opposto. "
+                     "Le archiviazioni sono la quota più grande perché ogni archiviazione passa dal GIP, mentre la maggior parte dei processi no: "
+                     f"in Italia, su 100 nuovi processi di primo grado nel {last}, solo {gup} sono arrivati con un rinvio a giudizio del GUP. "
+                     "Gli altri ci arrivano per altre strade, soprattutto con la citazione diretta del pubblico ministero, che per molti reati, quelli puniti con pene più basse, porta l’imputato a processo senza udienza preliminare. "
+                     "Questi numeri quindi non dicono quanti procedimenti finiscono archiviati e quanti a processo.")
+        paras.append("Il decreto penale di condanna è una condanna a una pena pecuniaria decisa senza processo, diventata esecutiva perché nessuno si è opposto. "
                      "Tra i riti alternativi ci sono i patteggiamenti, che valgono come una condanna, e i giudizi abbreviati, che possono finire anche con un’assoluzione: il Ministero non li separa. "
                      "L’archiviazione chiude il procedimento senza processo e non dice che la persona sia colpevole. "
                      "Come finiscono i processi dopo il rinvio a giudizio, con una condanna o un’assoluzione, il Ministero non lo pubblica tribunale per tribunale.")
+        # decreti penali quasi assenti in un anno: non registrati, più che un tribunale che non ne emette (come la scheda)
+        few = "" if dec > 5 else (f" Al tribunale di {esc(t['name'])} nel {last} "
+                                  + ("non ne risulta nessuno" if dec == 0 else "ne risulta uno solo" if dec == 1 else f"ne risultano solo {dec}")
+                                  + ": probabilmente non sono stati registrati tutti.")
+        paras.append("Il Ministero conta solo gli uffici che rispondono alla rilevazione, e i numeri di un tribunale in un singolo anno possono essere incompleti o saltare da un anno all’altro. "
+                     "Succede soprattutto con i decreti penali: in diversi tribunali quelli registrati cambiano molto di anno in anno, e in qualche anno sono quasi zero. "
+                     "Se ne mancano, la quota di archiviazioni risulta più alta di qualche punto." + few)
     paras.append('Fonte: Ministero della Giustizia, Direzione generale di statistica. <a href="../approfondimenti/processi.html#tribunali">Tutti i 140 tribunali, e che cosa succede dopo una denuncia</a>.')
     return f"""
   <section class="block" aria-labelledby="cp-court">
