@@ -587,25 +587,38 @@
 
   // ------------------------------------------------------------------ apertura
 
+  // I numeri d'apertura: sotto ogni cifra gli anni che confronta, accanto due frasi che dicono cosa conta e perché
+  // proprio quegli anni (il primo della serie, il picco, l'ultimo prima del Covid). Tutto dai dati, anche il crollo
+  // del 2020 e la risalita, così il testo segue gli anni nuovi.
   function renderEyechart() {
     const tot = ITALY.rate.TOT;
     const iPeak = d3.maxIndex(tot);
-    const i19 = Y.indexOf(2019);
+    const i19 = Y.indexOf(REF), i20 = Y.indexOf(2020);
     const hom = ITALY.n.INTENHOM, fr = ITALY.n.SWINCYB;
+    const span = (i) => L(`dal ${Y[i]} al ${Y[LAST]}`, `${Y[i]} to ${Y[LAST]}`);
+    // il 2019 è il punto più basso prima del Covid? (come in renderHeroCities)
+    const low = tot[i19] === d3.min(Y.filter((y) => y < 2020), (y) => tot[Y.indexOf(y)]);
+    const drop = i20 > 0 ? tot[i20] / tot[i20 - 1] - 1 : NaN;
+    const everyYear = i20 >= 0 && i20 < LAST && d3.range(i20 + 1, LAST + 1).every((i) => tot[i] > tot[i - 1]);
+    const peakWhen = iPeak > 0 ? L(` da quando la serie comincia, nel ${Y[0]}`, ` since the series began in ${Y[0]}`) : L(", il primo della serie", ", the first in the series");
+    const covid = drop < 0 ? (EN
+      ? ` In 2020, with the lockdowns, reports collapsed ${delPct(drop)}, then rose again${everyYear ? " every year" : ""}.`
+      : ` Nel 2020, con i lockdown, sono crollate ${delPct(drop)}, poi sono risalite${everyYear ? " ogni anno" : ""}.`) : "";
+    const k = (v) => nf0.format(Math.round(v / 1000));
     const rows = EN ? [
-      [nf0.format(tot[LAST]), `crimes reported per 100,000 residents in Italy in ${Y[LAST]}: about ${nf0.format(Math.round(tot[LAST] / 1000))} for every 100 people in a year`],
-      [fmtPct(tot[LAST] / tot[iPeak] - 1), `compared with ${Y[iPeak]}, the year with the most reports per resident`],
-      [fmtPct(tot[LAST] / tot[i19] - 1), `compared with 2019: after the collapse of 2020, reports have risen again`],
-      [fmtPct(hom[LAST] / hom[0] - 1), `intentional homicides since ${Y[0]}: from ${nf0.format(hom[0])} to ${nf0.format(hom[LAST])} a year`],
-      [fmtPct(fr[LAST] / fr[0] - 1), `fraud and online fraud since ${Y[0]}: from ${nf0.format(Math.round(fr[0] / 1000) * 1000)} to ${nf0.format(Math.round(fr[LAST] / 1000) * 1000)} reports`],
+      [nf0.format(tot[LAST]), `in ${Y[LAST]}`, `crimes reported to the police per 100,000 residents in Italy: about ${k(tot[LAST])} for every 100 people in a year. These are reports, not convictions; ${Y[LAST]} is the latest year in the ISTAT data.`],
+      [fmtPct(tot[LAST] / tot[iPeak] - 1), span(iPeak), `in crimes reported per resident. ${Y[iPeak]} is the year with the most reports${peakWhen}: ${nf0.format(tot[iPeak])} per 100,000 residents, against ${nf0.format(tot[LAST])} in ${Y[LAST]}.`],
+      [fmtPct(tot[LAST] / tot[i19] - 1), span(i19), `in crimes reported per resident. ${REF} is the last year before Covid${low ? ", and the one with the fewest reports up to then" : ""}.${covid}`],
+      [fmtPct(hom[LAST] / hom[0] - 1), span(0), `in intentional homicides: there were ${nf0.format(hom[0])} in ${Y[0]}, the first year of these data, and ${nf0.format(hom[LAST])} in ${Y[LAST]}.`],
+      [fmtPct(fr[LAST] / fr[0] - 1), span(0), `in reports of fraud and online fraud: from ${k(fr[0])},000 in ${Y[0]} to ${k(fr[LAST])},000 in ${Y[LAST]}, ${nf1.format(fr[LAST] / fr[0])} times as many.`],
     ] : [
-      [nf0.format(tot[LAST]), `delitti denunciati ogni 100.000 abitanti in Italia nel ${Y[LAST]}: circa ${nf0.format(Math.round(tot[LAST] / 1000))} ogni 100 persone in un anno`],
-      [fmtPct(tot[LAST] / tot[iPeak] - 1), `rispetto al ${Y[iPeak]}, l’anno con più denunce per abitante`],
-      [fmtPct(tot[LAST] / tot[i19] - 1), `rispetto al 2019: dopo il crollo del 2020 le denunce sono tornate a salire`],
-      [fmtPct(hom[LAST] / hom[0] - 1), `omicidi volontari dal ${Y[0]}: da ${nf0.format(hom[0])} a ${nf0.format(hom[LAST])} l’anno`],
-      [fmtPct(fr[LAST] / fr[0] - 1), `truffe e frodi informatiche dal ${Y[0]}: da ${nf0.format(Math.round(fr[0] / 1000))} mila a ${nf0.format(Math.round(fr[LAST] / 1000))} mila denunce`],
+      [nf0.format(tot[LAST]), `nel ${Y[LAST]}`, `delitti denunciati alle forze di polizia ogni 100.000 abitanti in Italia: circa ${k(tot[LAST])} ogni 100 persone in un anno. Sono denunce, non condanne; il ${Y[LAST]} è l’anno più recente dei dati ISTAT.`],
+      [fmtPct(tot[LAST] / tot[iPeak] - 1), span(iPeak), `di denunce per abitante. Il ${Y[iPeak]} è l’anno con più denunce${peakWhen}: ${nf0.format(tot[iPeak])} ogni 100.000 abitanti, contro ${nf0.format(tot[LAST])} nel ${Y[LAST]}.`],
+      [fmtPct(tot[LAST] / tot[i19] - 1), span(i19), `di denunce per abitante. Il ${REF} è l’ultimo anno prima del Covid${low ? ", e quello con meno denunce fino ad allora" : ""}.${covid}`],
+      [fmtPct(hom[LAST] / hom[0] - 1), span(0), `di omicidi volontari: erano ${nf0.format(hom[0])} nel ${Y[0]}, il primo anno di questi dati, e ${nf0.format(hom[LAST])} nel ${Y[LAST]}.`],
+      [fmtPct(fr[LAST] / fr[0] - 1), span(0), `di denunce per truffe e frodi informatiche: da ${k(fr[0])} mila nel ${Y[0]} a ${k(fr[LAST])} mila nel ${Y[LAST]}, ${nf1.format(fr[LAST] / fr[0])} volte tante.`],
     ];
-    $("#eyechart").innerHTML = rows.map(([f, c]) => `<li><span class="fig">${f}</span><span class="cap">${c}</span></li>`).join("");
+    $("#eyechart").innerHTML = rows.map(([f, w, c]) => `<li><span class="fig">${f}<span class="when">${w}</span></span><span class="cap">${c}</span></li>`).join("");
   }
 
   // ------------------------------------------------------------------ domande frequenti
