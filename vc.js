@@ -1439,9 +1439,11 @@
   function renderGrid() {
     const m = model(state.gridType);
     const nSp = m.rows.filter((r) => r.spikes.length).length;
+    // che cosa fa ogni bottone di «Ordina», con gli anni presi dai dati: per i reati rari il livello è la media degli ultimi tre anni
+    const when = m.rare ? L(`in media dal ${Y[LAST - 2]} al ${Y[LAST]}`, `on average from ${Y[LAST - 2]} to ${Y[LAST]}`) : L(`nel ${Y[LAST]}`, `in ${Y[LAST]}`);
     $("#grid-dek").textContent = EN
-      ? `${m.label}, per 100,000 residents, ${Y[0]} to ${Y[LAST]}. The gold dots are spikes: ${nSp} ${nSp === 1 ? "provincial capital has" : "provincial capitals have"} had at least one since 2008. With the same scale for all, you can compare levels; with each city’s own scale, the shape of each curve is easier to see.`
-      : `${m.label}, ogni 100.000 abitanti, dal ${Y[0]} al ${Y[LAST]}. I punti d’oro sono le impennate: ${nSp} capoluoghi ne hanno avuta almeno una dal 2008. Con la scala uguale per tutte si confrontano i livelli; con la scala propria si vede meglio la forma di ogni curva.`;
+      ? `${m.label}, per 100,000 residents, ${Y[0]} to ${Y[LAST]}. The gold dots are spikes: ${nSp} ${nSp === 1 ? "provincial capital has" : "provincial capitals have"} had at least one since 2008. “Reports” puts first the cities with the most reports per 100,000 residents ${when}, the number at the top right; “Rise” those where they rose most from ${m.base} to ${Y[LAST]}, the percentage at the bottom right; “Spikes” those with the most recent spike; “Area” splits them into North-west, North-east, Centre, South and Islands. With the same scale for all, you can compare levels; with each city’s own scale, the shape of each curve is easier to see.`
+      : `${m.label}, ogni 100.000 abitanti, dal ${Y[0]} al ${Y[LAST]}. I punti d’oro sono le impennate: ${nSp} capoluoghi ne hanno avuta almeno una dal 2008. «Denunce» mette prima le città con più denunce ogni 100.000 abitanti ${when}, il numero in alto a destra; «Aumento» quelle dove sono aumentate di più dal ${m.base} al ${Y[LAST]}, la percentuale in basso a destra; «Impennate» quelle con l’impennata più recente; «Area» le divide tra Nord-ovest, Nord-est, Centro, Sud e Isole. Con la scala uguale per tutte si confrontano i livelli; con la scala propria si vede meglio la forma di ogni curva.`;
     const host = $("#sm");
     host.innerHTML = "";
     const groups = state.sort === "area"

@@ -1136,6 +1136,8 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   .control > .label.opt { display: none; }
   .control > .label { font-size: 10px; letter-spacing: 0.04em; }
   .seg button { padding: 5px 8px; min-height: 30px; }
+  /* cinque bottoni accanto a «Ordina»: con 8px per lato «A–Z» usciva dal bordo a 375px */
+  #sort-seg button { padding-inline: 6px; }
   .rank li { grid-template-columns: 22px 8px minmax(84px, 112px) minmax(0, 1fr) 54px; gap: 6px; }
   .sm-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .movers-cols { grid-template-columns: minmax(0, 1fr); }
