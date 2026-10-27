@@ -375,7 +375,8 @@ button, select, input { font: inherit; color: inherit; }
 .eyechart li {
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-  align-items: baseline;
+  /* in alto, non sulla linea di base: con Archivo la cima delle cifre e quella del testo coincidono entro mezzo pixel */
+  align-items: start;
   gap: 18px;
   padding-block: 10px;
   border-bottom: 1px solid var(--rule);
