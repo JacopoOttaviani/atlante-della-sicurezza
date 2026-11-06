@@ -69,6 +69,7 @@ ALIAS = {
     'VITERBO "N.C."': 'VITERBO "N. IZZO"',
     "ARIENZO": 'ARIENZO "G. DE ANGELIS"',
     'SAN REMO "N.C."': "SANREMO",  # casa di reclusione fino a marzo 2022, poi casa circondariale: lo stesso istituto
+    "CUNEO": 'CUNEO "IGNAZIO DE FLORIO"',  # intitolato da ottobre 2026: stessa capienza (431), 378 persone a settembre, 376 a ottobre
 }
 # Il comune, quando il nome dell'istituto non è quello di data/comuni.json.
 COMUNE = {"REGGIO CALABRIA": "Reggio di Calabria", "REGGIO EMILIA": "Reggio nell'Emilia", "ROSSANO": "Corigliano-Rossano",
@@ -86,6 +87,7 @@ SHORT = {
     'PERUGIA "NUOVO COMPLESSO PENITENZIARIO CAPANNE"': "Perugia Capanne",
     'BRISSOGNE "AOSTA"': "Aosta (Brissogne)",
     'BERGAMO "DON FAUSTO RESMINI"': "Bergamo",
+    'CUNEO "IGNAZIO DE FLORIO"': "Cuneo",
     'FIRENZE "MARIO GOZZINI"': "Firenze Gozzini",
     'TORINO "G. LORUSSO L. CUTUGNO" LE VALLETTE': "Torino Lorusso e Cutugno",
     'REGGIO EMILIA "C.C. E C.R."': "Reggio Emilia",
