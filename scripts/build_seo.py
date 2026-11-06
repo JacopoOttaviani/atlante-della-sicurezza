@@ -696,14 +696,19 @@ def lastmod(rel):
     """Data dell'ultimo commit che ha cambiato il contenuto del file; oggi se il file è nuovo o modificato e non ancora
     salvato. Non contano i ?v= di vc.css e vc.js, la testata, il piè di pagina, il pulsante di WhatsApp e la vecchia riga
     del logo in testa: cambiano tutte le pagine insieme, e un logo in più tra le fonti non vuol dire che un
-    approfondimento sia stato aggiornato."""
+    approfondimento sia stato aggiornato. Non contano nemmeno i <div> e gli a capo: sono l'impaginazione, e una nota
+    spostata in un'altra colonna, con le stesse parole nello stesso ordine, non è un aggiornamento. Tutto il resto conta,
+    testo e attributi (un placeholder, una didascalia, un alt). Il 6 novembre 2026, con questa regola, le date di tutte
+    le 133 pagine nella storia di git restavano quelle di prima."""
     git = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout  # noqa: E731
-    body = lambda t: CHROME.sub("", re.sub(r"\?v=\d+", "", t))  # noqa: E731
+    body = lambda t: re.sub(r"\s+", " ", re.sub(r"</?div\b[^>]*>", " ", CHROME.sub("", re.sub(r"\?v=\d+", "", t)))).strip()  # noqa: E731
     try:
         if git("status", "--porcelain", "--", rel).strip() and \
                 body(git("show", f"HEAD:{rel}")) != body((ROOT / rel).read_text(encoding="utf-8")):
             return date.today().isoformat()
-        log = [ln.split() for ln in git("log", "-20", "--format=%H %cs", "--", rel).splitlines() if ln.strip()]
+        # 60 commit all'indietro, non 20: citta/index.html ha avuto 20 commit di soli ?v= e testata dopo l'ultimo cambio di
+        # contenuto (20 ottobre 2026), e con una finestra più corta prendeva la data del commit più vecchio della finestra
+        log = [ln.split() for ln in git("log", "-60", "--format=%H %cs", "--", rel).splitlines() if ln.strip()]
     except OSError:
         return date.today().isoformat()
     # un file nuovo o appena aggiunto: git show del commit precedente non trova nulla, e conta come cambiato

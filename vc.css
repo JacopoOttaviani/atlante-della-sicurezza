@@ -664,7 +664,7 @@ td.num.ns { color: var(--muted); }
 /* ---------------------------------------------------------------- small multiples */
 .gridbar { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-bottom: 16px; }
 .sm-group h3 { font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 22px 0 8px; }
-.sm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 2px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.sm-grid { --sm-min: 176px; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--sm-min), 1fr)); gap: 2px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
 .sm {
   all: unset;
   box-sizing: border-box;
@@ -697,8 +697,23 @@ td.num.ns { color: var(--muted); }
 .key .k-covid { width: 14px; height: 12px; background: var(--covid); border: 1px solid var(--grid); }
 
 /* ---------------------------------------------------------------- carceri */
-.carceri-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 44px; align-items: start; margin-top: 28px; }
-.carceri-grid.two-even { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+/* Negli approfondimenti ogni coppia affiancata (due grafici, carta e classifica, quadratini e riquadro) sta sulle stesse
+   due colonne, 1,15 a 1 con 44px in mezzo: la colonna di destra parte sempre allo stesso punto, in ogni sezione e in ogni pagina. */
+.carceri-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 44px; align-items: start; margin-top: 28px; }
+/* Due grafici affiancati: titoli, sottotitoli e grafici partono alla stessa altezza anche quando un sottotitolo va a capo
+   e l'altro no, o manca. Ogni colonna prende le righe della griglia (subgrid) e ogni pezzo ha la sua riga: titolo,
+   sottotitolo, legenda (quella dei pallini la aggiunge vc.js), grafico, nota. La colonna fatta solo di testo (posizione
+   giuridica, in Carceri) resta un blocco. Le righe sono scritte per tutte e due le colonne, così restano nel loro ordine. */
+@media (min-width: 921px) {
+  main :is(.carceri-grid, .perc-grid) { row-gap: 0; } /* «main» la fa valere anche sul gap di .perc-grid, scritto più sotto */
+  :is(.carceri-grid, .perc-grid) > div { display: grid; grid-row: 1 / span 6; grid-template-rows: subgrid; align-self: stretch; align-content: start; }
+  :is(.carceri-grid, .perc-grid) > div > .chart-title { grid-row: 1; }
+  :is(.carceri-grid, .perc-grid) > div > .chart-sub { grid-row: 2; }
+  :is(.carceri-grid, .perc-grid) > div > :is(.dumb-key, .key) { grid-row: 3; }
+  :is(.carceri-grid, .perc-grid) > div > :is(.chart, .rank) { grid-row: 4; }
+  :is(.carceri-grid, .perc-grid) > div > .note { grid-row: 5; }
+  :is(.carceri-grid, .perc-grid) > div:not(:has(> .chart, > .rank)) { display: block; }
+}
 .chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
 .chart-head .chart-title, .chart-head .chart-sub { margin-bottom: 0; }
 .treemap svg { width: 100%; height: auto; display: block; }
@@ -710,6 +725,16 @@ td.num.ns { color: var(--muted); }
 .treemap .ll { font-size: 12px; font-weight: 600; fill: #fff; }
 .treemap .lv { font-size: 11px; fill: rgba(255, 255, 255, 0.85); }
 .rank.regions li { grid-template-columns: minmax(96px, 150px) minmax(0, 1fr) 54px; }
+/* La colonna dei nomi è larga quanto il nome più lungo della classifica (fino a 220px, 150px sul telefono): tutte le righe
+   la condividono (subgrid), così le barre partono dallo stesso punto e «Domiciliari con braccialetto» non finisce coi puntini. */
+.rank.regions ol { display: grid; grid-template-columns: fit-content(220px) minmax(0, 1fr) 54px; column-gap: 10px; }
+.rank.regions ol > li { grid-column: 1 / -1; grid-template-columns: subgrid; }
+@media (max-width: 560px) {
+  .rank.regions ol { grid-template-columns: fit-content(150px) minmax(0, 1fr) 54px; }
+  .rank.regions .name { white-space: normal; line-height: 1.2; } /* sul telefono un nome lungo va a capo, non finisce coi puntini */
+}
+/* due classifiche una sotto l'altra (le province più alte e più basse): la stessa colonna dei nomi, così le barre delle due partono insieme */
+.rank-cols .rank.regions ol { grid-template-columns: minmax(96px, 170px) minmax(0, 1fr) 54px; }
 .rank.regions .name { font-weight: 600; font-size: var(--step--1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rank.regions .bar i { background: var(--fall); }
 .facts.carceri { margin-top: 0; }
@@ -745,7 +770,7 @@ td.num.ns { color: var(--muted); }
 .rimp-sm .sm:hover { background: var(--surface); }
 
 /* ---------------------------------------------------------------- percezione */
-.perc-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 44px; align-items: start; }
+.perc-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 44px; align-items: start; }
 .chart-title { font-weight: 700; font-size: var(--step-0); margin: 0 0 2px; }
 .chart-sub { font-size: var(--step--1); color: var(--muted); margin: 0 0 6px; }
 .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
@@ -1093,7 +1118,7 @@ dialog.cityd::backdrop { background: rgba(10, 12, 11, 0.5); }
   /* cinque bottoni accanto a «Ordina»: con 8px per lato «A–Z» usciva dal bordo a 375px */
   #sort-seg button { padding-inline: 6px; }
   .rank li { grid-template-columns: 22px 8px minmax(84px, 112px) minmax(0, 1fr) 54px; gap: 6px; }
-  .sm-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .sm-grid { --sm-min: 140px; }
   .movers-cols { grid-template-columns: minmax(0, 1fr); }
   .card-head { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .card-head .loc { order: -1; width: 128px; }
@@ -1147,6 +1172,9 @@ button.link:focus-visible { outline: 2px solid var(--focus); }
    Le schede (.dd-card) stanno anche nella home, nella fascia «Oltre le denunce»; la cifra la scrive vc.js. */
 .dd-head { background: var(--surface); border-bottom: 1px solid var(--rule); padding-block: 34px 30px; }
 .dd-head + section.block { border-top: 0; }
+/* gli approfondimenti sono letture lunghe, una sezione dopo l'altra: tra l'una e l'altra 56px sopra e sotto il filo, come
+   sotto i 920px, invece dei 72px della home, dove ogni sezione è un pezzo a sé */
+.dd-head ~ section.block { --section: 56px; }
 .dd-crumb { margin: 0 0 12px; font-size: var(--step--1); color: var(--muted); }
 .dd-crumb a { color: var(--ink-2); text-decoration-color: var(--rule); }
 .dd-head h1 { font-family: var(--font-body); font-weight: 400; font-size: clamp(2rem, 3.6vw, 3rem); line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 16px; max-width: 28ch; text-wrap: balance; }
@@ -1196,6 +1224,14 @@ details.dd-method .method { padding: 8px 0 6px; }
 .waffle .wl { display: block; margin-top: 4px; font-size: var(--step--1); color: var(--ink-2); }
 .dd-sm .sm { cursor: default; }
 .dd-sm .sm:hover { background: var(--surface); }
+/* I piccoli grafici degli approfondimenti (vc.js sparkGrid). Il filo è di ogni riquadro, non del fondo della griglia:
+   l'ultima riga, se è corta, finisce come una riga di testo e non lascia un blocco grigio. Le colonne le sceglie vc.js
+   (25 riquadri: cinque per cinque, non sei righe con l'ultima di uno). I nomi lunghi vanno a capo su due righe invece di
+   finire coi puntini, e la riga dei nomi è la stessa per tutti i riquadri accanto (subgrid), così i grafici restano in fila. */
+.sm-grid:is(.dd-sm, .rimp-sm) { background: none; border: 0; border-radius: 0; overflow: visible; gap: 1px; padding: 1px; }
+:is(.dd-sm, .rimp-sm) .sm { outline: 1px solid var(--rule); grid-row: span 3; grid-template-rows: subgrid; }
+:is(.dd-sm, .rimp-sm) .sm .h > :first-child { flex: 1 1 auto; }
+:is(.dd-sm, .rimp-sm) .sm .n { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.2; overflow-wrap: anywhere; }
 .dumb-key .k-perc { background: var(--ink); }
 .dumb-key .k-crime { background: var(--muted); }
 
@@ -1241,9 +1277,15 @@ details.dd-method .method { padding: 8px 0 6px; }
 .dumb-key .k-a { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--ink-2); }
 .dumb-key .k-b { background: var(--fall); }
 .dd-cards.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.autori-provgrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 44px; align-items: start; }
+.autori-provgrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 44px; align-items: start; }
 .autori-provgrid .legend { display: flex; margin-top: 12px; }
+/* accanto alla classifica, il commento della carta: la colonna di destra non finisce a metà della carta */
+.prov-side > .note { margin: 22px 0 0; }
+.prov-side > .note + .note { margin-top: 12px; }
 .pmap svg { width: 100%; height: auto; display: block; }
+/* la carta delle regioni, delle province o dei distretti (vc.js provMap): alta al massimo 680px, così sta tutta in uno
+   schermo accanto alla sua classifica, e larga quanto l'Italia, allineata a sinistra con la legenda e il testo */
+.pmap svg.pfit { width: auto; max-width: 100%; }
 .pmap .pv { stroke: var(--surface); stroke-width: 0.6px; stroke-linejoin: round; --stag: 6ms; }
 .pmap .pv.hot { stroke: var(--ink); stroke-width: 1.5px; }
 .pmap .coast { fill: none; stroke: var(--mid); stroke-width: 0.6px; stroke-linejoin: round; pointer-events: none; }
@@ -1434,6 +1476,30 @@ details.dd-method .method { padding: 8px 0 6px; }
 }
 @media (max-width: 560px) {
   .dd-card[data-dd]::before { margin: -16px -16px 4px; }
+}
+/* In fondo a ogni approfondimento le schede degli altri otto: quattro per riga, o due sotto i 1180px, così le righe
+   sono piene e non resta un posto vuoto come con tre colonne (3 + 3 + 2). */
+@media (min-width: 1180px) {
+  .dd-more .dd-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 561px) and (max-width: 1179px) {
+  .dd-more .dd-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+}
+@media (min-width: 921px) and (max-width: 1179px) {
+  .dd-more .dd-card[data-dd]::before { aspect-ratio: 5 / 2; }
+}
+/* Nelle schede affiancate foto, occhiello, cifra, titolo, testo e «Leggi» stanno sulle stesse righe (subgrid): una
+   didascalia più lunga in una scheda abbassa i titoli di tutta la riga, non solo il suo, e i «Leggi» finiscono in fila.
+   Il titolo sta in basso nella sua riga, appoggiato al testo: lo spazio che avanza resta tra la cifra e il titolo, non
+   sotto un titolo corto. Ogni pezzo ha la sua riga, così una scheda ancora senza cifra non sposta il resto. */
+@media (min-width: 561px) {
+  .dd-cards > .dd-card { display: grid; grid-row: span 6; grid-template-rows: subgrid; row-gap: 8px; align-content: start; }
+  .dd-cards > .dd-card::before { grid-row: 1; }
+  .dd-cards > .dd-card > .kicker { grid-row: 2; }
+  .dd-cards > .dd-card > .dd-num { grid-row: 3; align-self: start; }
+  .dd-cards > .dd-card > :is(h2, h3) { grid-row: 4; align-self: end; }
+  .dd-cards > .dd-card > p { grid-row: 5; align-self: start; }
+  .dd-cards > .dd-card > .dd-go { grid-row: 6; align-self: end; }
 }
 
 /* ---------------------------------------------------------------- dal reato alla sentenza */

@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=75">
+<link rel="stylesheet" href="../vc.css?v=76">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -283,10 +283,12 @@
           <div class="pmap" id="caut-reg-map"></div>
           <div class="legend" id="caut-reg-legend"></div>
         </div>
-        <div class="rank regions autori-rank"><ol id="caut-regions"></ol></div>
+        <div class="prov-side">
+          <div class="rank regions autori-rank"><ol id="caut-regions"></ol></div>
+          <p class="note" id="caut-reg-note"></p>
+          <p class="note">Quanto conta il tipo di carcere è verificato, regione per regione, in <a href="carcere-per-carcere.html#tipi">Carcere per carcere</a>.</p>
+        </div>
       </div>
-      <p class="note" id="caut-reg-note"></p>
-      <p class="note">Quanto conta il tipo di carcere è verificato, regione per regione, in <a href="carcere-per-carcere.html#tipi">Carcere per carcere</a>.</p>
     </div>
   </section>
 
@@ -353,9 +355,11 @@
           <div class="pmap" id="caut-dist-map"></div>
           <div class="legend" id="caut-dist-legend"></div>
         </div>
-        <div class="rank regions autori-rank"><ol id="caut-districts"></ol></div>
+        <div class="prov-side">
+          <div class="rank regions autori-rank"><ol id="caut-districts"></ol></div>
+          <p class="note" id="caut-dist-note"></p>
+        </div>
       </div>
-      <p class="note" id="caut-dist-note"></p>
       <aside class="dd-callout caut-disc" aria-labelledby="disc-title">
         <h3 id="disc-title">Riparazione non vuol dire errore del giudice</h3>
         <p id="caut-disc"></p>
@@ -504,6 +508,6 @@
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=75"></script>
+<script src="../vc.js?v=76"></script>
 </body>
 </html>

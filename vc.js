@@ -509,17 +509,36 @@
         .style("stroke-linejoin", "round").style("stroke-linecap", "round");
     });
     // etichette dopo tutte le linee, così l'alone le stacca da ognuna
+    const ends = [], names = [];
     o.series.forEach((s) => {
       const idx = s.values.map((v, i) => (v != null ? i : -1)).filter((i) => i >= 0);
       if (!idx.length) return;
       const iL = idx[idx.length - 1], iA = s.at != null ? yrs.indexOf(s.at) : -1, iN = iA >= 0 && s.values[iA] != null ? iA : idx[0];
       svg.append("circle").attr("class", "mark rv-pop").attr("cx", x(yrs[iL])).attr("cy", y(s.values[iL])).attr("r", 4).style("fill", s.color).style("stroke", "var(--surface)").style("stroke-width", 2);
-      svg.append("text").attr("class", "lbl-strong halo mark rv-fade").attr("x", x(yrs[iL]) - 6).attr("y", y(s.values[iL]) + (s.dyEnd ?? -10)).attr("text-anchor", "end").text(fmt(s.values[iL]));
+      const ey = y(s.values[iL]) + (s.dyEnd ?? -10);
+      ends.push({ y: ey, t: svg.append("text").attr("class", "lbl-strong halo mark rv-fade").attr("x", x(yrs[iL]) - 6).attr("y", ey).attr("text-anchor", "end").text(fmt(s.values[iL])) });
       if (s.name && s.label !== false) {
-        svg.append("text").attr("class", "lbl halo mark rv-fade").attr("x", x(yrs[iN]) + (s.anchor === "middle" ? 0 : 4)).attr("y", y(s.values[iN]) + (s.dy ?? -10))
-          .attr("text-anchor", s.anchor || "start").style("fill", s.color).text(s.name);
+        const ly = y(s.values[iN]), dy = s.dy ?? -10;
+        names.push({ ly, dy, t: svg.append("text").attr("class", "lbl halo mark rv-fade").attr("x", x(yrs[iN]) + (s.anchor === "middle" ? 0 : 4)).attr("y", ly + dy)
+          .attr("text-anchor", s.anchor || "start").style("fill", s.color).text(s.name) });
       }
     });
+    // Valori finali vicini (55 e 61 in Processi) non si sovrappongono: dall'alto in basso, ognuno almeno 12px sotto il
+    // precedente, e se l'ultimo esce dal grafico si risale tutti insieme.
+    ends.sort((a, b) => a.y - b.y).forEach((e, i, a) => { if (i && e.y < a[i - 1].y + 12) e.y = a[i - 1].y + 12; });
+    const over = ends.length ? ends[ends.length - 1].y - (h - m.b - 2) : 0;
+    ends.forEach((e) => e.t.attr("y", over > 0 ? e.y - over : e.y));
+    // Il nome di una serie che copre la scritta Covid, un valore finale o il nome di una serie precedente passa dall'altra
+    // parte della sua linea («Corti d'appello» sotto la sua, in Processi, perché sopra c'è «Tribunali»).
+    const hit = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+    const fixed = svg.selectAll("text.lbl:not(.mark)").nodes().concat(ends.map((e) => e.t.node()));
+    try { // getBBox su un grafico non visibile (dentro un <details> chiuso) in Firefox lancia un errore: allora i nomi restano dove sono
+      names.forEach((n) => {
+        const me = n.t.node();
+        if (fixed.some((f) => hit(me.getBBox(), f.getBBox()))) n.t.attr("y", n.ly + (n.dy < 0 ? 16 : -10));
+        fixed.push(me);
+      });
+    } catch (e) { /* nulla */ }
     const guide = svg.append("line").attr("y1", m.t).attr("y2", h - m.b).style("stroke", "var(--rule)").style("display", "none");
     const dots = o.series.map((s) => svg.append("circle").attr("r", 4).style("fill", s.color).style("stroke", "var(--surface)").style("stroke-width", 2).style("display", "none"));
     const off = () => { guide.style("display", "none"); dots.forEach((d) => d.style("display", "none")); hideTip(); };
@@ -540,7 +559,13 @@
   // o.lines(r) dà le linee di un riquadro, la prima è la principale: sotto ha la sua area o, con o.gap, l'ombra fino alla seconda.
   function sparkGrid(host, rows, o) {
     const yrs = o.years, L = yrs.length - 1;
-    host.innerHTML = rows.map((r) => `<div class="sm"><span class="h">${o.head(r)}</span><svg aria-hidden="true"></svg><span class="x">${o.foot(r)}</span></div>`).join("");
+    // Righe piene: quante colonne entrano (riquadri larghi almeno --sm-min), poi, a parità di righe, i riquadri divisi il
+    // più possibile in parti uguali: 25 riquadri cinque per cinque invece di quattro righe da sei e una da uno. Si sceglie
+    // prima di disegnare, perché ogni grafico prende la larghezza del suo riquadro; al cambio di larghezza renderAll ridisegna.
+    const minW = parseFloat(getComputedStyle(host).getPropertyValue("--sm-min")) || 176;
+    const cmax = Math.max(1, Math.floor((host.clientWidth + 1) / (minW + 1)));
+    if (rows.length) host.style.gridTemplateColumns = `repeat(${Math.ceil(rows.length / Math.ceil(rows.length / cmax))}, minmax(0, 1fr))`;
+    host.innerHTML =rows.map((r) => `<div class="sm"><span class="h">${o.head(r)}</span><svg aria-hidden="true"></svg><span class="x">${o.foot(r)}</span></div>`).join("");
     const panels = host.querySelectorAll(".sm");
     if (!panels.length) return;
     const w = panels[0].querySelector("svg").getBoundingClientRect().width || 150, h = 64, pad = { t: 6, r: 6, b: 4, l: 2 };
@@ -2902,7 +2927,9 @@
         }
       });
       svg.append("rect").attr("class", "cont rv-fade").attr("x", g.x0).attr("y", g.y0).attr("width", g.x1 - g.x0).attr("height", g.y1 - g.y0);
-      if (g.x1 - g.x0 > 60) {
+      // la testata nera del continente solo se ci sta: un gruppo di poche persone (l'Oceania) è una striscia più bassa dei
+      // 18px della testata, che usciva sotto il riquadro come una barra nera senza nome
+      if (g.x1 - g.x0 > 60 && g.y1 - g.y0 >= 26) {
         svg.append("rect").attr("class", "hd rv-fade").attr("x", g.x0).attr("y", g.y0).attr("width", g.x1 - g.x0).attr("height", 18).style("fill", "var(--ink)");
         svg.append("text").attr("class", "cl rv-fade").attr("x", g.x0 + 6).attr("y", g.y0 + 13).text(`${g.data.name} ${nf1.format((100 * g.value) / total)}%`);
       }
@@ -2935,8 +2962,7 @@
     rows.forEach((r, i) => {
       const yy = m.t + i * rowH + rowH / 2;
       const short = OFF_SHORT[r.id] || r.name;
-      svg.append("text").attr("class", "lbl").attr("x", m.l - 10).attr("y", yy + 4).attr("text-anchor", "end").text(short.length * 6.2 > m.l - 14 ? short.slice(0, Math.floor((m.l - 20) / 6.2)) + "…" : short)
-        .append("title").text(r.name);
+      rowLabel(svg, short, m.l - 10, yy, Math.floor((m.l - 20) / 6.2), "lbl").append("title").text(r.name);
       svg.append("line").attr("class", "rv-grow").style("--i", i).style("--t0", "0.15s").style("transform-origin", r.it <= r.str ? "0 50%" : "100% 50%")
         .attr("x1", x(r.it)).attr("x2", x(r.str)).attr("y1", yy).attr("y2", yy).style("stroke", "var(--rule)").style("stroke-width", 3);
       svg.append("circle").attr("class", "rv-pop").style("--i", i).attr("cx", x(r.it)).attr("cy", yy).attr("r", 5.5).style("fill", "var(--ink)").style("stroke", "var(--surface)").style("stroke-width", 1.5);
@@ -3278,6 +3304,22 @@
 
   // Due anni a confronto, una riga per voce: il pallino vuoto è il primo anno, quello pieno l'ultimo, la riga li unisce.
   // rows = [{ name, a, b, tip }], già nell'ordine voluto; o = { label, unit, keys: [primo, ultimo], fmt, max }.
+  // L'etichetta di una riga, allineata a destra in x: un nome più lungo di room caratteri va a capo su due righe, divise
+  // a una parola, invece di finire coi puntini («Contro l'amministrazione della giustizia»); le due righe stanno nei 26px della riga.
+  function rowLabel(svg, name, x, yy, room, cls) {
+    const t = svg.append("text").attr("class", cls).attr("x", x).attr("y", yy + 4).attr("text-anchor", "end");
+    if (name.length <= room) return t.text(name);
+    const words = name.split(" ");
+    let k = 1;
+    while (k < words.length - 1 && words.slice(0, k + 1).join(" ").length <= room) k++;
+    const l1 = words.slice(0, k).join(" "), l2 = words.slice(k).join(" ");
+    if (!l2) return t.text(name.slice(0, room - 1) + "…");
+    t.attr("y", yy - 2);
+    t.append("tspan").attr("x", x).text(l1.length > room ? l1.slice(0, room - 1) + "…" : l1);
+    t.append("tspan").attr("x", x).attr("dy", 12).text(l2.length > room ? l2.slice(0, room - 1) + "…" : l2);
+    return t;
+  }
+
   function dumbbell(el, rows, o) {
     const fmt = o.fmt || ((v) => nf1.format(v));
     const w = Math.max(300, el.clientWidth), rowH = 26, m = { t: 30, r: 44, b: 10, l: Math.min(210, Math.round(w * 0.42)) }, h = m.t + rows.length * rowH + m.b;
@@ -3291,9 +3333,8 @@
     xa.selectAll(".tick line").style("stroke", "var(--grid)");
     svg.append("text").attr("class", "lbl").attr("x", m.l - 10).attr("y", 10).attr("text-anchor", "end").text(o.unit);
     rows.forEach((r, i) => {
-      const yy = m.t + i * rowH + rowH / 2, room = Math.floor((m.l - 20) / 6.2);
-      svg.append("text").attr("class", r.strong ? "lbl-strong" : "lbl").attr("x", m.l - 10).attr("y", yy + 4).attr("text-anchor", "end")
-        .text(r.name.length > room ? r.name.slice(0, room - 1) + "…" : r.name).append("title").text(r.name);
+      const yy = m.t + i * rowH + rowH / 2;
+      rowLabel(svg, r.name, m.l - 10, yy, Math.floor((m.l - 20) / 6.2), r.strong ? "lbl-strong" : "lbl").append("title").text(r.name);
       if (r.a != null && r.b != null) {
         svg.append("line").attr("class", "rv-grow").style("--i", i).style("--t0", "0.15s").style("transform-origin", r.a <= r.b ? "0 50%" : "100% 50%")
           .attr("x1", x(r.a)).attr("x2", x(r.b)).attr("y1", yy).attr("y2", yy).style("stroke", "var(--rule)").style("stroke-width", 3);
@@ -3338,10 +3379,14 @@
   // o = { by, label, legend, fmt, sqrt }: con sqrt i colori seguono la radice, quando un valore stacca molto gli altri
   function provMap(el, legend, vals, o) {
     const { obj, groups, land } = provShapes(o.by);
-    const w = Math.max(260, el.clientWidth), h = Math.round(w * 1.18);
+    // Alta al massimo 680px, così la carta sta in uno schermo accanto alla sua classifica. L'Italia è più alta che larga:
+    // la carta prende l'altezza e il riquadro si stringe sulla sua larghezza, allineato a sinistra con la legenda (vc.css .pfit).
+    // Sul telefono, dove sta da sola nella colonna, è più alta, così prende tutta la larghezza.
+    const w = Math.max(260, el.clientWidth), h = Math.round(Math.min(w * (w < 480 ? 1.4 : 1.18), 680));
     const proj = d3.geoConicConformal().parallels([38, 46]).rotate([-12.5, 0]).fitExtent([[6, 6], [w - 6, h - 6]], land);
     const path = d3.geoPath(proj);
-    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h)
+    const [[bx0], [bx1]] = path.bounds(land), vx = Math.max(0, Math.floor(bx0 - 6)), vw = Math.min(w - vx, Math.ceil(bx1 + 6) - vx);
+    const svg = d3.select(el).selectAll("svg").data([0]).join("svg").attr("class", "pfit").attr("viewBox", `${vx} 0 ${vw} ${h}`).attr("width", vw).attr("height", h)
       .attr("role", "img").attr("aria-label", o.label);
     svg.selectAll("*").remove();
     const vs = [...vals.values()].map((d) => d.v).filter((v) => v != null);
@@ -4379,9 +4424,11 @@
     seriesChart($("#es-sorv"), {
       years: Ys, xTicks: Ys, label: EN ? `Alternatives to prison granted and revoked, ${Ys[0]}–${Ys[iL]}` : `Misure alternative concesse e revocate, ${Ys[0]}–${Ys[iL]}`, height: 230, yMin: 0,
       series: [
-        { name: L("affidamenti concessi", "probation granted"), values: c.affidamento, color: "var(--fall)", width: 2.5, at: Ys[0], dy: -10 },
-        { name: L("domiciliari concessi", "home detention granted"), values: c.domiciliare, color: "var(--ink-2)", at: Ys[0], dy: -10 },
-        { name: L("revoche", "revoked"), values: totR, color: "var(--rise)", at: Ys[0], dy: 16, dyEnd: 16 },
+        // i nomi dove le linee sono piane, non sul primo anno: lì gli affidamenti salgono ripidi e il nome ci finiva sopra,
+        // e «revoche» sotto la sua linea toccava l'asse
+        { name: L("affidamenti concessi", "probation granted"), values: c.affidamento, color: "var(--fall)", width: 2.5, at: Ys[Math.floor(iL * 0.6)], dy: -10 },
+        { name: L("domiciliari concessi", "home detention granted"), values: c.domiciliare, color: "var(--ink-2)", at: Ys[Math.floor(iL * 0.4)], dy: -10 },
+        { name: L("revoche", "revoked"), values: totR, color: "var(--rise)", at: Ys[Math.floor(iL * 0.4)], dy: -10, dyEnd: 16 },
       ],
       tip: (i) => `<b>${Ys[i]}</b><br>${EN ? `${nf0.format(totC[i])} granted: ${nf0.format(c.affidamento[i])} probation, ${nf0.format(c.domiciliare[i])} home detention, ${nf0.format(c.semiliberta[i])} semi-liberty<br>${nf0.format(totR[i])} revoked<br>${nf0.format(c.espulsione[i])} expulsions as an alternative sanction` : `${nf0.format(totC[i])} concesse: ${nf0.format(c.affidamento[i])} affidamenti, ${nf0.format(c.domiciliare[i])} domiciliari, ${nf0.format(c.semiliberta[i])} semilibertà<br>${nf0.format(totR[i])} revocate<br>${nf0.format(c.espulsione[i])} espulsioni come sanzione alternativa`}`,
     });
