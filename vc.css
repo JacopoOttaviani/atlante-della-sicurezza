@@ -763,7 +763,8 @@ footer.colophon .wrap { display: flex; flex-wrap: wrap; align-items: center; jus
 footer.colophon .credit { display: flex; flex-direction: column; gap: 10px; }
 footer.colophon .made { margin: 0; font-size: var(--step-0); color: var(--ink-2); }
 footer.colophon .made a { color: var(--ink); font-weight: 700; text-decoration-color: var(--rule); }
-footer.colophon .heart { color: var(--rise); }
+/* la moka di jacopoottaviani.com, nell'oro dell'atlante come quella grande del progetto, alla misura del testo */
+footer.colophon .moka { display: inline-block; width: auto; height: 1.2em; vertical-align: -0.22em; margin-inline: 0.05em; fill: var(--gold); }
 .cta { display: flex; flex-wrap: wrap; gap: 8px; }
 .cta a {
   display: inline-flex; align-items: center; gap: 7px;
