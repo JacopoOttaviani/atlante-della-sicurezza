@@ -207,6 +207,10 @@ HEAD_LINKS = "\n".join(
 )
 if "vc.css" not in HEAD_LINKS or "vc.js" not in SCRIPTS:
     raise SystemExit("approfondimenti/index.html: non trovo vc.css o vc.js")
+# Google Analytics 4 (proprietà «Atlante della Sicurezza»): il blocco che nelle pagine scritte a mano viene subito dopo
+# <meta charset> va, uguale, in testa alle pagine generate: le città, la classifica e la pagina 404
+GTAG = grab(r'<!-- Google tag \(gtag\.js\) -->\n<script async src="https://www\.googletagmanager\.com/gtag/js\?id=G-[A-Z0-9]+"></script>\n'
+            r'<script>[^<]*</script>')
 
 PERSON_REF = {"@type": "Person", "@id": SITE + "progetto/#autore", "name": "Jacopo Ottaviani", "url": "https://jacopoottaviani.com/"}
 WEBSITE_REF = {"@type": "WebSite", "@id": SITE + "#website", "name": "Atlante della Sicurezza", "url": SITE}
@@ -231,6 +235,7 @@ def head(title, description, url, ld):
 <html lang="it">
 <head>
 <meta charset="utf-8">
+{GTAG}
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
@@ -687,19 +692,22 @@ def deep_pages():
 # lastmod confronta ogni commit col precedente: finché la storia di git lo contiene, il pattern deve restare qui,
 # altrimenti il commit che lo ha tolto conterebbe come modifica di contenuto e daterebbe tutte le pagine a oggi.
 # L'ultima alternativa è la riga che il 24 ottobre 2026, per un paio di versioni da 054427f, stava in testa a ogni pagina
-# per disegnare il logo una volta per visita: le pagine non l'hanno più, ma la storia di git sì
+# per disegnare il logo una volta per visita: le pagine non l'hanno più, ma la storia di git sì.
+# Non conta nemmeno il blocco di Google Analytics in testa, arrivato l'8 novembre 2026 in tutte le pagine insieme
 CHROME = re.compile(r'<header class="masthead">.*?</header>|<footer class="colophon">.*?</footer>|\s*<a class="wa".*?</a>|'
-                    r'\s*<script>[^<]*logo-draw[^<]*</script>', re.S)
+                    r'\s*<script>[^<]*logo-draw[^<]*</script>|'
+                    r'\s*<!-- Google tag \(gtag\.js\) -->\s*<script async src="https://www\.googletagmanager\.com/gtag/js[^"]*"></script>'
+                    r'\s*<script>[^<]*</script>', re.S)
 
 
 def lastmod(rel):
     """Data dell'ultimo commit che ha cambiato il contenuto del file; oggi se il file è nuovo o modificato e non ancora
-    salvato. Non contano i ?v= di vc.css e vc.js, la testata, il piè di pagina, il pulsante di WhatsApp e la vecchia riga
-    del logo in testa: cambiano tutte le pagine insieme, e un logo in più tra le fonti non vuol dire che un
-    approfondimento sia stato aggiornato. Non contano nemmeno i <div> e gli a capo: sono l'impaginazione, e una nota
-    spostata in un'altra colonna, con le stesse parole nello stesso ordine, non è un aggiornamento. Tutto il resto conta,
-    testo e attributi (un placeholder, una didascalia, un alt). Il 6 novembre 2026, con questa regola, le date di tutte
-    le 133 pagine nella storia di git restavano quelle di prima."""
+    salvato. Non contano i ?v= di vc.css e vc.js, la testata, il piè di pagina, il pulsante di WhatsApp, la vecchia riga
+    del logo e il blocco di Google Analytics in testa: cambiano tutte le pagine insieme, e un logo in più tra le fonti
+    non vuol dire che un approfondimento sia stato aggiornato. Non contano nemmeno i <div> e gli a capo: sono
+    l'impaginazione, e una nota spostata in un'altra colonna, con le stesse parole nello stesso ordine, non è un
+    aggiornamento. Tutto il resto conta, testo e attributi (un placeholder, una didascalia, un alt). Il 6 novembre 2026,
+    con questa regola, le date di tutte le 133 pagine nella storia di git restavano quelle di prima."""
     git = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout  # noqa: E731
     body = lambda t: re.sub(r"\s+", " ", re.sub(r"</?div\b[^>]*>", " ", CHROME.sub("", re.sub(r"\?v=\d+", "", t)))).strip()  # noqa: E731
     try:
@@ -1125,6 +1133,7 @@ def not_found_page():
 <html lang="it">
 <head>
 <meta charset="utf-8">
+{GTAG}
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pagina non trovata · Atlante della Sicurezza</title>
 <meta name="robots" content="noindex">
