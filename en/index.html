@@ -42,7 +42,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
-<link rel="stylesheet" href="../vc.css?v=76">
+<link rel="stylesheet" href="../vc.css?v=77">
 <!-- Dati strutturati (schema.org) per i motori di ricerca e gli assistenti AI. -->
 <script type="application/ld+json">
 {
@@ -222,20 +222,20 @@
             <span><i class="k-gold"></i>gold: spike, a sudden increase</span>
           </div>
         </div>
-        <!-- Tre grafici su una striscia, uno per ogni pezzo del titolo: l'Italia nel tempo, le città (non ovunque),
-             i reati (non tutti). Avanza da sola ogni otto secondi, si ferma con il mouse sopra; frecce, punti e dito
+        <!-- Tre grafici su una striscia: per prima la carta dei capoluoghi (non ovunque), poi l'Italia nel tempo
+             e i reati (non tutti). Avanza da sola ogni otto secondi, si ferma con il mouse sopra; frecce, punti e dito
              per sfogliare. Titoli e grafici li riempie vc.js: sempre tutti i delitti, confrontati con il 2019. -->
         <div class="national hero-car" id="national">
           <div class="car-head">
             <div class="car-meta on" data-k="0">
-              <div class="kicker">Italy, 2006–2024</div>
-              <h3 id="national-title">…</h3>
-              <p class="sub" id="national-sub">Reported crimes per 100,000 residents</p>
-            </div>
-            <div class="car-meta" data-k="1">
               <div class="kicker" id="cities-kicker">Not everywhere · the cities</div>
               <h3 id="cities-title">…</h3>
               <p class="sub" id="cities-sub"></p>
+            </div>
+            <div class="car-meta" data-k="1">
+              <div class="kicker">Italy, 2006–2024</div>
+              <h3 id="national-title">…</h3>
+              <p class="sub" id="national-sub">Reported crimes per 100,000 residents</p>
             </div>
             <div class="car-meta" data-k="2">
               <div class="kicker" id="types-kicker">Not all of them · the crimes</div>
@@ -245,16 +245,16 @@
           </div>
           <div class="car-strip">
             <div class="car-track">
-              <div class="car-panel" data-k="0" role="group" aria-roledescription="chart" aria-label="Over time"><div class="chart" id="national-chart"></div></div>
-              <div class="car-panel" data-k="1" role="group" aria-roledescription="chart" aria-label="In the cities" aria-hidden="true"><div class="chart" id="cities-chart"></div></div>
+              <div class="car-panel" data-k="0" role="group" aria-roledescription="chart" aria-label="In the cities"><div class="chart" id="cities-chart"></div></div>
+              <div class="car-panel" data-k="1" role="group" aria-roledescription="chart" aria-label="Over time" aria-hidden="true"><div class="chart" id="national-chart"></div></div>
               <div class="car-panel" data-k="2" role="group" aria-roledescription="chart" aria-label="By crime" aria-hidden="true"><div class="chart" id="types-chart"></div></div>
             </div>
           </div>
           <div class="car-nav">
             <button type="button" class="arr" data-dir="-1" aria-label="Previous chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
             <div class="car-dots" role="tablist" aria-label="Three charts">
-              <button type="button" role="tab" aria-selected="true" aria-label="Over time" data-k="0"></button>
-              <button type="button" role="tab" aria-selected="false" aria-label="In the cities" data-k="1"></button>
+              <button type="button" role="tab" aria-selected="true" aria-label="In the cities" data-k="0"></button>
+              <button type="button" role="tab" aria-selected="false" aria-label="Over time" data-k="1"></button>
               <button type="button" role="tab" aria-selected="false" aria-label="By crime" data-k="2"></button>
             </div>
             <button type="button" class="arr" data-dir="1" aria-label="Next chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
@@ -536,6 +536,6 @@
 <!-- /vc:content -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="../vc.js?v=76"></script>
+<script src="../vc.js?v=77"></script>
 </body>
 </html>

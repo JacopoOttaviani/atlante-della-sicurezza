@@ -384,9 +384,15 @@
     xa.select(".domain").style("stroke", "var(--rule)");
     const pts = o.years.map((yr, i) => [yr, o.values[i]]).filter((d) => d[1] != null);
     const line = d3.line().x((d) => x(d[0])).y((d) => y(d[1]));
+    // l'area sotto la linea, sfumata: piena sotto il punto più alto, quasi trasparente sull'asse
     if (o.area) {
       const area = d3.area().x((d) => x(d[0])).y0(y.range()[0]).y1((d) => y(d[1]));
-      svg.append("path").attr("class", "area rv-fade").attr("d", area(pts)).style("fill", o.color || "var(--ink)").style("fill-opacity", 0.08);
+      const gid = `area-${el.id || "lc"}`, top = d3.min(pts, (d) => y(d[1]));
+      const grad = svg.append("defs").append("linearGradient").attr("id", gid).attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0).attr("x2", 0).attr("y1", top).attr("y2", y.range()[0]);
+      grad.append("stop").attr("offset", 0).style("stop-color", o.color || "var(--ink)").style("stop-opacity", 0.2);
+      grad.append("stop").attr("offset", 1).style("stop-color", o.color || "var(--ink)").style("stop-opacity", 0.03);
+      svg.append("path").attr("class", "area rv-fade").attr("d", area(pts)).style("fill", `url(#${gid})`);
     }
     svg.append("path").attr("class", "rv-draw").attr("pathLength", 1).attr("d", line(pts)).style("fill", "none").style("stroke", o.color || "var(--ink)").style("stroke-width", 2).style("stroke-linejoin", "round").style("stroke-linecap", "round");
     (o.marks || []).forEach((mk) => {
@@ -909,7 +915,7 @@
     lineChart(el, {
       label: EN ? `${m.label} per 100,000 residents in Italy, ${Y[0]}–${Y[LAST]}: ${fmtRate(it[0])} in ${Y[0]}, ${fmtRate(it[iB])} in ${REF}, ${fmtRate(it[LAST])} in ${Y[LAST]}` : `${m.label} ogni 100.000 abitanti in Italia, ${Y[0]}–${Y[LAST]}: ${fmtRate(it[0])} nel ${Y[0]}, ${fmtRate(it[iB])} nel ${REF}, ${fmtRate(it[LAST])} nel ${Y[LAST]}`,
       years: Y, values: it, xDomain: [Y[0], Y[LAST]], xTicks: [2006, 2010, 2015, 2020, 2024],
-      yMin: 0, yMax: d3.max(it) * 1.08, covid: true, height: h, mr: 18,
+      yMin: 0, yMax: d3.max(it) * 1.08, covid: true, area: true, height: h, mr: 18,
       marks: [
         { year: REF, text: fmtRate(it[iB]), hollow: true, dy: REF >= Y[LAST] - 2 ? 20 : -10 },
         { year: Y[LAST], text: fmtRate(it[LAST]), strong: true, anchor: "end", dx: 0, dy: -12 },
@@ -922,9 +928,9 @@
 
   // ------------------------------------------------------------------ apertura: le città e i reati sulla striscia
 
-  // Il riquadro a destra dell'apertura fa scorrere tre grafici, uno per ogni pezzo del titolo: l'Italia nel tempo
-  // (renderNational), le città (guglie come nella mappa, con i movimenti più netti accanto) e i reati (quali
-  // salgono e quali calano). Mostrano sempre tutti i delitti confrontati con il 2019: i comandi delle sezioni sotto non li toccano.
+  // Il riquadro a destra dell'apertura fa scorrere tre grafici: per prima la carta delle città (guglie come nella
+  // mappa, con i movimenti più netti accanto), poi l'Italia nel tempo (renderNational, un'area sfumata) e i reati
+  // (quali salgono e quali calano). Mostrano sempre tutti i delitti confrontati con il 2019: i comandi delle sezioni sotto non li toccano.
   function renderHeroCities() {
     const el = $("#cities-chart");
     if (!el) return;
@@ -1057,7 +1063,7 @@
     svg.append("text").attr("class", "lbl halo").attr("x", x(totCh) + 4).attr("y", m.t - 10).text(EN ? `all crimes ${fmtPct(totCh)}` : `tutti i delitti ${fmtPct(totCh)}`);
     svg.append("line").attr("class", "zero").attr("x1", zero).attr("x2", zero).attr("y1", m.t - 4).attr("y2", h - m.b);
     rows.forEach((d, k) => {
-      const cy = m.t + rowH * (k + 0.5), bh = Math.min(18, rowH * 0.62), up = d.ch >= 0;
+      const cy = m.t + rowH * (k + 0.5), bh = Math.min(30, rowH * 0.78), up = d.ch >= 0;
       const x0 = Math.min(x(0), x(d.ch)), x1 = Math.max(x(0), x(d.ch));
       const color = d.s === "flat" ? "var(--mid)" : up ? "var(--rise)" : "var(--fall)";
       const g = svg.append("g").style("--i", k);
@@ -1110,7 +1116,8 @@
       next.after(pb);
     }
     dots.forEach((b) => b.addEventListener("click", () => show(+b.dataset.k)));
-    box.querySelectorAll(".car-nav .arr").forEach((b) => b.addEventListener("click", () => show(i + +b.dataset.dir)));
+    // solo le frecce: il tasto di pausa ha la stessa classe ma nessuna direzione, e show(NaN) spegnerebbe tutti i titoli
+    box.querySelectorAll(".car-nav .arr[data-dir]").forEach((b) => b.addEventListener("click", () => show(i + +b.dataset.dir)));
     box.addEventListener("keydown", (ev) => {
       if (ev.target.matches("input, select, textarea")) return;
       if (ev.key === "ArrowRight") { show(i + 1); ev.preventDefault(); }
