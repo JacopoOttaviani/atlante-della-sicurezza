@@ -299,7 +299,7 @@ button, select, input { font: inherit; color: inherit; }
   text-wrap: balance;
   color: #eef0ec;
 }
-.vhead h2 em { font-style: italic; color: #e3b23c; }
+.vhead h2 em { font-style: normal; color: #e3b23c; }
 .vh-pause {
   width: 38px;
   height: 38px;
